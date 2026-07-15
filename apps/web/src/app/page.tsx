@@ -1,200 +1,206 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
-import {
-  ReactFlow,
-  MiniMap,
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Connection,
-  Edge,
-  Node,
-  BackgroundVariant
-} from '@xyflow/react';
+import { ReactFlow, Background, Controls, Edge, Node, addEdge, applyNodeChanges, applyEdgeChanges, Connection, NodeChange, EdgeChange } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Play, Settings2, ShieldCheck, Activity, Video, Smartphone, Globe } from 'lucide-react';
+import { io } from 'socket.io-client';
+import WorkflowNode from '../components/WorkflowNode';
+import { Play, SquareActivity, Server } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const nodeTypes = {
+  workflowNode: WorkflowNode,
+};
 
 const initialNodes: Node[] = [
   {
-    id: 'source',
-    type: 'input',
-    position: { x: 50, y: 150 },
-    data: { label: '▶ Source Video (YouTube)' },
-    style: { borderColor: '#6366f1' }
+    id: '1',
+    type: 'workflowNode',
+    position: { x: 250, y: 50 },
+    data: { label: 'Tệp Video Nguồn', status: 'waiting', progress: 0 },
   },
   {
-    id: 'ffmpeg',
-    position: { x: 320, y: 150 },
-    data: { label: '⚙ FFmpeg Decimation\n& Metadata Stripping' },
-    style: { borderColor: '#10b981' }
+    id: '2',
+    type: 'workflowNode',
+    position: { x: 250, y: 200 },
+    data: { label: 'Xử lý FFmpeg (MD5/Metadata)', status: 'waiting', progress: 0 },
   },
   {
-    id: 'browser',
-    position: { x: 620, y: 150 },
-    data: { label: '🛡 Anti-detect Browser\n(SOCKS5 + WebRTC Block)' },
-    style: { borderColor: '#ef4444' }
+    id: '3',
+    type: 'workflowNode',
+    position: { x: 250, y: 350 },
+    data: { label: 'Puppeteer Anti-detect', status: 'waiting', progress: 0 },
   },
   {
-    id: 'tiktok',
-    type: 'output',
-    position: { x: 920, y: 150 },
-    data: { label: '📱 TikTok Europe' },
-    style: { borderColor: '#8b92a5' }
-  },
+    id: '4',
+    type: 'workflowNode',
+    position: { x: 250, y: 500 },
+    data: { label: 'TikTok Server', status: 'waiting', progress: 0 },
+  }
 ];
 
 const initialEdges: Edge[] = [
-  { id: 'e1-2', source: 'source', target: 'ffmpeg', animated: false },
-  { id: 'e2-3', source: 'ffmpeg', target: 'browser', animated: false },
-  { id: 'e3-4', source: 'browser', target: 'tiktok', animated: false },
+  { id: 'e1-2', source: '1', target: '2', animated: false, style: { stroke: '#475569', strokeWidth: 2 } },
+  { id: 'e2-3', source: '2', target: '3', animated: false, style: { stroke: '#475569', strokeWidth: 2 } },
+  { id: 'e3-4', source: '3', target: '4', animated: false, style: { stroke: '#475569', strokeWidth: 2 } },
 ];
 
-export default function EiguDashboard() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [status, setStatus] = useState<string>('System Idle');
-  const [progress, setProgress] = useState<number>(0);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
+export default function Dashboard() {
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
+  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [systemStatus, setSystemStatus] = useState('Idle');
+  const [isConnected, setIsConnected] = useState(false);
+
+  const onNodesChange = useCallback((changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
+  const onEdgesChange = useCallback((changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
+  const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), []);
 
   useEffect(() => {
-    // Kết nối đến API (NestJS Gateway) - Đảm bảo NestJS đang chạy ở cổng 3001
-    const newSocket = io('http://localhost:3001/workflow');
-    
-    newSocket.on('connect', () => {
-      console.log('Connected to Workflow Gateway');
+    // Kết nối WebSocket tới NestJS API
+    const socket = io('http://localhost:3001/workflow', {
+      transports: ['websocket']
     });
 
-    newSocket.on('workflowUpdated', (data: any) => {
-      setStatus(data.message || data.status);
-      setProgress(data.progress);
+    socket.on('connect', () => {
+      setIsConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    socket.on('workflowUpdated', (data: any) => {
+      setSystemStatus(data.message || data.status);
       
-      // Update hiệu ứng Animation trên luồng kết nối Node
-      setEdges((eds) => eds.map(edge => {
-        if (data.progress > 0 && data.progress < 40 && edge.id === 'e1-2') return { ...edge, animated: true };
-        if (data.progress >= 40 && data.progress < 90 && edge.id === 'e2-3') return { ...edge, animated: true };
-        if (data.progress >= 90 && edge.id === 'e3-4') return { ...edge, animated: true };
-        return { ...edge, animated: false };
-      }));
-    });
+      setNodes((nds) =>
+        nds.map((node) => {
+          // Xử lý hiệu ứng FFmpeg
+          if (node.id === '2' && data.status === 'processing' && data.progress < 100) {
+            return { ...node, data: { ...node.data, status: 'processing', progress: data.progress } };
+          }
+          if (node.id === '2' && data.status === 'processing' && data.progress === 100) {
+            return { ...node, data: { ...node.data, status: 'completed', progress: 100 } };
+          }
+          
+          // Xử lý hiệu ứng Upload
+          if (node.id === '3' && data.status === 'uploading') {
+            return { ...node, data: { ...node.data, status: 'processing', progress: data.progress } };
+          }
+          if (node.id === '3' && data.status === 'completed') {
+            return { ...node, data: { ...node.data, status: 'completed', progress: 100 } };
+          }
 
-    setSocket(newSocket);
+          if (node.id === '4' && data.status === 'completed') {
+            return { ...node, data: { ...node.data, status: 'completed', progress: 100 } };
+          }
+
+          if (node.id === '1' && data.status === 'processing') {
+            return { ...node, data: { ...node.data, status: 'completed', progress: 100 } };
+          }
+
+          return node;
+        })
+      );
+
+      setEdges((eds) =>
+        eds.map((edge) => {
+          if (edge.id === 'e1-2' && data.status === 'processing') {
+            return { ...edge, animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 } };
+          }
+          if (edge.id === 'e2-3' && data.status === 'uploading') {
+            return { ...edge, animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 } };
+          }
+          if (edge.id === 'e3-4' && data.status === 'completed') {
+            return { ...edge, animated: true, style: { stroke: '#10b981', strokeWidth: 2 } };
+          }
+          return edge;
+        })
+      );
+    });
 
     return () => {
-      newSocket.close();
+      socket.disconnect();
     };
   }, []);
 
-  const onConnect = useCallback(
-    (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
-
-  const startWorkflow = () => {
-    setIsRunning(true);
-    setStatus('Initializing Engine...');
-    setProgress(5);
-    setEdges((eds) => eds.map(e => e.id === 'e1-2' ? { ...e, animated: true } : e));
-    
-    // Bản DEMO UI (Trong thực tế, bạn sẽ gửi REST POST request đến /api/workflow để kích hoạt thật)
-    setTimeout(() => {
-      setProgress(40);
-      setStatus('FFmpeg: Stripping Metadata & Decimating Frames...');
-      setEdges((eds) => eds.map(e => e.id === 'e2-3' ? { ...e, animated: true } : { ...e, animated: false }));
-    }, 2000);
-    
-    setTimeout(() => {
-      setProgress(85);
-      setStatus('Anti-detect: Executing Human Bézier Mouse Curves...');
-      setEdges((eds) => eds.map(e => e.id === 'e3-4' ? { ...e, animated: true } : { ...e, animated: false }));
-    }, 5500);
-    
-    setTimeout(() => {
-      setProgress(100);
-      setStatus('Upload Completed Successfully!');
-      setIsRunning(false);
-      setEdges((eds) => eds.map(e => ({ ...e, animated: false })));
-    }, 9000);
+  const handleRunMock = async () => {
+    // Có thể gọi API POST để trigger Desktop Worker ở đây
+    alert('Vui lòng chạy lệnh: npx nx serve desktop để Worker nhận lệnh!');
   };
 
   return (
-    <div className="eigu-dashboard">
-      <div className="eigu-sidebar">
-        <div>
-          <h1 className="eigu-title">EIGU Platform</h1>
-          <div className="eigu-subtitle">MMO Automation Engine v1.0</div>
-        </div>
-        
-        <div className="eigu-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <Settings2 size={18} color="#6366f1" />
-            <h3 style={{ margin: 0, fontSize: '15px', color: '#fff' }}>Configuration Profile</h3>
+    <div style={{ height: '100vh', width: '100vw', backgroundColor: '#020617', display: 'flex' }}>
+      {/* Sidebar */}
+      <div style={{ width: '300px', backgroundColor: '#0f172a', borderRight: '1px solid #1e293b', padding: '24px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
+          <div style={{ padding: '8px', backgroundColor: '#3b82f6', borderRadius: '8px' }}>
+            <Server size={24} color="white" />
           </div>
-          
-          <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Globe size={14}/> Node IP:</span> 
-              <span style={{ color: '#fff', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px' }}>SOCKS5 (EU)</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><ShieldCheck size={14}/> WebRTC:</span> 
-              <span style={{ color: '#10b981', fontWeight: 600 }}>Blocked UDP</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Video size={14}/> Fingerprint:</span> 
-              <span style={{ color: '#ef4444' }}>FFmpeg Stripped</span>
-            </div>
-          </div>
-          
-          <button 
-            className="eigu-btn" 
-            onClick={startWorkflow}
-            disabled={isRunning}
-          >
-            {isRunning ? <Activity size={18} className="spin" /> : <Play size={18} fill="currentColor" />}
-            {isRunning ? 'Processing Pipeline...' : 'Deploy Workflow'}
-          </button>
+          <h1 style={{ color: 'white', fontSize: '20px', fontWeight: 'bold', margin: 0 }}>EIGU Platform</h1>
         </div>
 
-        <div className="eigu-card" style={{ marginTop: 'auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <Activity size={18} color={progress === 100 ? '#10b981' : '#6366f1'} />
-            <h3 style={{ margin: 0, fontSize: '15px', color: '#fff' }}>Live Telemetry</h3>
-          </div>
-          
-          <div style={{ fontSize: '13px', color: '#e2e8f0', fontWeight: 500, minHeight: '36px' }}>
-            {status}
-          </div>
-          
-          <div className="eigu-progress-container">
-            <div 
-              className="eigu-progress-bar" 
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'right' }}>
-            {progress}% Completed
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '600', marginBottom: '8px', letterSpacing: '1px' }}>SYSTEM STATUS</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#1e293b', padding: '16px', borderRadius: '8px' }}>
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: isConnected ? '#10b981' : '#ef4444', boxShadow: isConnected ? '0 0 10px #10b981' : '0 0 10px #ef4444' }} />
+            <span style={{ color: 'white', fontSize: '14px', fontWeight: '500' }}>
+              {isConnected ? 'API Gateway Connected' : 'Disconnected'}
+            </span>
           </div>
         </div>
+
+        <div style={{ flex: 1 }}>
+          <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '600', marginBottom: '8px', letterSpacing: '1px' }}>LATEST ACTIVITY</div>
+          <motion.div 
+            key={systemStatus}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ color: '#60a5fa', fontSize: '14px', lineHeight: '1.5', padding: '12px', backgroundColor: '#1e3a8a20', borderRadius: '8px', borderLeft: '3px solid #3b82f6' }}
+          >
+            {systemStatus}
+          </motion.div>
+        </div>
+
+        <button 
+          onClick={handleRunMock}
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            gap: '8px', 
+            width: '100%', 
+            padding: '14px', 
+            backgroundColor: '#3b82f6', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '8px', 
+            fontSize: '15px', 
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+        >
+          <Play size={18} />
+          <span>Launch Worker</span>
+        </button>
       </div>
-      
-      <div className="eigu-flow-container">
+
+      {/* Main Flow Area */}
+      <div style={{ flex: 1, position: 'relative' }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          nodeTypes={nodeTypes}
           fitView
-          proOptions={{ hideAttribution: true }}
+          className="bg-slate-950"
         >
-          <Background variant={BackgroundVariant.Dots} color="rgba(255,255,255,0.1)" gap={24} size={2} />
-          <Controls style={{ backgroundColor: 'var(--bg-color-secondary)', border: '1px solid var(--glass-border)' }} />
+          <Background color="#1e293b" gap={16} size={1} />
+          <Controls style={{ backgroundColor: '#1e293b', fill: 'white' }} />
         </ReactFlow>
       </div>
     </div>

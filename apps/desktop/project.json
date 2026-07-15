@@ -62,21 +62,10 @@
       "executor": "nx:noop"
     },
     "serve": {
-      "continuous": true,
-      "executor": "@nx/js:node",
-      "defaultConfiguration": "development",
+      "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
-        "buildTarget": "desktop:build",
-        "runBuildTargetDependencies": false
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "desktop:build:development"
-        },
-        "production": {
-          "buildTarget": "desktop:build:production"
-        }
+        "command": "npx electron dist/apps/desktop/main.js"
       }
     }
   },

@@ -43,13 +43,115 @@
 </head>
 <body>
   <div class="logo">EIGU Anti-detect Engine</div>
-  <p>Hệ thống đang chạy ngầm dưới quyền Desktop Client.</p>
+  <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">Kéo thả Video hoặc dán link YouTube để bắt đầu tự động hóa.</p>
   
-  <div class="status">
+  <div id="drop-zone" style="border: 2px dashed #334155; border-radius: 12px; padding: 40px 20px; background: #0d0f14; cursor: pointer; transition: all 0.3s; margin-bottom: 16px;">
+    <div style="font-size: 32px; margin-bottom: 12px;">📁</div>
+    <div style="font-weight: 500;">Kéo thả file .mp4 vào đây</div>
+    <div style="font-size: 12px; color: #64748b; margin-top: 8px;">hoặc bấm để chọn file</div>
+    <input type="file" id="file-input" accept=".mp4" style="display: none;" />
+  </div>
+
+  <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+    <input type="text" id="youtube-input" placeholder="Hoặc dán link YouTube (VD: https://youtu.be/...)" style="flex: 1; padding: 12px 16px; border-radius: 8px; border: 1px solid #334155; background: #0d0f14; color: white; outline: none; font-size: 14px;" />
+    <button id="start-btn" style="padding: 0 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;">Xử lý ngay</button>
+  </div>
+
+  <div class="status" id="status-container" style="display: none;">
     <div style="display: flex; align-items: center; justify-content: center;">
-      <div class="pulse"></div>
-      <span id="status-text">Đang kết nối tới API Gateway...</span>
+      <div class="pulse" id="status-pulse"></div>
+      <span id="status-text">Đang khởi tạo luồng...</span>
     </div>
   </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const youtubeInput = document.getElementById('youtube-input');
+    const startBtn = document.getElementById('start-btn');
+    const statusContainer = document.getElementById('status-container');
+    const statusText = document.getElementById('status-text');
+
+    let selectedFilePath = null;
+
+    // Handle File Selection
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        selectedFilePath = e.target.files[0].path;
+        dropZone.style.borderColor = '#10b981';
+        dropZone.innerHTML = `<div style="font-size: 32px; margin-bottom: 12px;">✅</div><div style="font-weight: 500; color: #10b981;">Đã chọn: ${e.target.files[0].name}</div>`;
+      }
+    });
+
+    // Handle Drag & Drop
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#3b82f6';
+      dropZone.style.background = '#1e293b';
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#334155';
+      dropZone.style.background = '#0d0f14';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        if (file.path.endsWith('.mp4')) {
+          selectedFilePath = file.path;
+          dropZone.style.borderColor = '#10b981';
+          dropZone.style.background = '#0d0f14';
+          dropZone.innerHTML = `<div style="font-size: 32px; margin-bottom: 12px;">✅</div><div style="font-weight: 500; color: #10b981;">Đã thả: ${file.name}</div>`;
+        } else {
+          alert('Chỉ hỗ trợ định dạng .mp4');
+        }
+      }
+    });
+
+    // Bắt đầu quy trình
+    startBtn.addEventListener('click', () => {
+      const ytLink = youtubeInput.value.trim();
+      
+      if (!selectedFilePath && !ytLink) {
+        alert('Vui lòng chọn file .mp4 hoặc nhập link YouTube!');
+        return;
+      }
+
+      // Vô hiệu hóa input
+      startBtn.disabled = true;
+      startBtn.style.opacity = '0.5';
+      dropZone.style.pointerEvents = 'none';
+      youtubeInput.disabled = true;
+
+      statusContainer.style.display = 'block';
+
+      if (ytLink) {
+        statusText.innerText = 'Đang nhận link YouTube...';
+        ipcRenderer.send('start-workflow', { type: 'youtube', data: ytLink });
+      } else if (selectedFilePath) {
+        statusText.innerText = 'Đang nhận file Video...';
+        ipcRenderer.send('start-workflow', { type: 'local', data: selectedFilePath });
+      }
+    });
+
+    // Nhận phản hồi trạng thái từ Main Process
+    ipcRenderer.on('workflow-status', (event, msg) => {
+      statusText.innerText = msg;
+      if (msg.includes('Hoàn tất') || msg.includes('Lỗi')) {
+        startBtn.disabled = false;
+        startBtn.style.opacity = '1';
+        dropZone.style.pointerEvents = 'auto';
+        youtubeInput.disabled = false;
+        document.getElementById('status-pulse').style.display = msg.includes('Hoàn tất') ? 'none' : 'inline-block';
+      }
+    });
+  </script>
 </body>
 </html>

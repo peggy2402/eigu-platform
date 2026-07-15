@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import { io } from 'socket.io-client';
 import { VideoWorkflowRequest } from '@eigu-platform/shared';
@@ -41,47 +41,61 @@ app.whenReady().then(() => {
     console.log('✅ Đã kết nối tới API Gateway');
   });
 
-  const mockTask: VideoWorkflowRequest = {
-    taskId: 'TEST-1234',
-    videoUrl: 'demo.mp4',
-    options: {
-      decimation: true,
-      metadataStripping: true,
-      audioSpatialPanning: false,
-      noiseInjection: false
-    }
-  };
-
-  fs.writeFileSync('demo.mp4', 'dummy video content');
-
-  // Đợi 5 giây sau khi mở UI rồi tự động chạy Puppeteer
-  setTimeout(async () => {
+  // Lắng nghe sự kiện từ giao diện UI khi người dùng ấn nút Xử lý
+  ipcMain.on('start-workflow', async (event, payload) => {
     try {
-      const processedPath = await processVideoWithFFmpeg(mockTask, (status) => {
+      const { type, data } = payload;
+      let videoSource = data;
+      
+      if (type === 'youtube') {
+        event.reply('workflow-status', `Đang tải video từ YouTube: ${data}`);
+        // Simulate YouTube download for prototype
+        await new Promise(r => setTimeout(r, 2000));
+        videoSource = 'youtube-download.mp4';
+        fs.writeFileSync(videoSource, 'dummy youtube content');
+      } else {
+        event.reply('workflow-status', `Đã nhận file Local: ${data}`);
+      }
+
+      const task: VideoWorkflowRequest = {
+        taskId: `TASK-${Date.now()}`,
+        videoUrl: videoSource,
+        options: {
+          decimation: true,
+          metadataStripping: true,
+          audioSpatialPanning: false,
+          noiseInjection: false
+        }
+      };
+
+      event.reply('workflow-status', 'Đang xử lý Video qua FFmpeg...');
+      const processedPath = await processVideoWithFFmpeg(task, (status) => {
         socket.emit('reportProgress', status);
       });
 
+      event.reply('workflow-status', 'Mở trình duyệt Anti-detect tải lên TikTok...');
       socket.emit('reportProgress', {
-        taskId: mockTask.taskId,
+        taskId: task.taskId,
         status: 'uploading',
         progress: 80,
         message: 'Mở Anti-detect Chromium...'
       });
 
-      // Bật Chromium lên song song với giao diện Desktop UI
-      await uploadToTikTok(mockTask, processedPath);
+      await uploadToTikTok(task, processedPath);
       
       socket.emit('reportProgress', {
-        taskId: mockTask.taskId,
+        taskId: task.taskId,
         status: 'completed',
         progress: 100,
         message: 'Upload hoàn tất!'
       });
+      event.reply('workflow-status', '✅ Hoàn tất toàn bộ quy trình!');
 
     } catch (error) {
       console.error('Lỗi quy trình:', error);
+      event.reply('workflow-status', '❌ Lỗi quy trình (Xem terminal)');
     }
-  }, 5000);
+  });
 });
 
 app.on('window-all-closed', () => {
