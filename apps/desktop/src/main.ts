@@ -47,12 +47,17 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 900,
     height: 700,
+    center: true,
+    resizable: true,
+    maximizable: true,
+    minimizable: true,
+    movable: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
     },
     titleBarStyle: 'hiddenInset',
-    backgroundColor: '#161821'
+    backgroundColor: '#0f172a'
   });
 
   // Tải file HTML giao diện của Desktop App trực tiếp từ mã nguồn
@@ -84,11 +89,27 @@ app.whenReady().then(() => {
   // Lắng nghe sự kiện từ giao diện UI khi người dùng ấn nút Xử lý
   let cancelCurrentWorkflow: (() => void) | null = null;
 
+  ipcMain.handle('select-output-folder', async () => {
+    const { dialog } = require('electron');
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      properties: ['openDirectory'],
+      buttonLabel: 'Chọn thư mục'
+    });
+    if (!result.canceled && result.filePaths.length > 0) {
+      return result.filePaths[0];
+    }
+    return null;
+  });
+
   ipcMain.on('start-workflow', async (event, payload) => {
     try {
       const taskId = `task_${Date.now()}`;
       if (payload.type === 'local' || payload.type === 'youtube') {
         let finalInputPath = payload.data;
+        
+        if (!finalInputPath) {
+          throw new Error('Dữ liệu đầu vào (đường dẫn file hoặc link YouTube) bị trống hoặc không hợp lệ.');
+        }
         
         if (payload.type === 'youtube') {
           console.log(`[Main Process] Bắt đầu tải video từ YouTube: ${payload.data}`);
@@ -113,7 +134,8 @@ app.whenReady().then(() => {
             decimation: true,
             metadataStripping: true,
             audioSpatialPanning: true,
-            noiseInjection: true
+            noiseInjection: true,
+            ...(payload.options || {})
           }
         };
 
@@ -123,7 +145,7 @@ app.whenReady().then(() => {
           socket.emit('reportProgress', status);
           event.reply('workflow-progress', status.progress);
           event.reply('workflow-status', status.message);
-        });
+        }, payload.outputPath);
         
         cancelCurrentWorkflow = cancel;
         

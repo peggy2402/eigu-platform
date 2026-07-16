@@ -3,6 +3,12 @@ export interface VideoProcessingOptions {
   noiseInjection: boolean;
   metadataStripping: boolean;
   audioSpatialPanning: boolean;
+  splitMode?: string;
+  customStart?: string;
+  customEnd?: string;
+  aspectRatio?: string;
+  autoPartText?: boolean;
+  ttsMode?: string;
 }
 
 export interface VideoWorkflowRequest {
