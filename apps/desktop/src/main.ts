@@ -1,17 +1,52 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import { VideoWorkflowRequest } from '@eigu-platform/shared';
 import { processVideoWithFFmpeg } from './ffmpeg-processor';
 import { uploadToTikTok } from './browser-automation';
+import { downloadYouTubeVideo } from './youtube-downloader';
 import * as fs from 'fs';
 
+// Bắt và chuyển tiếp toàn bộ Log ra UI
+function redirectLogsToUI(window: BrowserWindow) {
+  const originalLog = console.log;
+  console.log = (...args) => {
+    try {
+      originalLog(...args);
+    } catch (e) {
+      // Bỏ qua lỗi EPIPE khi pipe stdout bị ngắt
+    }
+    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ');
+    if (window && !window.isDestroyed()) {
+      try {
+        window.webContents.send('log', msg);
+      } catch (e) {}
+    }
+  };
+  
+  const originalError = console.error;
+  console.error = (...args) => {
+    try {
+      originalError(...args);
+    } catch (e) {
+      // Bỏ qua lỗi EPIPE
+    }
+    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ');
+    if (window && !window.isDestroyed()) {
+      try {
+        window.webContents.send('log', `[ERROR] ${msg}`);
+      } catch (e) {}
+    }
+  };
+}
+
 let mainWindow: BrowserWindow | null = null;
+let socket: Socket;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 500,
-    height: 350,
+    width: 900,
+    height: 700,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -27,6 +62,11 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  // Kích hoạt chuyển tiếp Log
+  if (mainWindow) {
+    redirectLogsToUI(mainWindow);
+  }
 }
 
 app.whenReady().then(() => {
@@ -42,58 +82,72 @@ app.whenReady().then(() => {
   });
 
   // Lắng nghe sự kiện từ giao diện UI khi người dùng ấn nút Xử lý
+  let cancelCurrentWorkflow: (() => void) | null = null;
+
   ipcMain.on('start-workflow', async (event, payload) => {
     try {
-      const { type, data } = payload;
-      let videoSource = data;
-      
-      if (type === 'youtube') {
-        event.reply('workflow-status', `Đang tải video từ YouTube: ${data}`);
-        // Simulate YouTube download for prototype
-        await new Promise(r => setTimeout(r, 2000));
-        videoSource = 'youtube-download.mp4';
-        fs.writeFileSync(videoSource, 'dummy youtube content');
-      } else {
-        event.reply('workflow-status', `Đã nhận file Local: ${data}`);
+      const taskId = `task_${Date.now()}`;
+      if (payload.type === 'local' || payload.type === 'youtube') {
+        let finalInputPath = payload.data;
+        
+        if (payload.type === 'youtube') {
+          console.log(`[Main Process] Bắt đầu tải video từ YouTube: ${payload.data}`);
+          event.reply('workflow-status', 'Đang kết nối tới máy chủ YouTube...');
+          
+          finalInputPath = await downloadYouTubeVideo(payload.data, taskId, (statusMsg) => {
+            console.log(`[Youtube-DL] ${statusMsg}`);
+            event.reply('workflow-status', statusMsg);
+            socket.emit('reportProgress', {
+              taskId,
+              status: 'processing',
+              progress: 5,
+              message: statusMsg
+            });
+          });
+        }
+
+        const task: VideoWorkflowRequest = {
+          taskId,
+          videoUrl: finalInputPath,
+          options: {
+            decimation: true,
+            metadataStripping: true,
+            audioSpatialPanning: true,
+            noiseInjection: true
+          }
+        };
+
+        event.reply('workflow-status', 'Đang xử lý Video qua FFmpeg...');
+        
+        const { promise, cancel } = processVideoWithFFmpeg(task, (status) => {
+          socket.emit('reportProgress', status);
+          event.reply('workflow-progress', status.progress);
+          event.reply('workflow-status', status.message);
+        });
+        
+        cancelCurrentWorkflow = cancel;
+        
+        const processedPath = await promise;
+        cancelCurrentWorkflow = null;
+
+        event.reply('workflow-status', '✅ Hoàn tất toàn bộ quy trình!');
       }
 
-      const task: VideoWorkflowRequest = {
-        taskId: `TASK-${Date.now()}`,
-        videoUrl: videoSource,
-        options: {
-          decimation: true,
-          metadataStripping: true,
-          audioSpatialPanning: false,
-          noiseInjection: false
-        }
-      };
+    } catch (error: any) {
+      console.error('Lỗi quy trình:', error.message);
+      if (error.message === 'Cancelled') {
+        event.reply('workflow-status', '❌ Đã hủy tiến trình');
+      } else {
+        event.reply('workflow-status', '❌ Lỗi hệ thống: ' + error.message);
+      }
+    }
+  });
 
-      event.reply('workflow-status', 'Đang xử lý Video qua FFmpeg...');
-      const processedPath = await processVideoWithFFmpeg(task, (status) => {
-        socket.emit('reportProgress', status);
-      });
-
-      event.reply('workflow-status', 'Mở trình duyệt Anti-detect tải lên TikTok...');
-      socket.emit('reportProgress', {
-        taskId: task.taskId,
-        status: 'uploading',
-        progress: 80,
-        message: 'Mở Anti-detect Chromium...'
-      });
-
-      await uploadToTikTok(task, processedPath);
-      
-      socket.emit('reportProgress', {
-        taskId: task.taskId,
-        status: 'completed',
-        progress: 100,
-        message: 'Upload hoàn tất!'
-      });
-      event.reply('workflow-status', '✅ Hoàn tất toàn bộ quy trình!');
-
-    } catch (error) {
-      console.error('Lỗi quy trình:', error);
-      event.reply('workflow-status', '❌ Lỗi quy trình (Xem terminal)');
+  ipcMain.on('cancel-workflow', (event) => {
+    console.log('[Main Process] Yêu cầu hủy tiến trình từ UI');
+    if (cancelCurrentWorkflow) {
+      cancelCurrentWorkflow();
+      cancelCurrentWorkflow = null;
     }
   });
 });

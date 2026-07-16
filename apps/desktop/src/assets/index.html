@@ -46,21 +46,39 @@
   <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">Kéo thả Video hoặc dán link YouTube để bắt đầu tự động hóa.</p>
   
   <div id="drop-zone" style="border: 2px dashed #334155; border-radius: 12px; padding: 40px 20px; background: #0d0f14; cursor: pointer; transition: all 0.3s; margin-bottom: 16px;">
-    <div style="font-size: 32px; margin-bottom: 12px;">📁</div>
-    <div style="font-weight: 500;">Kéo thả file .mp4 vào đây</div>
-    <div style="font-size: 12px; color: #64748b; margin-top: 8px;">hoặc bấm để chọn file</div>
+    <div style="font-size: 32px; margin-bottom: 12px;" id="drop-icon">📁</div>
+    <div style="font-weight: 500;" id="drop-text">Kéo thả file .mp4 vào đây</div>
+    <div style="font-size: 12px; color: #64748b; margin-top: 8px;" id="drop-subtext">hoặc bấm để chọn file</div>
+    
+    <!-- Thanh tiến trình tích hợp (Ẩn mặc định) -->
+    <div id="progress-container" style="display: none; width: 100%; margin-top: 16px;">
+      <div style="width: 100%; height: 8px; background-color: #0f172a; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+        <div id="progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s ease-in-out;"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8;">
+        <span id="progress-percent">0%</span>
+        <span id="status-text" style="color: #60a5fa; font-weight: 500;">Đang khởi tạo...</span>
+      </div>
+    </div>
+
     <input type="file" id="file-input" accept=".mp4" style="display: none;" />
   </div>
 
-  <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+  <div style="display: flex; gap: 8px; margin-bottom: 24px;" id="input-group">
     <input type="text" id="youtube-input" placeholder="Hoặc dán link YouTube (VD: https://youtu.be/...)" style="flex: 1; padding: 12px 16px; border-radius: 8px; border: 1px solid #334155; background: #0d0f14; color: white; outline: none; font-size: 14px;" />
     <button id="start-btn" style="padding: 0 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;">Xử lý ngay</button>
   </div>
+  
+  <div style="display: none; justify-content: center; margin-bottom: 24px;" id="cancel-group">
+    <button id="cancel-btn" style="padding: 12px 40px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;">Hủy tiến trình</button>
+  </div>
 
-  <div class="status" id="status-container" style="display: none;">
-    <div style="display: flex; align-items: center; justify-content: center;">
-      <div class="pulse" id="status-pulse"></div>
-      <span id="status-text">Đang khởi tạo luồng...</span>
+  <!-- Terminal Log Console -->
+  <div style="background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 12px; height: 180px; overflow-y: auto; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12px; line-height: 1.5; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);" id="log-console">
+    <div style="padding: 2px 0; border-bottom: 1px solid #27272a;">
+      <span style="color: #52525b; margin-right: 8px;">00:00:00.000</span>
+      <span style="color: #10b981; margin-right: 8px;">[SYSTEM]</span>
+      <span style="color: #a1a1aa;">EIGU Anti-Detect Engine initialized. Ready for operations.</span>
     </div>
   </div>
 
@@ -71,86 +89,208 @@
     const fileInput = document.getElementById('file-input');
     const youtubeInput = document.getElementById('youtube-input');
     const startBtn = document.getElementById('start-btn');
-    const statusContainer = document.getElementById('status-container');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const cancelGroup = document.getElementById('cancel-group');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const progressPercent = document.getElementById('progress-percent');
     const statusText = document.getElementById('status-text');
+    const logConsole = document.getElementById('log-console');
+    const inputGroup = document.getElementById('input-group');
+    const dropIcon = document.getElementById('drop-icon');
+    const dropText = document.getElementById('drop-text');
+    const dropSubtext = document.getElementById('drop-subtext');
 
     let selectedFilePath = null;
+    let isProcessing = false;
+
+    function addLog(msg) {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-GB', { hour12: false }) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+      
+      const el = document.createElement('div');
+      el.style.padding = '2px 0';
+      el.style.borderBottom = '1px solid #27272a';
+      
+      let tagColor = '#3b82f6';
+      let tag = '[INFO]';
+      let msgColor = '#d4d4d8';
+      
+      if (msg.includes('ERROR') || msg.includes('Lỗi') || msg.includes('❌') || msg.includes('ENOENT')) {
+        tagColor = '#ef4444';
+        tag = '[ERROR]';
+        msgColor = '#fca5a5';
+      } else if (msg.includes('WARN') || msg.includes('⚠️')) {
+        tagColor = '#f59e0b';
+        tag = '[WARN]';
+        msgColor = '#fde68a';
+      } else if (msg.includes('✅') || msg.includes('Hoàn tất')) {
+        tagColor = '#10b981';
+        tag = '[SUCCESS]';
+        msgColor = '#a7f3d0';
+      } else if (msg.includes('Kích hoạt lệnh') || msg.includes('FFmpeg')) {
+        tagColor = '#8b5cf6';
+        tag = '[FFMPEG]';
+      }
+      
+      let cleanMsg = msg.replace(/^>\s*/, '');
+      
+      el.innerHTML = `
+        <span style="color: #52525b; margin-right: 8px;">${timeStr}</span>
+        <span style="color: ${tagColor}; font-weight: 600; margin-right: 8px;">${tag}</span>
+        <span style="color: ${msgColor}; word-break: break-word; white-space: pre-wrap;">${cleanMsg}</span>
+      `;
+      
+      logConsole.appendChild(el);
+      logConsole.scrollTop = logConsole.scrollHeight;
+    }
+
+    const resetUI = () => {
+      isProcessing = false;
+      inputGroup.style.display = 'flex';
+      cancelGroup.style.display = 'none';
+      dropZone.style.pointerEvents = 'auto';
+      dropSubtext.style.display = 'block';
+      dropZone.style.borderColor = '#334155';
+      dropText.style.color = 'white';
+      selectedFilePath = null;
+      fileInput.value = ''; // Reset file selection
+    };
+
+    // Bắt đầu quy trình
+    const startProcess = (ytLink = null) => {
+      if (isProcessing) return;
+      if (!selectedFilePath && !ytLink) return;
+
+      isProcessing = true;
+      inputGroup.style.display = 'none';
+      cancelGroup.style.display = 'flex';
+      dropZone.style.pointerEvents = 'none';
+      progressContainer.style.display = 'block';
+      dropSubtext.style.display = 'none';
+      
+      progressFill.style.width = '0%';
+      progressPercent.innerText = '0%';
+
+      dropIcon.innerText = '⚙️';
+      dropText.style.color = '#3b82f6';
+
+      if (ytLink) {
+        statusText.innerText = 'Đang nhận link YouTube...';
+        dropText.innerText = `Đang xử lý YouTube...`;
+        ipcRenderer.send('start-workflow', { type: 'youtube', data: ytLink });
+      } else if (selectedFilePath) {
+        statusText.innerText = 'Đang xử lý file Video...';
+        const fileName = selectedFilePath.split('/').pop().split('\\').pop();
+        dropText.innerText = `Đang xử lý: ${fileName}`;
+        ipcRenderer.send('start-workflow', { type: 'local', data: selectedFilePath });
+      }
+    };
+
+    // Hủy tiến trình
+    cancelBtn.addEventListener('click', () => {
+      if (!isProcessing) return;
+      statusText.innerText = 'Đang gửi lệnh hủy...';
+      ipcRenderer.send('cancel-workflow');
+    });
 
     // Handle File Selection
-    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('click', () => {
+      if (!isProcessing) fileInput.click();
+    });
     
     fileInput.addEventListener('change', (e) => {
+      if (isProcessing) return;
       if (e.target.files.length > 0) {
         selectedFilePath = e.target.files[0].path;
         dropZone.style.borderColor = '#10b981';
-        dropZone.innerHTML = `<div style="font-size: 32px; margin-bottom: 12px;">✅</div><div style="font-weight: 500; color: #10b981;">Đã chọn: ${e.target.files[0].name}</div>`;
+        dropIcon.innerText = '✅';
+        dropText.innerText = `Đã chọn: ${e.target.files[0].name}`;
+        dropText.style.color = '#10b981';
       }
     });
 
     // Handle Drag & Drop
     dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
+      if (isProcessing) return;
       dropZone.style.borderColor = '#3b82f6';
       dropZone.style.background = '#1e293b';
     });
 
     dropZone.addEventListener('dragleave', (e) => {
       e.preventDefault();
+      if (isProcessing) return;
       dropZone.style.borderColor = '#334155';
       dropZone.style.background = '#0d0f14';
     });
 
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
+      if (isProcessing) return;
       if (e.dataTransfer.files.length > 0) {
         const file = e.dataTransfer.files[0];
         if (file.path.endsWith('.mp4')) {
           selectedFilePath = file.path;
           dropZone.style.borderColor = '#10b981';
           dropZone.style.background = '#0d0f14';
-          dropZone.innerHTML = `<div style="font-size: 32px; margin-bottom: 12px;">✅</div><div style="font-weight: 500; color: #10b981;">Đã thả: ${file.name}</div>`;
+          dropIcon.innerText = '✅';
+          dropText.innerText = `Đã chọn: ${file.name}`;
+          dropText.style.color = '#10b981';
         } else {
           alert('Chỉ hỗ trợ định dạng .mp4');
         }
       }
     });
 
-    // Bắt đầu quy trình
+    // Bắt đầu quy trình khi bấm nút Xử lý ngay
     startBtn.addEventListener('click', () => {
+      if (isProcessing) return;
       const ytLink = youtubeInput.value.trim();
-      
-      if (!selectedFilePath && !ytLink) {
-        alert('Vui lòng chọn file .mp4 hoặc nhập link YouTube!');
-        return;
-      }
-
-      // Vô hiệu hóa input
-      startBtn.disabled = true;
-      startBtn.style.opacity = '0.5';
-      dropZone.style.pointerEvents = 'none';
-      youtubeInput.disabled = true;
-
-      statusContainer.style.display = 'block';
-
       if (ytLink) {
-        statusText.innerText = 'Đang nhận link YouTube...';
-        ipcRenderer.send('start-workflow', { type: 'youtube', data: ytLink });
+        startProcess(ytLink);
       } else if (selectedFilePath) {
-        statusText.innerText = 'Đang nhận file Video...';
-        ipcRenderer.send('start-workflow', { type: 'local', data: selectedFilePath });
+        startProcess();
+      } else {
+        alert('Vui lòng chọn file .mp4 hoặc nhập link YouTube!');
       }
+    });
+
+    // Nhận phản hồi tiến trình từ Main Process
+    ipcRenderer.on('workflow-progress', (event, percent) => {
+      progressFill.style.width = `${percent}%`;
+      progressPercent.innerText = `${percent}%`;
     });
 
     // Nhận phản hồi trạng thái từ Main Process
     ipcRenderer.on('workflow-status', (event, msg) => {
       statusText.innerText = msg;
-      if (msg.includes('Hoàn tất') || msg.includes('Lỗi')) {
-        startBtn.disabled = false;
-        startBtn.style.opacity = '1';
-        dropZone.style.pointerEvents = 'auto';
-        youtubeInput.disabled = false;
-        document.getElementById('status-pulse').style.display = msg.includes('Hoàn tất') ? 'none' : 'inline-block';
+      
+      if (msg.includes('✅ Hoàn tất toàn bộ quy trình!') || msg.includes('❌ Lỗi') || msg.includes('❌ Đã hủy')) {
+        resetUI();
+        
+        if (msg.includes('Hoàn tất')) {
+          dropIcon.innerText = '🎉';
+          dropText.innerText = 'Kéo thả file .mp4 mới vào đây';
+          progressFill.style.width = '100%';
+          progressPercent.innerText = '100%';
+          statusText.innerText = 'Video lưu tại: /tmp/';
+        } else if (msg.includes('Đã hủy')) {
+          dropIcon.innerText = '⚠️';
+          dropText.innerText = 'Đã hủy tiến trình. Kéo thả file mới.';
+          progressFill.style.width = '0%';
+          progressContainer.style.display = 'none';
+        } else {
+          dropIcon.innerText = '❌';
+          dropText.innerText = 'Có lỗi xảy ra. Xem log bên dưới.';
+          progressContainer.style.display = 'none';
+        }
       }
+    });
+    
+    // Nhận log console từ Main Process
+    ipcRenderer.on('log', (event, msg) => {
+      addLog(msg);
     });
   </script>
 </body>

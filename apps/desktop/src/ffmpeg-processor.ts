@@ -1,91 +1,94 @@
-import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import ffmpeg from 'fluent-ffmpeg';
+import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import { VideoWorkflowRequest, VideoWorkflowStatus } from '@eigu-platform/shared';
+
+// Gắn đường dẫn nhị phân FFmpeg (Tự động biên dịch sẵn cho Mac/Windows)
+ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 /**
  * Xử lý Video bằng FFmpeg dựa trên các yêu cầu lách thuật toán TikTok.
- * 
- * @param request Yêu cầu chứa URL video và các cấu hình Anti-detect.
- * @param onProgress Callback để báo cáo tiến trình (WebSocket).
- * @returns Đường dẫn tới file video đã xử lý.
  */
-export async function processVideoWithFFmpeg(
+export function processVideoWithFFmpeg(
   request: VideoWorkflowRequest,
   onProgress: (status: VideoWorkflowStatus) => void
-): Promise<string> {
-  return new Promise((resolve, reject) => {
-    // Trong môi trường Mac/Electron, chúng ta lưu file tạm vào /tmp hoặc app.getPath('temp')
-    const inputPath = request.videoUrl; // Tạm giả định URL là file local hoặc remote URL hỗ trợ trực tiếp.
-    const outputPath = path.join('/tmp', `processed_${request.taskId}.mp4`);
+): { promise: Promise<string>, cancel: () => void } {
+  let command: ffmpeg.FfmpegCommand | null = null;
+  let isCancelled = false;
+  let mockInterval: any = null;
 
-    const ffmpegArgs: string[] = ['-y', '-i', inputPath];
-
-    // 1. Phá hủy dấu vân tay kỹ thuật số: Xóa toàn bộ Metadata (-map_metadata -1)
-    if (request.options.metadataStripping) {
-      ffmpegArgs.push('-map_metadata', '-1');
-    }
-
-    // 2. Video Filters: Decimation (Loại bỏ khung hình trùng lặp)
-    const videoFilters: string[] = [];
-    if (request.options.decimation) {
-      videoFilters.push('mpdecimate'); // Loại bỏ các frame trùng lặp hoặc ít thay đổi
-      videoFilters.push('setpts=N/FRAME_RATE/TB'); // Tính toán lại timestamp
-    }
-
-    if (videoFilters.length > 0) {
-      ffmpegArgs.push('-vf', videoFilters.join(','));
-    }
-
-    // 3. Audio Filters: Noise Injection & Spatial Panning
-    const audioFilters: string[] = [];
-    if (request.options.audioSpatialPanning) {
-      // Ví dụ: Tạo hiệu ứng âm thanh vòm hoặc pan nhẹ để thay đổi signature âm thanh
-      audioFilters.push('stereotools=mpen=1');
+  const promise = new Promise<string>((resolve, reject) => {
+    let inputPath = request.videoUrl;
+    
+    if (inputPath.startsWith('http')) {
+      return reject(new Error(`Đầu vào FFmpeg không thể là URL (${inputPath}). Vui lòng tải Video xuống trước.`));
     }
     
-    if (request.options.noiseInjection) {
-      // Thêm noise nền vô cùng nhỏ để đổi Audio Hash
-      audioFilters.push('anoisesrc=d=60:c=white:a=0.001'); 
-      // (Lưu ý: trong thực tế sẽ dùng amix để trộn noise vào audio stream chính)
+    if (!fs.existsSync(inputPath)) {
+      return reject(new Error(`File đầu vào không tồn tại: ${inputPath}`));
     }
 
-    // Cấu hình mã hóa video & audio
-    ffmpegArgs.push('-c:v', 'libx264', '-crf', '23', '-preset', 'fast');
-    ffmpegArgs.push('-c:a', 'aac', '-b:a', '128k');
+    const outputPath = path.join('/tmp', `eigu_processed_${request.taskId}.mp4`);
 
-    // Output file
-    ffmpegArgs.push(outputPath);
+    command = ffmpeg(inputPath);
 
-    // Thông báo bắt đầu xử lý
-    onProgress({
-      taskId: request.taskId,
-      status: 'processing',
-      progress: 0,
-      message: 'Đang khởi chạy FFmpeg...'
+    if (request.options.metadataStripping) {
+      command.outputOptions(['-map_metadata -1', '-metadata title=""', '-metadata artist=""', '-metadata encoder="EIGU-Core"']);
+    }
+
+    const videoFilters: string[] = [];
+    if (request.options.decimation) {
+      videoFilters.push('mpdecimate', 'setpts=N/FRAME_RATE/TB');
+    }
+    if (request.options.noiseInjection) {
+      videoFilters.push('noise=alls=1:allf=t', 'eq=contrast=1.01:gamma=0.99');
+    }
+    if (videoFilters.length > 0) command.videoFilters(videoFilters);
+
+    const audioFilters: string[] = [];
+    if (request.options.audioSpatialPanning) {
+      audioFilters.push('pan=stereo|c0<c0+0*c1|c1<c1+0*c0');
+    }
+    if (audioFilters.length > 0) command.audioFilters(audioFilters);
+
+    command.videoCodec('libx264').audioCodec('aac').outputOptions(['-preset fast', '-crf 23', '-movflags +faststart']);
+
+    command.on('start', (cmdLine) => {
+      console.log('[EIGU FFmpeg Engine] Kích hoạt lệnh:\n', cmdLine);
+      onProgress({ taskId: request.taskId, status: 'processing', progress: 10, message: 'Đang khởi chạy bộ lọc C++ Anti-detect...' });
     });
 
-    // Bản Prototype: Giả lập thời gian chạy FFmpeg thay vì gọi spawn thật để tránh lỗi ENOENT trên máy chưa cài FFmpeg.
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += 20;
-      onProgress({
-        taskId: request.taskId,
-        status: 'processing',
-        progress: currentProgress,
-        message: 'Đang áp dụng bộ lọc: Decimation & Metadata Stripping',
-      });
+    command.on('progress', (progress) => {
+      if (isCancelled) return;
+      const percent = progress.percent ? Math.max(10, Math.min(95, Math.floor(progress.percent))) : 50;
+      onProgress({ taskId: request.taskId, status: 'processing', progress: percent, message: `Đang bẻ gãy cấu trúc Pixel & Hash Video (${percent}%)...` });
+    });
 
-      if (currentProgress >= 100) {
-        clearInterval(interval);
-        onProgress({
-          taskId: request.taskId,
-          status: 'completed',
-          progress: 100,
-          resultFilePath: outputPath,
-        });
-        resolve(outputPath);
-      }
-    }, 500);
+    command.on('end', () => {
+      if (isCancelled) return;
+      console.log('[EIGU FFmpeg Engine] Hoàn tất quá trình băm!');
+      onProgress({ taskId: request.taskId, status: 'completed', progress: 100, resultFilePath: outputPath, message: '✅ Hoàn tất toàn bộ quy trình!' });
+      resolve(outputPath);
+    });
+
+    command.on('error', (err) => {
+      if (isCancelled) return reject(new Error('Cancelled'));
+      console.error('[EIGU FFmpeg Engine] Lỗi:', err.message);
+      reject(err);
+    });
+
+    command.save(outputPath);
   });
+
+  const cancel = () => {
+    isCancelled = true;
+    if (command) {
+      console.log('[EIGU FFmpeg Engine] Tiến trình đã bị hủy bởi người dùng.');
+      command.kill('SIGKILL');
+    }
+    if (mockInterval) clearInterval(mockInterval);
+  };
+
+  return { promise, cancel };
 }

@@ -161,8 +161,7 @@ export default function Dashboard() {
           </motion.div>
         </div>
 
-        <button 
-          onClick={handleRunMock}
+        <div
           style={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -170,21 +169,17 @@ export default function Dashboard() {
             gap: '8px', 
             width: '100%', 
             padding: '14px', 
-            backgroundColor: '#3b82f6', 
-            color: 'white', 
-            border: 'none', 
+            backgroundColor: isConnected ? '#1e293b' : '#0f172a', 
+            color: isConnected ? '#34d399' : '#64748b', 
+            border: isConnected ? '1px dashed #34d399' : '1px dashed #334155', 
             borderRadius: '8px', 
-            fontSize: '15px', 
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s'
+            fontSize: '14px', 
+            fontWeight: '500',
+            textAlign: 'center'
           }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
         >
-          <Play size={18} />
-          <span>Launch Worker</span>
-        </button>
+          {isConnected ? 'Sẵn sàng nhận lệnh từ Desktop' : 'Đang chờ API kết nối...'}
+        </div>
       </div>
 
       {/* Main Flow Area */}
