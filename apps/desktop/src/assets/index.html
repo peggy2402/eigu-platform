@@ -515,11 +515,10 @@
       <div class="split-settings" id="split-settings">
         <label>Chế độ cắt Video (Mở rộng):</label>
         <select id="split-mode-select">
-          <option value="none">Giữ nguyên (Chỉ xử lý Anti-detect)</option>
           <option value="split_1">Cắt đều mỗi 1 phút / video</option>
           <option value="split_2">Cắt đều mỗi 2 phút / video</option>
           <option value="split_3">Cắt đều mỗi 3 phút / video</option>
-          <option value="split_5">Cắt đều mỗi 5 phút / video</option>
+          <option value="split_5" selected>Cắt đều mỗi 5 phút / video</option>
           <option value="split_10">Cắt đều mỗi 10 phút / video</option>
           <option value="split_20">Cắt đều mỗi 20 phút / video</option>
           <option value="custom">Cắt theo khoảng thời gian tùy chỉnh</option>
@@ -549,11 +548,34 @@
           <input type="checkbox" id="auto-part-text" style="width: 16px; height: 16px; cursor: pointer;" />
           Tự động đánh số "Part 1/N" lên từng video cắt
         </label>
+
+        <hr style="border: 0; border-top: 1px solid #334155; margin: 15px 0;" />
+        <label style="font-weight: 600; color: #38bdf8; margin-bottom: 8px; display: block;">Tính Năng Anti-Detect & Tối Ưu:</label>
+
+        <label style="display: flex; align-items: center; gap: 8px; margin-top: 8px; cursor: pointer;">
+          <input type="checkbox" id="opt-metadata" style="width: 16px; height: 16px; cursor: pointer;" checked />
+          Xóa siêu dữ liệu (Metadata Stripping) - ⚡ Stream Copy
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: 8px; margin-top: 8px; cursor: pointer;">
+          <input type="checkbox" id="opt-noise" style="width: 16px; height: 16px; cursor: pointer;" />
+          Thêm nhiễu hạt & Cân bằng sáng (Noise & EQ) - 🐢 Bắt buộc Encode
+        </label>
+
+        <label style="display: flex; align-items: center; gap: 8px; margin-top: 8px; cursor: pointer;">
+          <input type="checkbox" id="opt-decimate" style="width: 16px; height: 16px; cursor: pointer;" />
+          Xóa khung hình tĩnh trùng lặp (Decimation) - 🐢 Bắt buộc Encode
+        </label>
+
+        <label style="display: flex; align-items: center; gap: 8px; margin-top: 8px; cursor: pointer;">
+          <input type="checkbox" id="opt-audio-pan" style="width: 16px; height: 16px; cursor: pointer;" />
+          Đảo chiều âm thanh 3D (Spatial Panning) - 🐢 Bắt buộc Audio Encode
+        </label>
       </div>
 
       <div class="output-settings" id="output-settings">
         <span class="label">Thư mục lưu:</span>
-        <span class="path" id="output-path-display">Mặc định (Downloads)</span>
+        <span class="path" id="output-path-display">Mặc định (Downloads/eigu/outputs)</span>
         <button id="change-output-btn" class="icon-btn" title="Thay đổi thư mục lưu">Thay đổi</button>
       </div>
       <button id="start-btn" class="btn btn-primary" disabled>
@@ -576,8 +598,11 @@
     </div>
 
     <!-- Terminal Logs -->
-    <div id="log-console" class="log-console">
-    </div>
+    <details id="log-details" class="log-details" style="margin-top: 15px; user-select: none;">
+      <summary style="cursor: pointer; font-weight: bold; color: #f8fafc; font-size: 14px;">Hiển thị chi tiết / Logs</summary>
+      <div id="log-console" class="log-console" style="margin-top: 10px;">
+      </div>
+    </details>
   </div>
 
   <script>
@@ -611,6 +636,11 @@
     const autoPartTextInput = document.getElementById('auto-part-text');
     const ttsModeSelect = document.getElementById('tts-mode');
 
+    const optMetadata = document.getElementById('opt-metadata');
+    const optNoise = document.getElementById('opt-noise');
+    const optDecimate = document.getElementById('opt-decimate');
+    const optAudioPan = document.getElementById('opt-audio-pan');
+
     // STATE MANAGEMENT
     const appState = {
       mode: 'idle', // 'idle' | 'local' | 'youtube' | 'processing'
@@ -618,12 +648,16 @@
       youtubeLink: '',
       outputPath: null, // null means default
       options: {
-        splitMode: 'none',
+        splitMode: 'split_5',
         customStart: '',
         customEnd: '',
         aspectRatio: 'original',
         autoPartText: false,
-        ttsMode: 'none'
+        ttsMode: 'none',
+        metadataStripping: true,
+        noiseInjection: false,
+        decimation: false,
+        audioSpatialPanning: false
       },
       progress: 0,
       status: 'Đang chờ...',
@@ -750,6 +784,11 @@
     }
 
     function addLog(msg) {
+      // Bỏ qua các log dạng debug (FFmpeg/lệnh)
+      if (msg.includes('Kích hoạt lệnh') || msg.includes('Hoàn tất quá trình băm') || msg.includes('ffmpeg version') || msg.includes('Stream #')) {
+        return;
+      }
+
       let tagClass = 'tag-info';
       let tag = '[INFO]';
       
@@ -850,6 +889,22 @@
       appState.options.autoPartText = e.target.checked;
     });
 
+    optMetadata.addEventListener('change', (e) => {
+      appState.options.metadataStripping = e.target.checked;
+    });
+
+    optNoise.addEventListener('change', (e) => {
+      appState.options.noiseInjection = e.target.checked;
+    });
+
+    optDecimate.addEventListener('change', (e) => {
+      appState.options.decimation = e.target.checked;
+    });
+
+    optAudioPan.addEventListener('change', (e) => {
+      appState.options.audioSpatialPanning = e.target.checked;
+    });
+
     changeOutputBtn.addEventListener('click', async () => {
       if (appState.mode === 'processing') return;
       const result = await ipcRenderer.invoke('select-output-folder');
@@ -880,7 +935,11 @@
           customEnd: appState.options.customEnd,
           aspectRatio: appState.options.aspectRatio,
           autoPartText: appState.options.autoPartText,
-          ttsMode: appState.options.ttsMode
+          ttsMode: appState.options.ttsMode,
+          metadataStripping: appState.options.metadataStripping,
+          noiseInjection: appState.options.noiseInjection,
+          decimation: appState.options.decimation,
+          audioSpatialPanning: appState.options.audioSpatialPanning
         }
       });
     });
@@ -904,7 +963,7 @@
       if (msg.includes('✅ Hoàn tất toàn bộ quy trình!')) {
         appState.mode = 'idle';
         appState.progress = 100;
-        appState.status = `✅ Video lưu tại: ${appState.outputPath ? 'Thư mục tùy chọn' : 'Downloads'}!`;
+        appState.status = `✅ Video lưu tại: ${appState.outputPath ? 'Thư mục tùy chọn' : 'Downloads/eigu/outputs'}!`;
         appState.file = null;
         appState.youtubeLink = '';
       } else if (msg.includes('❌ Lỗi') || msg.includes('❌ Đã hủy')) {

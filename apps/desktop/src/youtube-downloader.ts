@@ -24,7 +24,8 @@ export async function downloadYouTubeVideo(
       format: 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
       mergeOutputFormat: 'mp4',
       ffmpegLocation: ffmpegInstaller.path,
-    });
+      concurrentFragments: 10,
+    } as any);
 
     subprocess.on('close', (code) => {
       if (code === 0) {
