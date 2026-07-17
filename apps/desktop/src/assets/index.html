@@ -590,7 +590,10 @@
     <div id="progress-section" class="progress-section hidden">
       <div class="status-header">
         <span id="status-text">Đang khởi tạo...</span>
-        <span id="progress-percent">0%</span>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <span id="eta-display" style="color:#64748b;font-size:12px;font-variant-numeric:tabular-nums;"></span>
+          <span id="progress-percent">0%</span>
+        </div>
       </div>
       <div class="progress-track">
         <div id="progress-fill" class="progress-fill"></div>
@@ -661,7 +664,8 @@
       },
       progress: 0,
       status: 'Đang chờ...',
-      isDragOver: false
+      isDragOver: false,
+      startTime: null
     };
 
     function getFormattedTime() {
@@ -748,6 +752,22 @@
       progressFill.style.width = `${appState.progress}%`;
       progressPercent.innerText = `${appState.progress}%`;
       statusText.innerText = appState.status;
+
+      // Estimated Time Remaining
+      const etaDisplay = document.getElementById('eta-display');
+      if (appState.startTime && appState.progress > 0 && appState.progress < 100) {
+        const elapsed = (Date.now() - appState.startTime) / 1000;
+        const total = elapsed / (appState.progress / 100);
+        const remaining = total - elapsed;
+        if (remaining > 0 && isFinite(remaining)) {
+          const h = Math.floor(remaining / 3600);
+          const m = Math.floor((remaining % 3600) / 60);
+          const s = Math.floor(remaining % 60);
+          etaDisplay.textContent = `⏱ ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+        }
+      } else {
+        etaDisplay.textContent = '';
+      }
     }
 
     // ACTIONS
@@ -923,6 +943,7 @@
       appState.mode = 'processing';
       appState.progress = 0;
       appState.status = 'Đang khởi tạo...';
+      appState.startTime = Date.now();
       render();
 
       ipcRenderer.send('start-workflow', { 
@@ -966,9 +987,11 @@
         appState.status = `✅ Video lưu tại: ${appState.outputPath ? 'Thư mục tùy chọn' : 'Downloads/eigu/outputs'}!`;
         appState.file = null;
         appState.youtubeLink = '';
+        appState.startTime = null;
       } else if (msg.includes('❌ Lỗi') || msg.includes('❌ Đã hủy')) {
         appState.mode = appState.file ? 'local' : (appState.youtubeLink ? 'youtube' : 'idle');
         appState.progress = 0;
+        appState.startTime = null;
       }
       render();
     });

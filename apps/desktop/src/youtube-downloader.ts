@@ -24,15 +24,25 @@ export async function downloadYouTubeVideo(
       format: 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
       mergeOutputFormat: 'mp4',
       ffmpegLocation: ffmpegInstaller.path,
-      concurrentFragments: 10,
+      concurrentFragments: 5,
+      retries: 3,
+      'no-playlist': true,
+      'js-runtimes': 'node',
     } as any);
+
+    let stderrBuffer = '';
+    subprocess.stderr?.on('data', (chunk: Buffer) => {
+      stderrBuffer += chunk.toString();
+    });
 
     subprocess.on('close', (code) => {
       if (code === 0) {
         onProgress('✅ Tải YouTube hoàn tất!');
         resolve(outputPath);
       } else {
-        reject(new Error(`Lỗi tải YouTube, mã lỗi: ${code}`));
+        const errMsg = stderrBuffer.split('\n').filter(l => l.trim()).slice(-3).join(' | ');
+        console.error(`[Youtube-DL] Exit code ${code}, stderr: ${errMsg || '(empty)'}`);
+        reject(new Error(`Lỗi tải YouTube (mã ${code}): ${errMsg || 'Không rõ nguyên nhân'}`));
       }
     });
 

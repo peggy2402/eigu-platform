@@ -35,11 +35,15 @@ class CapabilityDetector {
     return this.isMac() ? 'h264_videotoolbox' : 'libx264';
   }
 
-  static getEncoderOptions(): string[] {
+  static getEncoderOptions(isSegment: boolean): string[] {
     if (this.isMac()) {
-      return ['-b:v 4000k', '-movflags +faststart', '-y'];
+      const opts = ['-quality 1', '-b:v 3000k'];
+      if (isSegment) opts.push('-g 60');
+      return opts;
     } else {
-      return ['-preset ultrafast', '-crf 23', '-movflags +faststart', '-y'];
+      const opts = ['-preset ultrafast', '-crf 23'];
+      if (isSegment) opts.push('-g 30');
+      return opts;
     }
   }
 }
@@ -95,9 +99,9 @@ class PipelineBuilder {
     // 1. Setup Filters (if transcode)
     const videoFilters: string[] = [];
     if (needVideoTranscode) {
-      if (opts.aspectRatio === '9:16') videoFilters.push("scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920");
-      else if (opts.aspectRatio === '16:9') videoFilters.push("scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080");
-      else if (opts.aspectRatio === '1:1') videoFilters.push("scale=1080:1080:force_original_aspect_ratio=increase,crop=1080:1080");
+      if (opts.aspectRatio === '9:16') videoFilters.push("scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=black");
+      else if (opts.aspectRatio === '16:9') videoFilters.push("scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=black");
+      else if (opts.aspectRatio === '1:1') videoFilters.push("scale=1080:1080:force_original_aspect_ratio=decrease,pad=1080:1080:(ow-iw)/2:(oh-ih)/2:color=black");
 
       if (opts.decimation) videoFilters.push('mpdecimate');
       if (opts.noiseInjection) videoFilters.push('noise=alls=1:allf=t', 'eq=contrast=1.01:gamma=0.99');
@@ -134,7 +138,10 @@ class PipelineBuilder {
     // 3. Output Options (Metadata & Format)
     let outputOpts: string[] = [];
     if (needVideoTranscode) {
-      outputOpts.push(...CapabilityDetector.getEncoderOptions());
+      const encoderOpts = CapabilityDetector.getEncoderOptions(isSegmentFormat);
+      outputOpts.push(...encoderOpts);
+      if (!isSegmentFormat) outputOpts.push('-movflags +faststart');
+      outputOpts.push('-y');
     } else {
       outputOpts.push('-y'); // Cần overwrite
     }
@@ -152,9 +159,6 @@ class PipelineBuilder {
       outputOpts.push('-f segment');
       outputOpts.push(`-segment_time ${splitSeconds}`);
       outputOpts.push('-reset_timestamps 1');
-      if (needVideoTranscode) {
-        outputOpts.push(`-force_key_frames expr:gte(t,n_forced*${splitSeconds})`);
-      }
     }
 
     if (outputOpts.length > 0) this.command.outputOptions(outputOpts);
