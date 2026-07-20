@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>EIGU Logo Extractor</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0f172a;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-top: 40px;
+      background: linear-gradient(90deg, #818cf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      margin-bottom: 30px;
+      text-align: center;
+      max-width: 600px;
+      line-height: 1.5;
+    }
+
+    .container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 320px;
+      border: 1px solid #334155;
+    }
+
+    .logo-preview {
+      width: 250px;
+      height: 250px;
+      background: transparent;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Nền caro để dễ nhìn thấy độ trong suốt */
+      background-image: linear-gradient(45deg, #334155 25%, transparent 25%),
+        linear-gradient(-45deg, #334155 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #334155 75%),
+        linear-gradient(-45deg, transparent 75%, #334155 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #4F83F5, #6754EC);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      text-align: center;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(79, 131, 245, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #334155;
+      margin-bottom: 12px;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #475569;
+      box-shadow: none;
+    }
+
+    canvas {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>EIGU Logo Extractor</h1>
+  <p class="subtitle">
+    Công cụ này giúp bạn vẽ lại logo bằng Vector sắc nét, đồng thời có tính năng tách nền (xóa background tối màu) trực
+    tiếp từ bức ảnh bạn cung cấp để xuất ra file PNG trong suốt.
+  </p>
+
+  <div class="container">
+
+    <!-- 1. Công cụ tách nền từ ảnh gốc -->
+    <div class="card">
+      <h3 style="margin-top:0;">Tách nền từ Ảnh gốc</h3>
+      <p style="font-size:13px; color:#94a3b8; text-align:center; margin-bottom:16px;">Tải ảnh logo của bạn lên đây, hệ
+        thống sẽ tự động lọc bỏ nền đen/xám.</p>
+
+      <div class="logo-preview">
+        <canvas id="canvas-preview" width="250" height="250" style="display:block; width:100%; height:100%;"></canvas>
+      </div>
+
+      <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+      <button class="btn btn-secondary" onclick="document.getElementById('image-upload').click()">Tải ảnh của bạn
+        lên</button>
+      <button class="btn" id="btn-download-removed" disabled onclick="downloadRemovedPNG()">Tải xuống PNG trong
+        suốt</button>
+    </div>
+
+    <!-- 2. Logo được vẽ lại bằng Vector -->
+    <div class="card">
+      <h3 style="margin-top:0;">Vector Logo (SVG)</h3>
+      <p style="font-size:13px; color:#94a3b8; text-align:center; margin-bottom:16px;">Phiên bản được vẽ lại bằng mã
+        SVG, siêu nét không bao giờ vỡ hạt.</p>
+
+      <div class="logo-preview" id="svg-container">
+        <!-- Mã SVG phỏng theo logo EIGU (chim đại bàng hình chữ E) -->
+        <svg id="eigu-svg" viewBox="0 0 200 200" width="180" height="180" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="eiguGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#4a65e0" />
+              <stop offset="100%" stop-color="#7743df" />
+            </linearGradient>
+            <!-- Shadow cho logo nổi hơn -->
+            <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.3" />
+            </filter>
+          </defs>
+          <g filter="url(#shadow)">
+            <!-- Top Part (Head and Top Wing) -->
+            <path
+              d="M 75 45 C 100 20, 140 20, 165 25 Q 185 25, 195 45 Q 175 55, 165 65 Q 155 55, 135 60 C 120 65, 115 75, 115 90 L 155 90 A 12 12 0 0 1 155 114 L 115 114 C 115 130, 120 150, 140 165 Q 160 180, 185 190 C 130 210, 80 180, 60 150 Q 85 155, 95 130 Q 55 130, 30 105 Q 70 105, 80 75 Q 40 75, 15 45 Q 55 45, 75 45 Z"
+              fill="url(#eiguGrad)" />
+          </g>
+        </svg>
+      </div>
+      <button class="btn" onclick="downloadVectorPNG()">Tải xuống Vector PNG (800x800)</button>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Tính năng 1: Tách nền từ ảnh bằng Canvas ---
+    let processedCanvas = null;
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+
+      reader.onload = function (event) {
+        const img = new Image();
+        img.onload = function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imgData.data;
+
+          // Ước lượng màu nền của ảnh (Màu xanh xám tối)
+          // Rất gần với rgb(31, 35, 43)
+          const bgR = 30, bgG = 35, bgB = 42;
+          const threshold = 50; // Độ dung sai
+
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            // Tính toán khoảng cách màu (Euclidean distance) so với màu nền
+            const dist = Math.sqrt(Math.pow(r - bgR, 2) + Math.pow(g - bgG, 2) + Math.pow(b - bgB, 2));
+
+            // Nếu pixel gần với màu nền, tiến hành làm trong suốt (khử nền)
+            if (dist < threshold) {
+              // Làm mờ viền (anti-aliasing smooth edge)
+              // distance càng nhỏ -> alpha càng gần 0
+              const alpha = Math.max(0, dist / threshold);
+              data[i + 3] = data[i + 3] * alpha;
+            }
+          }
+
+          ctx.putImageData(imgData, 0, 0);
+          processedCanvas = canvas;
+
+          // Hiển thị lên preview
+          const preview = document.getElementById('canvas-preview');
+          const pCtx = preview.getContext('2d');
+          pCtx.clearRect(0, 0, preview.width, preview.height);
+
+          // Căn giữa và thu phóng vừa vặn
+          const scale = Math.min(preview.width / img.width, preview.height / img.height);
+          const w = img.width * scale;
+          const h = img.height * scale;
+          const x = (preview.width - w) / 2;
+          const y = (preview.height - h) / 2;
+          pCtx.drawImage(canvas, x, y, w, h);
+
+          document.getElementById('btn-download-removed').disabled = false;
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function downloadRemovedPNG() {
+      if (!processedCanvas) return;
+      const a = document.createElement("a");
+      a.download = "EIGU_Logo_Transparent.png";
+      a.href = processedCanvas.toDataURL("image/png");
+      a.click();
+    }
+
+    // --- Tính năng 2: Chuyển SVG Vector thành PNG nét cao ---
+    function downloadVectorPNG() {
+      const svg = document.getElementById('eigu-svg');
+      const svgData = new XMLSerializer().serializeToString(svg);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 1000; // Độ phân giải siêu nét
+      canvas.height = 1000;
+      const ctx = canvas.getContext("2d");
+
+      const img = new Image();
+      img.onload = function () {
+        ctx.drawImage(img, 0, 0, 1000, 1000);
+        const pngFile = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.download = "EIGU_Logo_Vector_HD.png";
+        a.href = pngFile;
+        a.click();
+      };
+      img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+    }
+  </script>
+</body>
+
+</html>

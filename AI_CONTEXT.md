@@ -1,34 +1,49 @@
 # EIGU Platform - Master AI Context
 
-> **LƯU Ý DÀNH CHO CÁC AI ASSISTANT (Claude, GPT, Gemini...):**  
-> Khi bạn được thêm vào dự án này để hỗ trợ code, HÃY ĐỌC KỸ TÀI LIỆU NÀY TRƯỚC TIÊN để hiểu cấu trúc hệ thống và không phá vỡ kiến trúc.
+> **LUU Y DANH CHO CAC AI ASSISTANT (Claude, GPT, Gemini...):**
+> Khi ban duoc them vao du an nay de ho tro code, HAY DOC KY TAI LIEU NAY TRUOC TIEN de hieu cau truc he thong va khong pha vo kien truc.
 
-## 1. Tổng quan Kiến trúc (Nx Monorepo)
-Dự án được quản lý trong một **Nx Workspace** (`npx nx ...`) bao gồm 4 ứng dụng và 1 thư viện dùng chung.
-* **Cơ sở hạ tầng:** Node.js, TypeScript.
+## 1. Tong quan Kien truc (Nx Monorepo)
+Du an duoc quan ly trong mot **Nx Workspace** (`npx nx ...`) bao gom 4 ung dung va 1 thu vien dung chung.
+* **Co so ha tang:** Node.js, TypeScript.
 
-### Cấu trúc thư mục:
-- `apps/api` (NestJS): Backend Gateway trung tâm (Cổng 3001). Cung cấp REST API (có Swagger tại `/api/docs`) và WebSockets để quản lý toàn bộ trạng thái hệ thống.
-- `apps/web` (Next.js): Dashboard giám sát (Cổng 3000). Sử dụng React Flow, Tailwind/CSS thuần, Dark Mode, kết nối Socket.io để theo dõi tiến trình thời gian thực.
-- `apps/desktop` (Electron + Node.js): Worker xử lý nặng. Nhận file kéo thả (.mp4, YouTube), gọi IPC xuống lõi Node.js để chạy FFmpeg (băm video, chống MD5) và gọi Puppeteer để lướt Web/TikTok Anti-detect.
-- `apps/mobile` (Flutter Native): Ứng dụng điện thoại Live Telemetry, dùng Dart, kết nối Socket.io để hiển thị trạng thái từ xa.
-- `packages/shared`: Nơi định nghĩa các Type, DTO, Interface dùng chung cho cả 4 app trên (VD: `VideoWorkflowRequest`).
+### Cau truc thu muc:
+- `apps/api` (NestJS): Backend Gateway trung tam (Cong 3001). Cung cap REST API (co Swagger tai `/api/docs`) va WebSockets de quan ly toan bo trang thai he thong.
+- `apps/web` (Next.js): Dashboard giam sat (Cong 3000). Su dung React Flow, Dark Mode, ket noi Socket.io de theo doi tien trinh thoi gian thuc.
+- `apps/desktop` (Electron + Node.js): Worker xu ly nang. Nhan file keo tha (.mp4, YouTube), goi IPC xuong loi Node.js de chay FFmpeg (bam video, chong MD5) va goi Puppeteer de luot Web/TikTok Anti-detect.
+- `apps/mobile` (Flutter Native): Ung dung dien thoai Live Telemetry, dung Dart, ket noi Socket.io de hien thi trang thai tu xa.
+- `packages/shared`: Noi dinh nghia cac Type, DTO, Interface dung chung cho ca 4 app tren (VD: `VideoWorkflowRequest`).
 
-## 2. Quy tắc Lập trình (Code Conventions)
-1. **Tuyệt đối không lặp lại code định nghĩa (DRY):** Bất cứ cấu trúc dữ liệu nào truyền qua mạng (API/WebSocket) đều phải được khai báo trong thư mục `packages/shared` và import chéo vào các app.
-2. **Giao diện & Thẩm mỹ:** Mọi giao diện (Web, Desktop, Mobile) phải tuân theo phong cách **Dark Mode** hiện đại, sử dụng gradient, animation mượt mà.
-3. **Cơ chế hoạt động của Nx:** 
-   - Không được dùng các lệnh `npm start` hay `npm run dev` thông thường. 
-   - Lệnh chạy: `npx nx serve <app_name>`.
-   - Với Web Next.js: `npx nx dev web`.
-   - Riêng Desktop (Electron) đã được tinh chỉnh cấu hình `serve` trong `project.json` để chạy thẳng lệnh `npx electron`.
-4. **WebSocket:** Luồng dữ liệu giữa API, Web, Desktop và Mobile dựa hoàn toàn vào kiến trúc Event-driven qua Socket.io-client.
+## 2. Quy tac Lap trinh (Code Conventions)
+1. **Tuyet doi khong lap lai code dinh nghia (DRY):** Bat cu cau truc du lieu nao truyen qua mang (API/WebSocket) deu phai duoc khai bao trong thu muc `packages/shared` va import cheo vao cac app.
+2. **Giao dien & Tham my:**
+   - **KHONG SU DUNG EMOJI ICON** trong bat ky giao dien nao (Web, Desktop, Mobile). Emoji gay cam giac thieu chuyen nghiep.
+   - **Desktop:** Dung SVG icons inline (xem `js/ui/icons.js`).
+   - **Web:** Dung `lucide-react` icons (da co trong dependencies).
+   - **Mobile:** Dung Material Icons (`Icons.*`).
+   - **CSS/UI:** Dark mode, gradient, animation muot ma.
+3. **Moi truong Development / Production:**
+   - **Backend (`apps/api`):**
+     - Su dung `Logger` tu `@nestjs/common` (khong dung `console.log`).
+     - Debug logs duoc ghi o level `debug`, chi hien thi trong moi truong development.
+     - Production chi ghi log o level `warn` va `error`.
+   - **Frontend (`apps/web`, `apps/desktop`, `apps/mobile`):**
+     - Luon luon hien thi UI than thien voi nguoi dung.
+     - Khong duoc dung `console.log` trong production code.
+     - **Desktop:** Dung `addLog()` de hien thi log o UI console cho nguoi dung.
+     - **Mobile:** Dung `debugPrint()` (tu `flutter/foundation.dart`) thay vi `print()` - debugPrint chi chay trong debug mode.
+4. **Co che hoat dong cua Nx:**
+   - Khong duoc dung cac lenh `npm start` hay `npm run dev` thong thuong.
+   - Lenh chay: `npx nx serve <app_name>`.
+   - Voi Web Next.js: `npx nx dev web`.
+   - Rieng Desktop (Electron) da duoc tinh chinh cau hinh `serve` trong `project.json` de chay thang lenh `npx electron`.
+5. **WebSocket:** Luong du lieu giua API, Web, Desktop va Mobile dua hoan toan vao kien truc Event-driven qua Socket.io-client.
 
-## 3. Trạng thái Hiện tại (Checkpoint)
-- Đã hoàn thành Giai đoạn 1: **Prototype End-to-End**.
-- Luồng đã thông từ lúc người dùng kéo thả file ở Desktop -> Nhắn tin IPC -> Node.js giả lập gọi FFmpeg -> Mở Chromium (Puppeteer) -> Báo cáo % tiến độ lên API Gateway -> Phản hồi thời gian thực ra biểu đồ React Flow ở Web Dashboard.
+## 3. Trang thai Hien tai (Checkpoint)
+- Da hoan thanh Giai doan 1: **Prototype End-to-End**.
+- Luong da thong tu luc nguoi dung keo tha file o Desktop -> Nhan tin IPC -> Node.js gia lap goi FFmpeg -> Mo Chromium (Puppeteer) -> Bao cao % tien do len API Gateway -> Phan hoi thoi gian thuc ra bieu do React Flow o Web Dashboard.
 
-## 4. Mục tiêu tiếp theo
-- Triển khai thuật toán xử lý FFmpeg thật (Decimation, Noise Injection).
-- Viết kịch bản Puppeteer phức tạp hơn: Fake Fingerprint, vượt Captcha, tự động điền form Upload TikTok.
-- Thiết kế cơ sở dữ liệu (Database) trên API để lưu lại lịch sử các video đã upload.
+## 4. Muc tieu tiep theo
+- Trieu khai thuat toan xu ly FFmpeg that (Decimation, Noise Injection).
+- Viet kich ban Puppeteer phuc tap hon: Fake Fingerprint, vuot Captcha, tu dong dien form Upload TikTok.
+- Thiet ke co so du lieu (Database) tren API de luu lai lich su cac video da upload.

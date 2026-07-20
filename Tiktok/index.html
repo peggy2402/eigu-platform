@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Chính Sách & Tương Tác TikTok</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .sidebar-link.active {
+            background-color: #f1f5f9;
+            border-right: 4px solid #00f2ea;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .policy-tag {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .tag-strict { background-color: #fee2e2; color: #991b1b; }
+        .tag-warning { background-color: #fef3c7; color: #92400e; }
+        .tag-info { background-color: #e0f2fe; color: #075985; }
+
+        .hidden-section { display: none; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <!-- Chosen Palette: Digital Harmony (Nền trung tính ấm, xanh mòng két nhạt, xám đá) -->
+    
+    <!-- Application Structure Plan:
+        1. Dashboard Tổng quan: Hiển thị các con số ấn tượng về thực thi chính sách (Enforcement stats).
+        2. Điều hướng Chủ đề: Sidebar chia thành 6 trụ cột chính: An toàn Trẻ em, Sức khỏe Tâm thần, Văn minh Cộng đồng, Tính xác thực (AI/Tin giả), TikTok Shop, và Thuật toán FYF.
+        3. Công cụ Tương tác: 
+           - Bảng so sánh quyền hạn theo độ tuổi.
+           - Máy tính "Điểm Tình trạng" (CHR) giả lập cho Seller.
+           - Bộ lọc từ khóa "Vùng cấm" trong livestream/video.
+        4. Cơ chế thực thi: Quy trình AI + Con người thông qua sơ đồ trực quan.
+    -->
+
+    <!-- Visualization & Content Choices:
+        - Bar Chart (Chart.js): Tỷ lệ video bị xóa chủ động bởi AI (92.5%) vs Báo cáo người dùng.
+        - Matrix Table: Phân quyền theo độ tuổi (13-15, 16-17, 18+).
+        - Interactive Cards: Danh mục hàng hóa bị cấm và hạn chế trên TikTok Shop.
+        - Gauge Chart (Canvas): Mô phỏng hệ thống điểm CHR (200 điểm).
+        - Radar Chart (Chart.js): Các yếu tố giúp video lên xu hướng (Watch time, Engagement, Authenticity).
+        - CONFIRMATION: NO SVG used. NO Mermaid JS used.
+    -->
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-white border-r border-slate-200 hidden md:block fixed h-full z-50">
+            <div class="p-6">
+                <div class="text-xl font-bold tracking-tight text-slate-800">TikTok <span class="text-cyan-500">Policy</span></div>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Hệ thống quản trị chuyên sâu</p>
+            </div>
+            <nav class="mt-4 px-3 space-y-1">
+                <button onclick="showSection('overview')" class="sidebar-link active w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3">
+                    <span>📊 Tổng quan chung</span>
+                </button>
+                <button onclick="showSection('youth')" class="sidebar-link w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 text-slate-600 hover:bg-slate-50">
+                    <span>👶 An toàn Trẻ em</span>
+                </button>
+                <button onclick="showSection('civility')" class="sidebar-link w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 text-slate-600 hover:bg-slate-50">
+                    <span>🤝 Văn minh & Sức khỏe</span>
+                </button>
+                <button onclick="showSection('integrity')" class="sidebar-link w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 text-slate-600 hover:bg-slate-50">
+                    <span>🤖 AI & Tin giả</span>
+                </button>
+                <button onclick="showSection('shop')" class="sidebar-link w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 text-slate-600 hover:bg-slate-50">
+                    <span>🛒 TikTok Shop</span>
+                </button>
+                <button onclick="showSection('fyf')" class="sidebar-link w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 text-slate-600 hover:bg-slate-50">
+                    <span>🚀 Thuật toán FYF</span>
+                </button>
+                <button onclick="showSection('enforcement')" class="sidebar-link w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 text-slate-600 hover:bg-slate-50">
+                    <span>⚖️ Cơ chế Thực thi</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 md:ml-64 p-4 md:p-8">
+            
+            <!-- SECTION: OVERVIEW -->
+            <section id="overview" class="max-w-5xl mx-auto animate-fade-in">
+                <header class="mb-10">
+                    <h1 class="text-3xl font-extrabold text-slate-900 mb-2">Báo cáo Phân tích Chính sách TikTok</h1>
+                    <p class="text-slate-500 leading-relaxed max-w-3xl">
+                        Chào mừng bạn đến với hệ thống khám phá dữ liệu chính sách của TikTok. Ứng dụng này cung cấp cái nhìn chi tiết về cách nền tảng quản trị hơn 1 tỷ người dùng thông qua các trụ cột: An toàn tuyệt đối, Văn hóa tôn trọng, Tính xác thực và Đáng tin cậy. Dưới đây là các chỉ số thực thi nổi bật trong quý gần nhất.
+                    </p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-cyan-400">
+                        <div class="text-slate-400 text-sm font-medium mb-1">Xóa chủ động bởi AI</div>
+                        <div class="text-3xl font-bold text-slate-800">92.5%</div>
+                        <p class="text-xs text-slate-500 mt-2">Nội dung vi phạm bị gỡ trước khi người dùng báo cáo.</p>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-red-400">
+                        <div class="text-slate-400 text-sm font-medium mb-1">Xóa trước khi có lượt xem</div>
+                        <div class="text-3xl font-bold text-slate-800">88.7%</div>
+                        <p class="text-xs text-slate-500 mt-2">Ngăn chặn thiệt hại ngay từ giây đầu tiên.</p>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-slate-400">
+                        <div class="text-slate-400 text-sm font-medium mb-1">Thời gian xử lý</div>
+                        <div class="text-3xl font-bold text-slate-800">&lt; 24h</div>
+                        <p class="text-xs text-slate-500 mt-2">94% nội dung vi phạm bị gỡ trong vòng 1 ngày.</p>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 rounded-2xl shadow-sm mb-10">
+                    <h3 class="text-lg font-bold mb-6 text-center text-slate-700">Hiệu quả Kiểm duyệt Nội dung Toàn cầu</h3>
+                    <div class="chart-container">
+                        <canvas id="enforcementChart"></canvas>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-6 italic text-center">
+                        Dữ liệu cho thấy sự phụ thuộc lớn vào AI trong việc lọc các nội dung nghiêm trọng (CSAM, khủng bố, bạo lực).
+                    </p>
+                </div>
+            </section>
+
+            <!-- SECTION: YOUTH SAFETY -->
+            <section id="youth" class="max-w-5xl mx-auto hidden-section">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-900">An toàn cho Thanh thiếu niên</h2>
+                    <p class="text-slate-500 mt-2">TikTok áp dụng hệ thống phòng vệ đa tầng dựa trên độ tuổi sinh học để bảo vệ người dùng trẻ.</p>
+                </header>
+
+                <div class="overflow-x-auto glass-card rounded-2xl mb-8">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="p-4 text-sm font-bold text-slate-600">Tính năng</th>
+                                <th class="p-4 text-sm font-bold text-slate-600">Dưới 13</th>
+                                <th class="p-4 text-sm font-bold text-slate-600">13 - 15</th>
+                                <th class="p-4 text-sm font-bold text-slate-600">16 - 17</th>
+                                <th class="p-4 text-sm font-bold text-slate-600">Trên 18</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td class="p-4 text-sm font-medium">Tạo tài khoản</td>
+                                <td class="p-4 text-red-500 font-bold">❌ Cấm</td>
+                                <td class="p-4 text-green-500">✅ Có</td>
+                                <td class="p-4 text-green-500">✅ Có</td>
+                                <td class="p-4 text-green-500">✅ Có</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-medium">Quyền riêng tư</td>
+                                <td class="p-4">-</td>
+                                <td class="p-4 text-cyan-600">Riêng tư mặc định</td>
+                                <td class="p-4">Tùy chỉnh</td>
+                                <td class="p-4">Tùy chỉnh</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-medium">Nhắn tin (DM)</td>
+                                <td class="p-4">-</td>
+                                <td class="p-4 text-red-500">❌ Khóa</td>
+                                <td class="p-4 text-green-500">✅ Có</td>
+                                <td class="p-4 text-green-500">✅ Có</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-medium">Livestream & Kiếm tiền</td>
+                                <td class="p-4">-</td>
+                                <td class="p-4 text-red-500">❌ Cấm</td>
+                                <td class="p-4 text-red-500">❌ Cấm</td>
+                                <td class="p-4 text-green-500">✅ Có</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
+                        <h4 class="font-bold text-indigo-900 mb-3">Gia đình Thông minh (Family Pairing)</h4>
+                        <ul class="text-sm text-indigo-800 space-y-2">
+                            <li class="flex items-start gap-2"><span>•</span> Giới hạn 60 phút mặc định cho trẻ dưới 18 tuổi.</li>
+                            <li class="flex items-start gap-2"><span>•</span> Phụ huynh lọc từ khóa/hashtag trên trang FYF của con.</li>
+                            <li class="flex items-start gap-2"><span>•</span> Quản lý quyền chặn tài khoản và danh sách bạn bè.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-red-50 p-6 rounded-2xl border border-red-100">
+                        <h4 class="font-bold text-red-900 mb-3">Nguyên tắc "Zero Tolerance"</h4>
+                        <p class="text-sm text-red-800">
+                            Mọi nội dung bóc lột, lạm dụng (CSAM), hoặc thử thách nguy hiểm liên quan đến trẻ vị thành niên sẽ bị xóa vĩnh viễn và báo cáo ngay lập tức cho NCMEC hoặc cơ quan thực thi pháp luật.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: CIVILTY & HEALTH -->
+            <section id="civility" class="max-w-5xl mx-auto hidden-section">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-900">Văn minh & Sức khỏe Tâm thần</h2>
+                    <p class="text-slate-500 mt-2">Xây dựng không gian an toàn bằng cách ngăn chặn quấy rối và hỗ trợ tâm lý người dùng.</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <div class="glass-card p-6 rounded-2xl">
+                        <h4 class="font-bold text-slate-800 mb-4 flex items-center gap-2">🛡️ Công cụ Chống Quấy rối</h4>
+                        <div class="space-y-4">
+                            <div class="p-3 bg-slate-50 rounded-lg">
+                                <span class="policy-tag tag-strict">NLP Filter</span>
+                                <p class="text-sm mt-1">Tự động ẩn bình luận chứa từ ngữ thù ghét, miệt thị ngoại hình.</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg">
+                                <span class="policy-tag tag-info">Dislike Feature</span>
+                                <p class="text-sm mt-1">Nút không thích ẩn danh giúp hạ thấp vị trí các bình luận vô văn hóa.</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg">
+                                <span class="policy-tag tag-warning">Safety Reminders</span>
+                                <p class="text-sm mt-1">Cảnh báo nhà sáng tạo khi nhận được làn sóng bình luận tiêu cực tăng đột biến.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <h4 class="font-bold text-slate-800 mb-4 flex items-center gap-2">🧠 Can thiệp Tâm lý</h4>
+                        <p class="text-sm text-slate-600 mb-4">
+                            TikTok không chỉ xóa nội dung độc hại mà còn chủ động điều chỉnh thuật toán để ngăn chặn "Hiệu ứng buồng vang" (Echo Chamber) đối với các chủ đề nhạy cảm như ăn kiêng cực đoan.
+                        </p>
+                        <div class="border-t pt-4">
+                            <p class="text-xs font-bold text-slate-400 uppercase mb-2">Khi tìm kiếm "Tự tử/Trầm cảm":</p>
+                            <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800 italic">
+                                "Bạn không cô đơn. Chúng tôi luôn sẵn sàng hỗ trợ..."
+                                <div class="mt-2 font-bold text-blue-900">📞 Hotlines hỗ trợ địa phương</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: SHOP -->
+            <section id="shop" class="max-w-5xl mx-auto hidden-section">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-900">TikTok Shop & Quản trị Thương mại</h2>
+                    <p class="text-slate-500 mt-2">Hệ thống Điểm Tình trạng (CHR) và các quy định khắt khe dành cho Seller.</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="glass-card p-6 rounded-2xl flex flex-col items-center">
+                        <h4 class="text-sm font-bold text-slate-500 mb-4 uppercase">Mô phỏng Điểm CHR</h4>
+                        <canvas id="chrGauge" width="200" height="120"></canvas>
+                        <div id="chrValue" class="text-2xl font-bold text-green-600 mt-2">200 / 200</div>
+                        <p class="text-[10px] text-slate-400 mt-2 text-center">Tài khoản sạch. Quỹ điểm ban đầu tối đa.</p>
+                    </div>
+
+                    <div class="md:col-span-2 glass-card p-6 rounded-2xl">
+                        <h4 class="font-bold text-slate-800 mb-4">Danh mục Hàng hóa Bị cấm Tuyệt đối</h4>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="flex items-center gap-2 text-slate-600">❌ Vũ khí & Ma túy</div>
+                            <div class="flex items-center gap-2 text-slate-600">❌ Thuốc kê đơn</div>
+                            <div class="flex items-center gap-2 text-slate-600">❌ Sữa công thức trẻ em</div>
+                            <div class="flex items-center gap-2 text-slate-600">❌ Động vật hoang dã</div>
+                            <div class="flex items-center gap-2 text-slate-600">❌ Hàng giả/IP</div>
+                            <div class="flex items-center gap-2 text-slate-600">❌ Chất nổ/Pin Lithium</div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t">
+                            <h5 class="text-sm font-bold text-amber-600 mb-2">Hàng hóa hạn chế (Whitelist):</h5>
+                            <p class="text-xs text-slate-500">Cần giấy phép: Vàng bạc, đá quý, Thiết bị y tế, Đồ chơi trẻ em, Điện tử.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border-l-8 border-red-500">
+                    <h4 class="font-bold text-red-600 mb-4">"Vùng cấm" ngôn từ cho Seller/Creator</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 mb-2">1. ĐIỀU HƯỚNG ĐỐI THỦ</p>
+                            <p class="text-sm text-slate-700 italic">"Inbox em", "Cọc qua Zalo", "Link bio sang FB", "Quét QR"...</p>
+                            <p class="text-[10px] text-red-400 mt-1">Hậu quả: Chặn livestream, gỡ video.</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 mb-2">2. CAM KẾT QUÁ MỨC (OVER-CLAIM)</p>
+                            <p class="text-sm text-slate-700 italic">"100% hết mụn", "Điều trị dứt điểm", "Tốt nhất thế giới", "Giảm 10kg/tuần"...</p>
+                            <p class="text-[10px] text-red-400 mt-1">Hậu quả: Trừ 20-40 điểm CHR.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: FYF ALGORITHM -->
+            <section id="fyf" class="max-w-5xl mx-auto hidden-section">
+                <header class="mb-8 text-center">
+                    <h2 class="text-2xl font-bold text-slate-900">Thuật toán Dành cho bạn (FYF)</h2>
+                    <p class="text-slate-500 mt-2">Bản chất của việc "Lên xu hướng" và các tiêu chuẩn phân phối nội dung.</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                    <div class="chart-container">
+                        <canvas id="fyfRadarChart"></canvas>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                            <h4 class="font-bold text-slate-800">Quy tắc "80% Giá trị - 20% Bán hàng"</h4>
+                            <p class="text-sm text-slate-500 mt-2">Thuật toán ưu tiên video mang lại kiến thức hoặc giải trí thực sự thay vì quảng cáo chốt đơn cứng nhắc.</p>
+                        </div>
+                        <div class="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                            <h4 class="font-bold text-slate-800">Tiêu chuẩn kỹ thuật tối thiểu</h4>
+                            <ul class="text-sm text-slate-500 mt-2 space-y-1">
+                                <li>• Độ phân giải: 1080p, Khung hình dọc 9:16.</li>
+                                <li>• Tương tác 3 giây đầu (Hook) là sinh tử.</li>
+                                <li>• Ưu tiên mặt thật, giọng thật (Authenticity).</li>
+                            </ul>
+                        </div>
+                        <div class="p-5 bg-red-50 border border-red-100 rounded-2xl shadow-sm">
+                            <h4 class="font-bold text-red-800">Bị bóp tương tác (Shadowban) nếu:</h4>
+                            <p class="text-sm text-red-600 mt-2">Re-up nội dung, spam cùng một video nhiều lần, hoặc video mờ, tối, rung lắc mạnh.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: INTEGRITY (AI & TIN GIA) -->
+            <section id="integrity" class="max-w-5xl mx-auto hidden-section">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-900">Tính Toàn vẹn & AI</h2>
+                    <p class="text-slate-500 mt-2">Bảo vệ nền tảng trước Deepfake và các chiến dịch thao túng thông tin.</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="glass-card p-6 rounded-2xl bg-gradient-to-br from-white to-cyan-50">
+                        <h4 class="font-bold text-slate-800 mb-4 flex items-center gap-2">🤖 Quy định về AI (AIGC)</h4>
+                        <div class="space-y-4 text-sm">
+                            <p class="font-medium text-slate-700">TikTok cho phép nội dung AI nhưng BẮT BUỘC:</p>
+                            <div class="p-3 bg-white/80 border rounded-lg italic">
+                                "Gắn nhãn: Nội dung do AI tạo"
+                            </div>
+                            <p class="text-red-500 font-bold">CẤM TUYỆT ĐỐI:</p>
+                            <ul class="list-disc ml-5 text-slate-600 space-y-1">
+                                <li>Deepfake chính trị gia hoặc nhân vật công chúng để gây hiểu lầm.</li>
+                                <li>Sử dụng AI giả mạo danh tính để lừa đảo tài chính.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl bg-gradient-to-br from-white to-amber-50">
+                        <h4 class="font-bold text-slate-800 mb-4 flex items-center gap-2">🗳️ Liêm chính Bầu cử</h4>
+                        <p class="text-sm text-slate-600 mb-4">
+                            Các tài khoản của Chính phủ và Chính trị gia bị kiểm duyệt khắt khe hơn. Họ không được phép sử dụng các tính năng kiếm tiền (quà tặng ảo) để gây quỹ hoặc chạy quảng cáo chính trị.
+                        </p>
+                        <div class="p-4 bg-amber-100/50 rounded-xl text-xs text-amber-900 border border-amber-200">
+                            <strong>Lưu ý:</strong> Thông tin sai lệch về sức khỏe cộng đồng (Vắc-xin, nguồn gốc dịch bệnh) bị gỡ bỏ ngay lập tức.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: ENFORCEMENT (CO CHE THUC THI) -->
+            <section id="enforcement" class="max-w-5xl mx-auto hidden-section">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-900">Cơ chế Thực thi & Kháng nghị</h2>
+                    <p class="text-slate-500 mt-2">Hệ thống "Gậy" (Strikes) và quy trình xử lý minh bạch.</p>
+                </header>
+
+                <div class="relative py-10">
+                    <div class="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-1 bg-slate-200 hidden md:block"></div>
+                    
+                    <!-- Step 1 -->
+                    <div class="relative flex flex-col md:flex-row items-center justify-between mb-12">
+                        <div class="md:w-5/12 bg-white p-5 rounded-xl border border-slate-200 shadow-sm z-10">
+                            <h5 class="font-bold text-cyan-600 text-sm">BƯỚC 1: QUÉT AI</h5>
+                            <p class="text-xs text-slate-500 mt-1">Máy học nhận diện hình ảnh khỏa thân, bạo lực hoặc mã độc ngay khi upload.</p>
+                        </div>
+                        <div class="w-10 h-10 bg-cyan-500 rounded-full flex items-center justify-center text-white font-bold z-20">1</div>
+                        <div class="md:w-5/12"></div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="relative flex flex-col md:flex-row items-center justify-between mb-12">
+                        <div class="md:w-5/12 order-3 md:order-1"></div>
+                        <div class="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold z-20 order-2">2</div>
+                        <div class="md:w-5/12 bg-white p-5 rounded-xl border border-slate-200 shadow-sm z-10 order-1 md:order-3">
+                            <h5 class="font-bold text-indigo-600 text-sm">BƯỚC 2: KIỂM DUYỆT NGƯỜI THẬT</h5>
+                            <p class="text-xs text-slate-500 mt-1">Hàng ngàn nhân viên xử lý các báo cáo về sắc thái ngôn ngữ, châm biếm, và ngữ cảnh chính trị.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="relative flex flex-col md:flex-row items-center justify-between">
+                        <div class="md:w-5/12 bg-white p-5 rounded-xl border border-slate-200 shadow-sm z-10">
+                            <h5 class="font-bold text-red-600 text-sm">BƯỚC 3: BAN & STRIKES</h5>
+                            <p class="text-xs text-slate-500 mt-1">Đánh gậy vi phạm. Các gậy sẽ tự động xóa sau 90 ngày nếu không tái phạm.</p>
+                        </div>
+                        <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold z-20">3</div>
+                        <div class="md:w-5/12"></div>
+                    </div>
+                </div>
+
+                <div class="mt-12 glass-card p-6 rounded-2xl border-t-4 border-green-500">
+                    <h4 class="font-bold text-slate-800 mb-2 text-center">Quy trình Kháng nghị (Appeal)</h4>
+                    <p class="text-sm text-slate-500 text-center mb-6 italic">Nếu bạn cho rằng hệ thống AI đã nhầm lẫn:</p>
+                    <div class="flex flex-col md:flex-row justify-around gap-4 text-center text-xs">
+                        <div class="p-4 bg-slate-50 rounded-xl">1. Vào Hộp thư Hệ thống</div>
+                        <div class="p-4 bg-slate-50 rounded-xl">2. Nhấn Chi tiết Vi phạm</div>
+                        <div class="p-4 bg-slate-50 rounded-xl">3. Gửi "Yêu cầu xem xét lại"</div>
+                        <div class="p-4 bg-green-50 text-green-700 font-bold rounded-xl border border-green-200">Kết quả: Xử lý trong 24-48h</div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Mobile Navigation Bar -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 flex justify-around z-50">
+        <button onclick="showSection('overview')" class="text-xs flex flex-col items-center gap-1 text-cyan-600">
+            <span>📊</span><span>T.Quan</span>
+        </button>
+        <button onclick="showSection('shop')" class="text-xs flex flex-col items-center gap-1 text-slate-400">
+            <span>🛒</span><span>Shop</span>
+        </button>
+        <button onclick="showSection('fyf')" class="text-xs flex flex-col items-center gap-1 text-slate-400">
+            <span>🚀</span><span>FYF</span>
+        </button>
+        <button onclick="showSection('enforcement')" class="text-xs flex flex-col items-center gap-1 text-slate-400">
+            <span>⚖️</span><span>Xử lý</span>
+        </button>
+    </div>
+
+    <script>
+        // Data for charts
+        const enforcementData = {
+            labels: ['CSAM & Bạo lực', 'Tin giả/Thao túng', 'Spam/Buff ảo', 'Ngôn từ thù ghét', 'Hàng hóa bị cấm'],
+            datasets: [{
+                label: 'Xóa bởi AI (%)',
+                data: [98, 75, 96, 82, 88],
+                backgroundColor: 'rgba(34, 211, 238, 0.6)',
+                borderColor: 'rgb(34, 211, 238)',
+                borderWidth: 1
+            }, {
+                label: 'Xóa do Báo cáo (%)',
+                data: [2, 25, 4, 18, 12],
+                backgroundColor: 'rgba(244, 63, 94, 0.6)',
+                borderColor: 'rgb(244, 63, 94)',
+                borderWidth: 1
+            }]
+        };
+
+        const fyfData = {
+            labels: ['Watch Time', 'Retention', 'Shares', 'Authenticity', 'Engagement', 'SEO Tags'],
+            datasets: [{
+                label: 'Mức độ ưu tiên thuật toán',
+                data: [100, 95, 80, 85, 75, 40],
+                fill: true,
+                backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                borderColor: 'rgb(99, 102, 241)',
+                pointBackgroundColor: 'rgb(99, 102, 241)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(99, 102, 241)'
+            }]
+        };
+
+        // Initialize Charts
+        window.onload = function() {
+            // Enforcement Bar Chart
+            const ctx1 = document.getElementById('enforcementChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: enforcementData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Tỷ lệ %' } }
+                    },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // FYF Radar Chart
+            const ctx2 = document.getElementById('fyfRadarChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'radar',
+                data: fyfData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: { line: { borderWidth: 3 } },
+                    scales: { r: { angleLines: { display: false }, suggestMin: 0, suggestMax: 100 } }
+                }
+            });
+
+            // Draw CHR Gauge
+            drawCHR(200);
+        };
+
+        // Function to draw Gauge on Canvas (No SVG)
+        function drawCHR(score) {
+            const canvas = document.getElementById('chrGauge');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height - 10;
+            const radius = 80;
+
+            // Background arc
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, 0);
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 15;
+            ctx.stroke();
+
+            // Progress arc
+            const ratio = score / 200;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, Math.PI + (Math.PI * ratio));
+            ctx.strokeStyle = score > 150 ? '#10b981' : (score > 50 ? '#f59e0b' : '#ef4444');
+            ctx.lineWidth = 15;
+            ctx.stroke();
+        }
+
+        // Section Navigation Logic
+        function showSection(id) {
+            // Hide all sections
+            document.querySelectorAll('main > section').forEach(section => {
+                section.classList.add('hidden-section');
+            });
+            // Show target section
+            document.getElementById(id).classList.remove('hidden-section');
+
+            // Update sidebar state
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.remove('active');
+                link.classList.add('text-slate-600');
+            });
+            
+            // Highlight active link
+            const activeLinks = Array.from(document.querySelectorAll('.sidebar-link')).filter(l => l.innerText.toLowerCase().includes(id.toLowerCase()) || (id === 'overview' && l.innerText.includes('Tổng quan')));
+            activeLinks.forEach(l => {
+                l.classList.add('active');
+                l.classList.remove('text-slate-600');
+            });
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

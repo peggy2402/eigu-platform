@@ -15,14 +15,14 @@ async function request(path: string, options: RequestInit = {}) {
 }
 
 export const authApi = {
-  register: (email: string, password: string) =>
-    request('/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  register: (username: string, email: string, password: string) =>
+    request('/auth/register', { method: 'POST', body: JSON.stringify({ username, email, password }) }),
 
   verifyEmail: (email: string, otp: string) =>
     request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ email, otp }) }),
 
-  login: (email: string, password: string) =>
-    request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  login: (identifier: string, password: string) =>
+    request('/auth/login', { method: 'POST', body: JSON.stringify({ identifier, password }) }),
 
   forgotPassword: (email: string) =>
     request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
@@ -34,4 +34,6 @@ export const authApi = {
     request('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
 
   getMe: () => request('/auth/me'),
+
+  logout: () => request('/auth/logout', { method: 'POST' }),
 };

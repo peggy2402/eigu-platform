@@ -20,10 +20,10 @@ function redirectLogsToUI(window: BrowserWindow) {
     if (window && !window.isDestroyed()) {
       try {
         window.webContents.send('log', msg);
-      } catch (e) {}
+      } catch (e) { }
     }
   };
-  
+
   const originalError = console.error;
   console.error = (...args) => {
     try {
@@ -35,7 +35,7 @@ function redirectLogsToUI(window: BrowserWindow) {
     if (window && !window.isDestroyed()) {
       try {
         window.webContents.send('log', `[ERROR] ${msg}`);
-      } catch (e) {}
+      } catch (e) { }
     }
   };
 }
@@ -45,8 +45,10 @@ let socket: Socket;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 700,
+    width: 860,
+    height: 620,
+    minWidth: 860,
+    minHeight: 620,
     center: true,
     resizable: true,
     maximizable: true,
@@ -57,7 +59,8 @@ function createWindow() {
       contextIsolation: false,
     },
     titleBarStyle: 'hiddenInset',
-    backgroundColor: '#0f172a'
+    backgroundColor: '#0f172a',
+    icon: path.resolve(process.cwd(), 'apps/desktop/src/assets/img/logo.png')
   });
 
   // Tải file HTML giao diện của Desktop App trực tiếp từ mã nguồn
@@ -75,13 +78,16 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  if (process.platform === 'darwin') {
+    app.dock.setIcon(path.resolve(process.cwd(), 'apps/desktop/src/assets/img/logo.png'));
+  }
   createWindow();
 
   console.log('🚀 Khởi động EIGU Desktop Engine...');
 
   // Kết nối đến NestJS API
   const socket = io('http://localhost:3001/workflow');
-  
+
   socket.on('connect', () => {
     console.log('✅ Đã kết nối tới API Gateway');
   });
@@ -106,15 +112,15 @@ app.whenReady().then(() => {
       const taskId = `task_${Date.now()}`;
       if (payload.type === 'local' || payload.type === 'youtube') {
         let finalInputPath = payload.data;
-        
+
         if (!finalInputPath) {
           throw new Error('Dữ liệu đầu vào (đường dẫn file hoặc link YouTube) bị trống hoặc không hợp lệ.');
         }
-        
+
         if (payload.type === 'youtube') {
           console.log(`[Main Process] Bắt đầu tải video từ YouTube: ${payload.data}`);
           event.reply('workflow-status', 'Đang kết nối tới máy chủ YouTube...');
-          
+
           finalInputPath = await downloadYouTubeVideo(payload.data, taskId, (statusMsg) => {
             console.log(`[Youtube-DL] ${statusMsg}`);
             event.reply('workflow-status', statusMsg);
@@ -140,15 +146,15 @@ app.whenReady().then(() => {
         };
 
         event.reply('workflow-status', 'Đang xử lý Video qua FFmpeg...');
-        
+
         const { promise, cancel } = processVideoWithFFmpeg(task, (status) => {
           socket.emit('reportProgress', status);
           event.reply('workflow-progress', status.progress);
           event.reply('workflow-status', status.message);
         }, payload.outputPath);
-        
+
         cancelCurrentWorkflow = cancel;
-        
+
         const processedPath = await promise;
         cancelCurrentWorkflow = null;
 

@@ -1,101 +1,80 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AuthLayout from '../../../components/AuthLayout';
+import { Eye, EyeOff } from 'lucide-react';
 import { authApi } from '../../../lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('eigu_saved_email');
+    if (saved) { setIdentifier(saved); setRemember(true); }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!identifier || !password) { setError('Vui lòng nhập email hoặc tên đăng nhập và mật khẩu'); return; }
     setLoading(true);
     try {
-      const res = await authApi.login(email, password);
-      localStorage.setItem('accessToken', res.accessToken);
-      localStorage.setItem('refreshToken', res.refreshToken);
-      router.push('/');
+      const data = await authApi.login(identifier, password);
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      if (remember) {
+        localStorage.setItem('eigu_saved_email', identifier);
+      } else {
+        localStorage.removeItem('eigu_saved_email');
+      }
+      window.location.href = '/';
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Đăng nhập thất bại');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout title="Login" subtitle="Sign in to your account">
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {error && (
-          <div style={{ padding: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '13px' }}>
-            {error}
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-logo">
+          <img src="/logo.png" alt="EIGU Logo" style={{ width: 56, height: 56, objectFit: 'contain', marginBottom: 16, borderRadius: 12 }} />
+          <h1>EIGU Platform</h1>
+          <p>Anti-Detect Automation Engine</p>
+        </div>
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className={`auth-error ${error ? 'show' : ''}`}>{error}</div>
+          <div className="form-group">
+            <label>Email hoặc tên đăng nhập</label>
+            <input type="text" value={identifier} onChange={e => setIdentifier(e.target.value)} placeholder="you@example.com" autoComplete="email" />
           </div>
-        )}
-
-        <div>
-          <label style={{ color: '#94a3b8', fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '6px' }}>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-            style={inputStyle}
-          />
-        </div>
-
-        <div>
-          <label style={{ color: '#94a3b8', fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '6px' }}>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-            minLength={6}
-            style={inputStyle}
-          />
-        </div>
-
-        <button type="submit" disabled={loading} style={btnStyle}>
-          {loading ? 'Signing in...' : 'Sign In'}
-        </button>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-          <a href="/auth/register" style={{ color: '#818cf8', textDecoration: 'none' }}>Create account</a>
-          <a href="/auth/forgot-password" style={{ color: '#94a3b8', textDecoration: 'none' }}>Forgot password?</a>
-        </div>
-      </form>
-    </AuthLayout>
+          <div className="form-group">
+            <label>Mật khẩu</label>
+            <div className="pw-wrapper">
+              <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" />
+              <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex={-1}>{showPw ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+            </div>
+          </div>
+          <label className="checkbox-row" style={{ margin: '-4px 0 4px', fontSize: 13, cursor: 'pointer' }}>
+            <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />
+            <span>Nhớ tài khoản</span>
+          </label>
+          <button type="submit" className="auth-btn" disabled={loading}>
+            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+          </button>
+          <div className="auth-link">
+            Chưa có tài khoản? <a href="/auth/register">Đăng ký</a>
+            &nbsp;·&nbsp; <a href="/auth/forgot-password">Quên mật khẩu</a>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '12px 14px',
-  background: '#0f172a',
-  border: '1px solid #334155',
-  borderRadius: '8px',
-  color: '#f8fafc',
-  fontSize: '14px',
-  outline: 'none',
-  boxSizing: 'border-box',
-};
-
-const btnStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '14px',
-  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-  border: 'none',
-  borderRadius: '8px',
-  color: 'white',
-  fontSize: '15px',
-  fontWeight: 600,
-  cursor: 'pointer',
-  marginTop: '8px',
-};

@@ -8,7 +8,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   constructor() {
     const url = process.env.DATABASE_URL || '';
     if (url.startsWith('postgres://') || url.startsWith('postgresql://')) {
-      const pool = new Pool({ connectionString: url });
+      const isLocal = url.includes('localhost') || url.includes('127.0.0.1');
+      const pool = new Pool({
+        connectionString: url,
+        ssl: isLocal ? undefined : { rejectUnauthorized: false },
+      });
       super({ adapter: new PrismaPg(pool) });
     } else {
       super({ accelerateUrl: url });

@@ -3,6 +3,7 @@ import {
   BadRequestException,
   UnauthorizedException,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -13,6 +14,7 @@ import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private transporter: nodemailer.Transporter | null = null;
 
   constructor(
@@ -38,7 +40,7 @@ export class AuthService {
         secure: false,
         auth: { user: testAccount.user, pass: testAccount.pass },
       });
-      console.log('[Ethereal] Test email account:', testAccount.user);
+      this.logger.debug('Test email account: ' + testAccount.user);
     }
   }
 
@@ -65,22 +67,28 @@ export class AuthService {
         </div>
       `,
     });
-    if (info.messageId && info.messageId.includes('ethereal')) {
-      console.log('[Ethereal] Preview URL:', nodemailer.getTestMessageUrl(info));
+    this.logger.debug(`OTP sent to ${email}`);
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+    if (previewUrl) {
+      this.logger.debug('Ethereal preview: ' + previewUrl);
     }
   }
 
   async register(dto: RegisterDto) {
-    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (existing) {
+    const existingEmail = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (existingEmail) {
       throw new BadRequestException('Email already registered');
+    }
+    const existingUsername = await this.prisma.user.findUnique({ where: { username: dto.username } });
+    if (existingUsername) {
+      throw new BadRequestException('Username already taken');
     }
     const passwordHash = await bcrypt.hash(dto.password, 12);
     const otp = this.generateOtp();
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     const user = await this.prisma.user.create({
-      data: { email: dto.email, passwordHash, otpCode: otp, otpExpiresAt },
+      data: { email: dto.email, username: dto.username, passwordHash, otpCode: otp, otpExpiresAt },
     });
 
     await this.sendOtpEmail(dto.email, otp, 'Email Verification');
@@ -100,19 +108,26 @@ export class AuthService {
       data: { isVerified: true, otpCode: null, otpExpiresAt: null },
     });
 
-    return this.generateTokens(user.id, user.email, user.role);
+    return this.generateTokens(user.id, user.email, user.role, user.username);
   }
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (!user) throw new UnauthorizedException('Invalid email or password');
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: dto.identifier },
+          { username: dto.identifier },
+        ],
+      },
+    });
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!valid) throw new UnauthorizedException('Invalid email or password');
+    if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     if (!user.isVerified) throw new UnauthorizedException('Email not verified');
 
-    return this.generateTokens(user.id, user.email, user.role);
+    return this.generateTokens(user.id, user.email, user.role, user.username);
   }
 
   async forgotPassword(email: string) {
@@ -156,23 +171,31 @@ export class AuthService {
       if (!user || user.refreshToken !== refreshToken) {
         throw new UnauthorizedException('Invalid refresh token');
       }
-      return this.generateTokens(user.id, user.email, user.role);
+      return this.generateTokens(user.id, user.email, user.role, user.username);
     } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
 
+  async logout(userId: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken: null },
+    });
+    return { message: 'Logged out successfully' };
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, role: true, isVerified: true, createdAt: true },
+      select: { id: true, email: true, username: true, role: true, isVerified: true, createdAt: true },
     });
     if (!user) throw new UnauthorizedException('User not found');
     return user;
   }
 
-  private async generateTokens(userId: string, email: string, role: string) {
-    const payload = { sub: userId, email, role };
+  private async generateTokens(userId: string, email: string, role: string, username?: string | null) {
+    const payload = { sub: userId, email, role, username };
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: '15m' as const,
     });
@@ -186,6 +209,6 @@ export class AuthService {
       data: { refreshToken },
     });
 
-    return { accessToken, refreshToken, user: { id: userId, email, role } };
+    return { accessToken, refreshToken, user: { id: userId, email, role, username } };
   }
 }

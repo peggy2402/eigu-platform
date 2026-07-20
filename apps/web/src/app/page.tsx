@@ -1,202 +1,203 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { ReactFlow, Background, Controls, Edge, Node, addEdge, applyNodeChanges, applyEdgeChanges, Connection, NodeChange, EdgeChange } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { io } from 'socket.io-client';
-import WorkflowNode from '../components/WorkflowNode';
-import { Play, SquareActivity, Server } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, useCallback, useEffect } from 'react';
+import { Search, Bell, Scissors, Sparkles, TrendingUp, RefreshCw, Mic, Users, Link, Grid, User, BookOpen, ChevronDown, Settings, LogOut, Bug } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import Sidebar from '../components/layout/Sidebar';
+import type { ViewType } from '../components/layout/Sidebar';
+import StatsGrid from '../components/dashboard/StatsGrid';
+import ActivitySection from '../components/dashboard/ActivitySection';
+import WorkflowFlow from '../components/dashboard/WorkflowFlow';
+import AutomationView from '../components/automation/AutomationView';
+import ProfileView from '../components/profile/ProfileView';
+import SettingsView from '../components/settings/SettingsView';
+import FeedbackView from '../components/feedback/FeedbackView';
+import GuideView from '../components/guide/GuideView';
+import SearchPopup from '../components/search/SearchPopup';
 
-const nodeTypes = {
-  workflowNode: WorkflowNode,
+const viewTitles: Record<ViewType, [string, string]> = {
+  'ho-so': ['Hồ sơ', 'Thông tin cá nhân'],
+  'cut': ['Tự động cắt', 'Cắt và xử lý video tự động'],
+  'ai-video': ['Tạo video AI', 'Sinh video bằng trí tuệ nhân tạo'],
+  'hot-niche': ['Tìm ngách hot', 'Phân tích xu hướng thị trường'],
+  'workflow': ['Tạo workflow', 'Thiết kế luồng xử lý tự động'],
+  'record': ['Ghi thao tác', 'Ghi lại các thao tác trình duyệt'],
+  'tai-khoan': ['Tài khoản', 'Quản lý tài khoản TikTok'],
+  'tiep-thi': ['Tiếp thị liên kết', 'Quản lý affiliate marketing'],
+  'doi-nhom': ['Đội nhóm', 'Quản lý thành viên và phân quyền'],
+  'tien-ich': ['Tiện ích', 'Các tiện ích bổ sung'],
+  'guide': ['Hướng dẫn sử dụng', 'Các tính năng của EIGU Platform'],
+  'settings': ['Cài đặt', 'Cấu hình ứng dụng'],
+  'feedback': ['Góp ý / Báo lỗi', 'Gửi ý kiến đóng góp hoặc báo lỗi hệ thống'],
 };
 
-const initialNodes: Node[] = [
-  {
-    id: '1',
-    type: 'workflowNode',
-    position: { x: 250, y: 50 },
-    data: { label: 'Tệp Video Nguồn', status: 'waiting', progress: 0 },
-  },
-  {
-    id: '2',
-    type: 'workflowNode',
-    position: { x: 250, y: 200 },
-    data: { label: 'Xử lý FFmpeg (MD5/Metadata)', status: 'waiting', progress: 0 },
-  },
-  {
-    id: '3',
-    type: 'workflowNode',
-    position: { x: 250, y: 350 },
-    data: { label: 'Puppeteer Anti-detect', status: 'waiting', progress: 0 },
-  },
-  {
-    id: '4',
-    type: 'workflowNode',
-    position: { x: 250, y: 500 },
-    data: { label: 'TikTok Server', status: 'waiting', progress: 0 },
-  }
-];
-
-const initialEdges: Edge[] = [
-  { id: 'e1-2', source: '1', target: '2', animated: false, style: { stroke: '#475569', strokeWidth: 2 } },
-  { id: 'e2-3', source: '2', target: '3', animated: false, style: { stroke: '#475569', strokeWidth: 2 } },
-  { id: 'e3-4', source: '3', target: '4', animated: false, style: { stroke: '#475569', strokeWidth: 2 } },
-];
+function PlaceholderView({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ opacity: 0.3, marginBottom: 16 }}>{icon}</div>
+        <h3 style={{ color: 'var(--text-primary)', marginBottom: 8 }}>{title}</h3>
+        <p style={{ color: 'var(--text-muted)' }}>Tính năng đang phát triển</p>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
-  const [systemStatus, setSystemStatus] = useState('Idle');
-  const [isConnected, setIsConnected] = useState(false);
-
-  const onNodesChange = useCallback((changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
-  const onEdgesChange = useCallback((changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
-  const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), []);
+  const { token, user, logout, loading } = useAuth();
+  const [activeView, setActiveView] = useState<ViewType>('ho-so');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [congCuOpen, setCongCuOpen] = useState(false);
+  const [tuDongHoaOpen, setTuDongHoaOpen] = useState(false);
+  const [wsStatus, setWsStatus] = useState('disconnected');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Kết nối WebSocket tới NestJS API
-    const socket = io('http://localhost:3001/workflow', {
-      transports: ['websocket']
-    });
-
-    socket.on('connect', () => {
-      setIsConnected(true);
-    });
-
-    socket.on('disconnect', () => {
-      setIsConnected(false);
-    });
-
-    socket.on('workflowUpdated', (data: any) => {
-      setSystemStatus(data.message || data.status);
-      
-      setNodes((nds) =>
-        nds.map((node) => {
-          // Xử lý hiệu ứng FFmpeg
-          if (node.id === '2' && data.status === 'processing' && data.progress < 100) {
-            return { ...node, data: { ...node.data, status: 'processing', progress: data.progress } };
-          }
-          if (node.id === '2' && data.status === 'processing' && data.progress === 100) {
-            return { ...node, data: { ...node.data, status: 'completed', progress: 100 } };
-          }
-          
-          // Xử lý hiệu ứng Upload
-          if (node.id === '3' && data.status === 'uploading') {
-            return { ...node, data: { ...node.data, status: 'processing', progress: data.progress } };
-          }
-          if (node.id === '3' && data.status === 'completed') {
-            return { ...node, data: { ...node.data, status: 'completed', progress: 100 } };
-          }
-
-          if (node.id === '4' && data.status === 'completed') {
-            return { ...node, data: { ...node.data, status: 'completed', progress: 100 } };
-          }
-
-          if (node.id === '1' && data.status === 'processing') {
-            return { ...node, data: { ...node.data, status: 'completed', progress: 100 } };
-          }
-
-          return node;
-        })
-      );
-
-      setEdges((eds) =>
-        eds.map((edge) => {
-          if (edge.id === 'e1-2' && data.status === 'processing') {
-            return { ...edge, animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 } };
-          }
-          if (edge.id === 'e2-3' && data.status === 'uploading') {
-            return { ...edge, animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 } };
-          }
-          if (edge.id === 'e3-4' && data.status === 'completed') {
-            return { ...edge, animated: true, style: { stroke: '#10b981', strokeWidth: 2 } };
-          }
-          return edge;
-        })
-      );
-    });
-
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(prev => !prev);
+      }
+    };
+    const clickHandler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.profile-menu-wrapper')) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handler);
+    document.addEventListener('click', clickHandler);
     return () => {
-      socket.disconnect();
+      document.removeEventListener('keydown', handler);
+      document.removeEventListener('click', clickHandler);
     };
   }, []);
 
-  const handleRunMock = async () => {
-    // Có thể gọi API POST để trigger Desktop Worker ở đây
-    alert('Vui lòng chạy lệnh: npx nx serve desktop để Worker nhận lệnh!');
+  const handleLogout = useCallback(async () => {
+    await logout();
+    window.location.href = '/auth/login';
+  }, [logout]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+        Đang tải hệ thống...
+      </div>
+    );
+  }
+
+  if (!token) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-logo">
+            <img src="/logo.png" alt="EIGU Logo" style={{ width: 56, height: 56, objectFit: 'contain', marginBottom: 16, borderRadius: 12 }} />
+            <h1>EIGU Platform</h1>
+            <p>Anti-Detect Automation Engine</p>
+          </div>
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: 24 }}>
+            Vui lòng <a href="/auth/login" style={{ color: 'var(--accent)' }}>dang nhap</a> hoac{' '}
+            <a href="/auth/register" style={{ color: 'var(--accent)' }}>dang ky</a> de tiep tuc.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const displayName = user?.username || (user?.email ? user.email.split('@')[0] : 'User');
+
+  const handleViewChange = (view: ViewType) => {
+    setActiveView(view);
+    if (['cut', 'ai-video', 'hot-niche'].includes(view)) {
+      setCongCuOpen(true);
+      setTuDongHoaOpen(false);
+    } else if (['workflow', 'record'].includes(view)) {
+      setTuDongHoaOpen(true);
+      setCongCuOpen(false);
+    } else {
+      setCongCuOpen(false);
+      setTuDongHoaOpen(false);
+    }
   };
 
   return (
-    <div style={{ height: '100vh', width: '100vw', backgroundColor: '#020617', display: 'flex' }}>
-      {/* Sidebar */}
-      <div style={{ width: '300px', backgroundColor: '#0f172a', borderRight: '1px solid #1e293b', padding: '24px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
-          <div style={{ padding: '8px', backgroundColor: '#3b82f6', borderRadius: '8px' }}>
-            <Server size={24} color="white" />
+    <div style={{ display: 'flex', height: '100vh' }}>
+      {searchOpen && (
+        <SearchPopup
+          onClose={() => setSearchOpen(false)}
+          onNavigate={handleViewChange}
+        />
+      )}
+      <Sidebar
+        activeView={activeView}
+        onViewChange={handleViewChange}
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        congCuOpen={congCuOpen}
+        onCongCuToggle={() => {
+          setCongCuOpen(!congCuOpen);
+          setTuDongHoaOpen(false);
+          if (sidebarCollapsed) setSidebarCollapsed(false);
+        }}
+        tuDongHoaOpen={tuDongHoaOpen}
+        onTuDongHoaToggle={() => {
+          setTuDongHoaOpen(!tuDongHoaOpen);
+          setCongCuOpen(false);
+          if (sidebarCollapsed) setSidebarCollapsed(false);
+        }}
+        onLogout={handleLogout}
+      />
+      <div className={`main-wrapper ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        <div className="main-header">
+          <div className="main-header-left">
+            <h2>{viewTitles[activeView][0]}</h2>
+            <p>{viewTitles[activeView][1]}</p>
           </div>
-          <h1 style={{ color: 'white', fontSize: '20px', fontWeight: 'bold', margin: 0 }}>EIGU Platform</h1>
-        </div>
-
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '600', marginBottom: '8px', letterSpacing: '1px' }}>SYSTEM STATUS</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#1e293b', padding: '16px', borderRadius: '8px' }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: isConnected ? '#10b981' : '#ef4444', boxShadow: isConnected ? '0 0 10px #10b981' : '0 0 10px #ef4444' }} />
-            <span style={{ color: 'white', fontSize: '14px', fontWeight: '500' }}>
-              {isConnected ? 'API Gateway Connected' : 'Disconnected'}
-            </span>
+          <div className="main-header-right">
+            <div className="search-mini" onClick={() => setSearchOpen(true)}>
+              <Search size={14} />
+              <span>Tìm công cụ...</span>
+              <kbd>Ctrl+K</kbd>
+            </div>
+            <button className="notif-btn" onClick={() => alert('Chức năng thông báo sẽ được phát triển sau.')}>
+              <Bell size={18} />
+            </button>
+            <div className={`profile-menu-wrapper ${profileMenuOpen ? 'open' : ''}`}>
+              <div className="profile-menu-trigger" onClick={(e) => { e.stopPropagation(); setProfileMenuOpen(!profileMenuOpen); }}>
+                <span id="greeting-text">Xin chào, {displayName}</span>
+                <ChevronDown className="chevron-icon" size={14} />
+              </div>
+              <div className="profile-menu-dropdown" id="profile-dropdown">
+                <div className="profile-menu-item" onClick={() => { setActiveView('settings'); setProfileMenuOpen(false); }}>
+                  <Settings size={14} /> Cài đặt
+                </div>
+                <div className="profile-menu-item" onClick={() => { setActiveView('feedback'); setProfileMenuOpen(false); }}>
+                  <Bug size={14} /> Góp ý / Báo lỗi
+                </div>
+                <div className="profile-menu-divider"></div>
+                <div className="profile-menu-item danger" onClick={handleLogout}>
+                  <LogOut size={14} /> Đăng xuất
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div style={{ flex: 1 }}>
-          <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '600', marginBottom: '8px', letterSpacing: '1px' }}>LATEST ACTIVITY</div>
-          <motion.div 
-            key={systemStatus}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{ color: '#60a5fa', fontSize: '14px', lineHeight: '1.5', padding: '12px', backgroundColor: '#1e3a8a20', borderRadius: '8px', borderLeft: '3px solid #3b82f6' }}
-          >
-            {systemStatus}
-          </motion.div>
+        <div className="main-content">
+          {activeView === 'ho-so' && user && <ProfileView user={user} />}
+          {activeView === 'cut' && <AutomationView />}
+          {activeView === 'ai-video' && <PlaceholderView icon={<Sparkles size={48} />} title="Tạo video AI" />}
+          {activeView === 'hot-niche' && <PlaceholderView icon={<TrendingUp size={48} />} title="Tìm ngách hot" />}
+          {activeView === 'workflow' && <PlaceholderView icon={<RefreshCw size={48} />} title="Tạo workflow" />}
+          {activeView === 'record' && <PlaceholderView icon={<Mic size={48} />} title="Ghi thao tác" />}
+          {activeView === 'tai-khoan' && <PlaceholderView icon={<Users size={48} />} title="Tài khoản" />}
+          {activeView === 'tiep-thi' && <PlaceholderView icon={<Link size={48} />} title="Tiếp thị liên kết" />}
+          {activeView === 'doi-nhom' && <PlaceholderView icon={<Users size={48} />} title="Đội nhóm" />}
+          {activeView === 'tien-ich' && <PlaceholderView icon={<Grid size={48} />} title="Tiện ích" />}
+          {activeView === 'guide' && <GuideView />}
+          {activeView === 'settings' && <SettingsView />}
+          {activeView === 'feedback' && <FeedbackView />}
         </div>
-
-        <div
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            gap: '8px', 
-            width: '100%', 
-            padding: '14px', 
-            backgroundColor: isConnected ? '#1e293b' : '#0f172a', 
-            color: isConnected ? '#34d399' : '#64748b', 
-            border: isConnected ? '1px dashed #34d399' : '1px dashed #334155', 
-            borderRadius: '8px', 
-            fontSize: '14px', 
-            fontWeight: '500',
-            textAlign: 'center'
-          }}
-        >
-          {isConnected ? 'Sẵn sàng nhận lệnh từ Desktop' : 'Đang chờ API kết nối...'}
-        </div>
-      </div>
-
-      {/* Main Flow Area */}
-      <div style={{ flex: 1, position: 'relative' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          fitView
-          className="bg-slate-950"
-        >
-          <Background color="#1e293b" gap={16} size={1} />
-          <Controls style={{ backgroundColor: '#1e293b', fill: 'white' }} />
-        </ReactFlow>
       </div>
     </div>
   );
