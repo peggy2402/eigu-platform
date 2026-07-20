@@ -33,12 +33,7 @@ async function checkAuth() {
   showAuth('login');
 }
 
-function handleLogout() {
-  localStorage.removeItem('eigu_token');
-  localStorage.removeItem('eigu_user');
-  showToast('Đã đăng xuất', 'Bạn đã đăng xuất khỏi hệ thống.', 'info');
-  setTimeout(() => location.reload(), 1000);
-}
+
 
 function toggleProfileMenu(e) {
   if (e) e.stopPropagation();
