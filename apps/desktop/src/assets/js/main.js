@@ -14,7 +14,7 @@ async function enterApp() {
   document.getElementById('app-container').style.display = 'flex';
   addLog('[SYSTEM] Dang nhap thanh cong.');
   showToast('Đăng nhập thành công', 'Chào mừng bạn đến với EIGU Platform', 'success');
-  if (!userProfile) {
+  if (!userProfile || !userProfile.createdAt) {
     try { userProfile = await apiFetch('/auth/me'); } catch (e) { }
   }
   updateProfile();

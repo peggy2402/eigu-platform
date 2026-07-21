@@ -29,10 +29,16 @@ ipcRenderer.on('workflow-status', (e, msg) => {
     appState.startTime = null;
     showToast('Hoàn tất tiến trình', 'Video đã được xử lý thành công.', 'success');
   } else if (msg.includes('Loi') || msg.includes('Da huy')) {
-    appState.mode = appState.file ? 'local' : (appState.youtubeLink ? 'youtube' : 'idle');
     appState.progress = 0; appState.startTime = null;
     if (msg.includes('Loi')) showToast('Tiến trình lỗi', 'Đã xảy ra lỗi trong quá trình xử lý.', 'error');
     if (msg.includes('Da huy')) showToast('Đã hủy', 'Tiến trình đã bị hủy bởi người dùng.', 'warning');
+    renderAutomation();
+    
+    setTimeout(() => {
+      appState.mode = appState.file ? 'local' : (appState.youtubeLink ? 'youtube' : 'idle');
+      renderAutomation();
+    }, 500);
+    return;
   }
   renderAutomation();
 });

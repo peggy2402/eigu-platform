@@ -27,6 +27,22 @@ const ViewsComponent = `
         <input type="file" id="file-input" accept=".mp4" style="display:none" />
         <div class="divider-text">HOẶC</div>
         <input type="text" id="youtube-input" class="yt-input" placeholder="Dán link YouTube (VD: https://youtu.be/...)" autocomplete="off" />
+        
+        <div class="download-options" style="margin-top: 4px; background: var(--bg-primary); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: 8px;">Chất lượng tải xuống (YouTube)</label>
+          <select id="yt-quality" style="width: 100%; padding: 10px 12px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 13px; outline: none; border: 1px solid var(--border-color);">
+            <option value="auto">Tự động (Chất lượng cao nhất)</option>
+            <option value="1080p">1080p (MP4)</option>
+            <option value="720p">720p (MP4)</option>
+            <option value="audio">Chỉ âm thanh (MP3)</option>
+          </select>
+        </div>
+        
+        <div id="video-preview-card" class="video-preview-card" style="margin-top: 4px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px dashed var(--border-color); border-radius: var(--radius-sm); padding: 24px; background: var(--bg-primary); text-align: center; min-height: 180px; position: relative; overflow: hidden;">
+          <span data-icon="youtube" style="font-size: 32px; color: var(--text-muted); margin-bottom: 12px; opacity: 0.5;"></span>
+          <p style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">Thông tin Video</p>
+          <span style="color: var(--text-muted); font-size: 12px; margin-top: 4px; max-width: 80%;">Thumbnail và thời lượng sẽ hiển thị tại đây khi bạn chọn file hoặc dán link.</span>
+        </div>
       </div>
 
       <div class="settings-card">

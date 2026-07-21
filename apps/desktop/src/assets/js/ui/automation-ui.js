@@ -68,13 +68,65 @@ function renderAutomation() {
   } else { etaEl.textContent = ''; }
 }
 
+let fetchInfoTimeout = null;
+
+async function fetchVideoInfo(url) {
+  const previewCard = document.getElementById('video-preview-card');
+  if (!previewCard) return;
+
+  if (!url) {
+    previewCard.innerHTML = `
+      <span data-icon="youtube" style="font-size: 32px; color: var(--text-muted); margin-bottom: 12px; opacity: 0.5;"></span>
+      <p style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">Thông tin Video</p>
+      <span style="color: var(--text-muted); font-size: 12px; margin-top: 4px; max-width: 80%;">Thumbnail và thời lượng sẽ hiển thị tại đây khi bạn chọn file hoặc dán link.</span>
+    `;
+    if (window.feather) window.feather.replace();
+    return;
+  }
+
+  previewCard.innerHTML = `<span style="color: var(--text-muted); font-size: 13px;">Đang tải thông tin...</span>`;
+  
+  try {
+    const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+    
+    if (data.error) throw new Error(data.error);
+
+    previewCard.innerHTML = `
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('${data.thumbnail_url}') center/cover no-repeat; opacity: 0.15; filter: blur(8px);"></div>
+      <div style="z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%;">
+        <img src="${data.thumbnail_url}" style="max-height: 90px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); margin-bottom: 12px;" />
+        <h4 style="font-size: 13px; font-weight: 600; color: var(--text-primary); text-align: center; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 90%; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.title}</h4>
+        <span style="font-size: 12px; color: var(--accent); font-weight: 500;">${data.author_name || 'YouTube'}</span>
+      </div>
+    `;
+  } catch (err) {
+    previewCard.innerHTML = `
+      <span data-icon="alert-circle" style="font-size: 24px; color: var(--danger); margin-bottom: 8px;"></span>
+      <p style="color: var(--danger); font-size: 13px;">Không thể lấy thông tin video</p>
+      <span style="color: var(--text-muted); font-size: 11px; margin-top: 4px;">Vui lòng kiểm tra lại đường dẫn YouTube</span>
+    `;
+    if (window.feather) window.feather.replace();
+  }
+}
+
 function handleFileSelected(fileObj) {
   if (!fileObj || !fileObj.name.toLowerCase().endsWith('.mp4')) { alert('Chỉ hỗ trợ .mp4'); return; }
-  const realPath = webUtils ? webUtils.getPathForFile(fileObj) : fileObj.path;
+  const realPath = window.webUtils ? window.webUtils.getPathForFile(fileObj) : fileObj.path;
   appState.file = { path: realPath, name: fileObj.name };
   appState.youtubeLink = '';
   appState.mode = 'local';
   renderAutomation();
+
+  const previewCard = document.getElementById('video-preview-card');
+  if (previewCard) {
+    previewCard.innerHTML = `
+      <span data-icon="video" style="font-size: 32px; color: var(--accent); margin-bottom: 12px;"></span>
+      <p style="color: var(--text-primary); font-size: 14px; font-weight: 500; text-align: center; max-width: 90%; word-break: break-all;">${fileObj.name}</p>
+      <span style="color: var(--success); font-size: 12px; margin-top: 4px;">Đã sẵn sàng xử lý</span>
+    `;
+    if (window.feather) window.feather.replace();
+  }
 }
 
 function handleClearFile() {
@@ -83,6 +135,13 @@ function handleClearFile() {
   appState.mode = 'idle';
   fileInput.value = '';
   renderAutomation();
+  
+  const val = youtubeInput.value.trim();
+  if (val) {
+    youtubeInput.dispatchEvent(new Event('input'));
+  } else {
+    fetchVideoInfo('');
+  }
 }
 
 fileInput.addEventListener('change', e => { if (e.target.files.length > 0) handleFileSelected(e.target.files[0]); });
@@ -100,7 +159,17 @@ youtubeInput.addEventListener('input', e => {
   appState.mode = val.length > 0 ? 'youtube' : (appState.file ? 'local' : 'idle');
   if (val.length > 0) appState.file = null;
   renderAutomation();
+
+  clearTimeout(fetchInfoTimeout);
+  if (val.includes('youtube.com') || val.includes('youtu.be')) {
+    fetchInfoTimeout = setTimeout(() => {
+      fetchVideoInfo(val);
+    }, 600);
+  } else if (val === '') {
+    fetchVideoInfo('');
+  }
 });
+
 
 splitModeSelect.addEventListener('change', e => { appState.options.splitMode = e.target.value; renderAutomation(); });
 timeStartInput.addEventListener('input', e => { appState.options.customStart = e.target.value; });
@@ -136,6 +205,12 @@ async function fetchVoiceSpeakers(provider) {
   const select = document.getElementById('voice-speaker');
   select.innerHTML = '<option value="">Đang tải...</option>';
   select.disabled = true;
+
+  if (!accessToken) {
+    select.innerHTML = '<option value="">Vui lòng đăng nhập trước</option>';
+    return;
+  }
+
   try {
     const data = await apiFetch(`/voice/speakers?provider=${provider}`);
     select.innerHTML = '<option value="">Chọn giọng nói...</option>';
@@ -144,7 +219,8 @@ async function fetchVoiceSpeakers(provider) {
     });
     select.disabled = false;
   } catch (err) {
-    select.innerHTML = '<option value="">Lỗi kết nối server</option>';
+    console.error('[Voice] fetchSpeakers error:', err.message || err);
+    select.innerHTML = `<option value="">Lỗi: ${err.message || 'Không thể kết nối server'}</option>`;
   }
 }
 

@@ -6,6 +6,15 @@ import { spawn } from 'child_process';
 import * as os from 'os';
 import FormData = require('form-data');
 
+interface MulterFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  buffer: Buffer;
+  size: number;
+}
+
 interface VoiceSpeaker {
   id: string;
   name: string;
@@ -32,7 +41,7 @@ export class VoiceService {
   }
 
   async convertVoice(
-    audio: Express.Multer.File,
+    audio: MulterFile,
     provider: string,
     speakerId: string,
     text?: string,
@@ -76,7 +85,7 @@ export class VoiceService {
   }
 
   private async convertElevenLabs(
-    audio: Express.Multer.File,
+    audio: MulterFile,
     speakerId: string,
   ): Promise<{ audio: string; format: string }> {
     const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -137,7 +146,7 @@ export class VoiceService {
   }
 
   private async convertOmniVoiceApi(
-    audio: Express.Multer.File,
+    audio: MulterFile,
     speakerId: string,
     text?: string,
   ): Promise<{ audio: string; format: string }> {
@@ -217,7 +226,7 @@ export class VoiceService {
   }
 
   private async convertSelfHosted(
-    audio: Express.Multer.File,
+    audio: MulterFile,
     speakerId: string,
     text?: string,
     refAudio?: string,
@@ -257,7 +266,7 @@ export class VoiceService {
   }
 
   private async runOmniVoicePython(
-    audio: Express.Multer.File,
+    audio: MulterFile,
     speakerId: string,
     _text?: string,
   ): Promise<{ audio: string; format: string }> {

@@ -265,6 +265,10 @@ export function processVideoWithFFmpeg(
   let pipelineBuilder: PipelineBuilder | null = null;
   let isCancelled = false;
 
+  const { app } = require('electron');
+  const defaultDir = path.join(app.getPath('downloads'), 'eigu', 'outputs');
+  const targetDir = customOutputPath || defaultDir;
+
   const promise = new Promise<string>(async (resolve, reject) => {
     try {
       const inputPath = request.videoUrl;
@@ -278,13 +282,10 @@ export function processVideoWithFFmpeg(
 
       onProgress({ taskId: request.taskId, status: 'processing', progress: 2, message: 'Đang phân tích cấu trúc luồng dữ liệu...' });
 
-      const { app } = require('electron');
-      const defaultDir = path.join(app.getPath('downloads'), 'eigu', 'outputs');
       if (!fs.existsSync(defaultDir)) {
         fs.mkdirSync(defaultDir, { recursive: true });
       }
       
-      const targetDir = customOutputPath || defaultDir;
       const splitOpts = (request.options as any).splitMode;
       const isSegmentFormat = splitOpts && splitOpts.startsWith('split_');
       const fileName = isSegmentFormat ? `eigu_processed_${request.taskId}_%03d.mp4` : `eigu_processed_${request.taskId}.mp4`;
@@ -301,13 +302,6 @@ export function processVideoWithFFmpeg(
       const opts = (request.options as any) || {};
       if (opts.voiceMode === 'elevenlabs' || opts.voiceMode === 'omnivoice') {
         onProgress({ taskId: request.taskId, status: 'processing', progress: 6, message: `Đang xử lý giọng nói qua ${opts.voiceMode === 'elevenlabs' ? 'ElevenLabs' : 'Omni Voice'} API...` });
-        // TODO: Implement ElevenLabs / Omni Voice API integration
-        // Pipeline:
-        // 1. Process video with FFmpeg as usual
-        // 2. Extract audio from output
-        // 3. Send audio to API for voice conversion
-        // 4. Merge modified audio back into video
-        // For now, falls back to FFmpeg pitch/speed
         console.log(`[EIGU] Voice API (${opts.voiceMode}) mode selected but not fully implemented yet. Using FFmpeg audio filters as fallback.`);
       }
 
@@ -330,6 +324,23 @@ export function processVideoWithFFmpeg(
       console.log('[EIGU FFmpeg Engine] Tiến trình đã bị hủy bởi người dùng.');
       pipelineBuilder.cancel();
     }
+    
+    // Dọn dẹp file rác
+    setTimeout(() => {
+      try {
+        if (fs.existsSync(targetDir)) {
+          const files = fs.readdirSync(targetDir);
+          for (const f of files) {
+            if (f.startsWith(`eigu_processed_${request.taskId}`)) {
+              fs.unlinkSync(path.join(targetDir, f));
+              console.log(`[EIGU Cleanup] Đã xoá file lỗi/hủy: ${f}`);
+            }
+          }
+        }
+      } catch(e) {
+        console.error('[EIGU Cleanup] Lỗi xoá file rác:', e);
+      }
+    }, 1000);
   };
 
   return { promise, cancel };

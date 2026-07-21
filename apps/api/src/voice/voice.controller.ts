@@ -25,7 +25,7 @@ export class VoiceController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('audio'))
   async convert(
-    @UploadedFile() audio: Express.Multer.File,
+    @UploadedFile() audio: any,
     @Body('provider') provider: string,
     @Body('speaker_id') speakerId: string,
     @Body('text') text?: string,

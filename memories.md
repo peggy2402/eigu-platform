@@ -240,13 +240,14 @@ Nếu bất kỳ option video-encode nào được bật → toàn bộ pipeline
   - `GET /api/voice/speakers?provider=elevenlabs|omnivoice|self-hosted` — danh sách giọng nói
   - `POST /api/voice/convert` — biến đổi giọng nói (multipart: audio + provider + speaker_id)
 - **Providers:**
-  - **ElevenLabs:** Proxy API key server-side, voice conversion qua `POST /v1/voice-conversion`
-  - **OmniVoice API:** Proxy qua `api.omnivoice.ai/v1/voice-convert`
+  - **ElevenLabs:** Proxy API key server-side, voice conversion qua `POST /v1/voice-conversion`. Yêu cầu API key với quyền `Voices: read` + `Speech to Speech: write`.
+  - **OmniVoice API:** Dùng **inference.sh** (third-party API host). Lấy key tại https://app.inference.sh/settings/keys. Cấu hình qua biến `OMNI_VOICE_API_KEY` trong `.env`.
   - **Self-hosted:** 2 chế độ — Python child_process (`scripts/omnivoice_infer.py`) hoặc REST server riêng (`OMNIVOICE_HOST`)
 - **Scripts:**
-  - `apps/api/scripts/omnivoice_infer.py` — Python inference script (clone/TTS)
-  - `apps/api/scripts/setup_omnivoice.sh` — 1-liner cài dependencies
-- **Env vars:** `ELEVENLABS_API_KEY`, `OMNI_VOICE_API_KEY`, `OMNIVOICE_MODE`, `OMNIVOICE_HOST`
+  - `apps/api/scripts/omnivoice_infer.py` — Python inference script (clone/TTS). Không cần clone repo k2-fsa/OmniVoice, chỉ cần `pip install omnivoice`.
+  - `apps/api/scripts/setup_omnivoice.sh` — Tự tạo Python venv + cài dependencies. Fix lỗi segfault MPS: dùng CPU thay vì MPS.
+- **Env vars:** `ELEVENLABS_API_KEY`, `OMNI_VOICE_API_KEY`, `OMNIVOICE_MODE` (`python`|`server`), `OMNIVOICE_VENV`, `OMNIVOICE_HOST`
+- **Type fix:** Dùng interface `MulterFile` (tự định nghĩa) thay vì `Express.Multer.File` do không có `@types/multer`.
 
 ### 11.4 FFmpeg Filters (ffmpeg-processor.ts)
 - **RuleEngine:** Thêm detect cho flip, frameBend, EQ, voice (FFmpeg & API)
@@ -262,3 +263,48 @@ Nếu bất kỳ option video-encode nào được bật → toàn bộ pipeline
 - **Đã tối ưu:** Stream Copy khi không filter, `-quality 1`, `-g 60` GOP, `-b:v 3000k`
 - **Giới hạn:** Bật bất kỳ filter video nào → buộc transcode toàn bộ (encode GPU)
 - **Hướng tới:** 2-pass pipeline (split trước → filter từng segment sau) sẽ giúp tăng tốc đáng kể cho video dài (>30 phút) nhưng cần refactor kiến trúc
+
+## 12. Phiên làm việc 21/07/2026 — Voice API hoàn thiện & ElevenLabs key
+
+### 12.1 Sửa lỗi build: Express.Multer.File
+- **Vấn đề:** TypeScript không tìm thấy `Express.Multer.File` do thiếu `@types/multer` hoặc do NestJS không export type này.
+- **Fix:** Tự định nghĩa interface `MulterFile` trong `voice.service.ts` (dòng 9-16) và dùng `any` trong controller thay vì `Express.Multer.File`.
+
+### 12.2 Switch OmniVoice API từ omnivoice.app → inference.sh
+- `omnivoice.app` chỉ là web UI (không có API), `api.omnivoice.ai` trả về 404.
+- inference.sh (https://app.inference.sh/settings/keys) hoạt động tốt với model OmniVoice. API key format: `1nfsh-...`.
+- Endpoint: `POST /v1/apps/infsh/omnivoice/run` với `Authorization: Bearer {key}`.
+- Mode `voice_cloning` + `ref_audio: ""` (TTS, không cần reference audio) hoặc có thể thêm `ref_audio` + `text` cho voice conversion.
+
+### 12.3 Self-hosted OmniVoice (Python venv)
+- Venv cài tại `apps/api/scripts/venv/`, Python 3.14 trên macOS ARM.
+- Lỗi MPS segfault: `mps` backend không hoạt động trên macOS 15+ với PyTorch. Fix: fallback về CPU (`os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"` + `map_location="cpu"`).
+- Script `omnivoice_infer.py` chạy với CLI args: `--input`, `--output`, `--instruct`.
+- Không cần clone k2-fsa/OmniVoice repo; chỉ cần `pip install omnivoice`.
+
+### 12.4 ElevenLabs API key thật
+- Key cũ `sk_0e3e6f04288845626d74c73d4048dac8d8dffa9eeac298ff` trả về 401 (key không đủ quyền hoặc đã hết hạn).
+- Key mới: `sk_d8528519c4ada2feecf4364118d6c21fbf0b39a890baaff4` — tạo tại https://elevenlabs.io với quyền **Voices: read** + **Speech to Speech: write**.
+- **Test thành công:** `GET /api/voice/speakers?provider=elevenlabs` trả về 22 giọng nói (Roger, Sarah, Laura, Charlie, George, v.v.).
+
+## 13. Phiên làm việc 21/07/2026 — Hoàn thiện UI/UX Tự động cắt & Sửa lỗi Profile
+
+### 13.1 Nâng cấp UI/UX tab "Tự động cắt"
+- **Vấn đề:** Khoảng trống thừa ở dưới khu vực dán link YouTube gây mất cân đối giao diện.
+- **Giải pháp:** 
+  - Bổ sung tuỳ chọn **Chất lượng tải xuống (YouTube)**: Tự động, 1080p, 720p, Audio MP3.
+  - Thêm **Khung thông tin Video (Video Preview)** tự động co giãn (`flex: 1`).
+  - Lập trình tính năng tự động nhận diện link YouTube (debounce 600ms) và fetch thông tin qua API trung gian (không CORS) `noembed.com` để hiển thị Title, Channel, và đặt Thumbnail làm hình nền mờ rát chuyên nghiệp. Tự động hiển thị trạng thái khi chọn file .mp4 từ máy.
+
+### 13.2 Sửa lỗi trạng thái Profile khi mới đăng nhập
+- **Vấn đề:** Sau khi đăng nhập, Hồ sơ ghi "Chua xac thuc" và "Ngày tạo" trống trơn, phải F5 lại mới hiện đúng.
+- **Nguyên nhân:** Dữ liệu user trả về từ endpoint `/auth/login` không đầy đủ (thiếu `createdAt`, `isVerified`). Hàm `enterApp()` cũ chỉ check `!userProfile` nên không thèm lấy lại thông tin từ API `/auth/me`.
+- **Khắc phục:** Sửa điều kiện thành `if (!userProfile || !userProfile.createdAt)` để ứng dụng chủ động fetch đầy đủ profile trước khi gọi `updateProfile()` render UI.
+
+### 13.3 Hoàn thiện luồng Hủy tiến trình (Cancel Workflow)
+- **Hiệu ứng thanh tiến trình (UI):** 
+  - Thay vì lập tức ẩn thanh tiến trình (`display: none`) làm mất hiệu ứng lùi về 0%, luồng xử lý IPC event đã được sửa lại: Gán `progress = 0`, chờ `500ms` để thanh lùi mượt mà bằng CSS Transition, sau đó mới đổi app mode về `idle` / `local`.
+- **Dọn dẹp rác (Backend/FFmpeg):**
+  - Trong `ffmpeg-processor.ts`, hàm `cancel()` được nâng cấp thêm đoạn mã hẹn giờ 1 giây (đợi process bị kill hoàn toàn).
+  - Quét toàn bộ thư mục `outputs` (mặc định Downloads/eigu/outputs) bằng `fs.readdirSync`.
+  - Tự động check và gọi `fs.unlinkSync` để xóa đi các file video phân đoạn (`eigu_processed_${taskId}_xxx.mp4`) đang được cắt dở dang của tiến trình vừa bị hủy, giữ cho hệ thống file gọn gàng và không bị phình to.
