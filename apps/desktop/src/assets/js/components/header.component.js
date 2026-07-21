@@ -10,9 +10,21 @@ const HeaderComponent = `
       <input type="text" id="global-search-input" placeholder="Tìm công cụ..." readonly />
       <kbd>Ctrl+K</kbd>
     </div>
-    <button class="notif-btn" onclick="alert('Chức năng thông báo sẽ được phát triển sau.')">
-      <span data-icon="bell"></span>
-    </button>
+    <div class="notif-wrapper" style="position: relative;">
+      <button class="notif-btn" onclick="toggleNotificationDrawer(event)">
+        <span data-icon="bell"></span>
+        <span id="notif-badge" class="notif-badge hidden">0</span>
+      </button>
+      <div id="notif-drawer" class="notif-drawer hidden" onclick="event.stopPropagation()">
+        <div class="notif-drawer-header">
+          <h4>Thông báo hệ thống</h4>
+          <button class="notif-mark-read-btn" onclick="markAllNotificationsRead()">Đã đọc tất cả</button>
+        </div>
+        <div id="notif-drawer-list" class="notif-drawer-list">
+          <!-- Notification items render here -->
+        </div>
+      </div>
+    </div>
     <div class="profile-menu-wrapper" onclick="toggleProfileMenu(event)">
       <div class="profile-menu-trigger">
         <span id="greeting-text">Xin chào</span>
@@ -70,7 +82,7 @@ const HeaderComponent = `
         <span data-icon="youtube"></span> YouTube
       </div>
       <div class="search-result" data-view="tk-x" onclick="closeSearchPopup();switchView('tk-x', document.querySelector('[data-view=tai-khoan]'), 'tk-x', event)">
-        <span data-icon="x"></span> X (Twitter)
+        <span data-icon="twitter"></span> X (Twitter)
       </div>
       <div class="search-result" data-view="tk-instagram" onclick="closeSearchPopup();switchView('tk-instagram', document.querySelector('[data-view=tai-khoan]'), 'tk-instagram', event)">
         <span data-icon="instagram"></span> Instagram

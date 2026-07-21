@@ -16,8 +16,13 @@ model User {
   email                String     @unique
   username             String?    @unique
   passwordHash         String
-  role                 String     @default("user") // admin, user
+  role                 String     @default("user") // admin, staff, user
   isVerified           Boolean    @default(false)
+  isBanned             Boolean    @default(false)
+  lastIp               String?
+  lastOs               String?
+  lastDevice           String?
+  allowedTabs          String?    // Comma-separated or JSON list of allowed tabs
 
   otpCode              String?
   otpExpiresAt         DateTime?
@@ -83,5 +88,23 @@ model Feedback {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  target    String   @default("all") // all, user, staff
+  isRead    Boolean  @default(false)
+  expiresAt DateTime? // 1h, 12h, 24h, 7d, 30d
+  createdAt DateTime @default(now())
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  sender    String   // user, ai, staff
+  message   String
+  userId    String?
   createdAt DateTime @default(now())
 }

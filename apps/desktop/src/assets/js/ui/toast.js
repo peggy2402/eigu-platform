@@ -20,10 +20,29 @@ function showToast(title, description, type) {
       <div class="toast-title">${title}</div>
       ${descHtml}
     </div>
-    <button class="toast-close" onclick="this.parentElement.classList.add('out');setTimeout(()=>this.parentElement.remove(),250)">
-      <span style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">${ICONS.x}</span>
+    <button type="button" class="toast-close" aria-label="Close" onclick="this.closest('.toast').remove()">
+      <span style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; pointer-events: none;">${ICONS.x}</span>
     </button>
   `;
+
+  // Attach explicit click listener
+  const closeBtn = el.querySelector('.toast-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      el.classList.add('out');
+      setTimeout(() => {
+        try { el.remove(); } catch(err){}
+      }, 250);
+    });
+  }
+
   container.appendChild(el);
-  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 250); }, 5000);
+  setTimeout(() => {
+    if (el.parentNode) {
+      el.classList.add('out');
+      setTimeout(() => { try { el.remove(); } catch(err){} }, 250);
+    }
+  }, 5000);
 }

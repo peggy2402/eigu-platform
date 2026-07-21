@@ -3,7 +3,13 @@ const SidebarComponent = `
   <div class="sidebar-header" onclick="toggleSidebar()" style="cursor:pointer; position:relative;" title="Đóng/Mở sidebar (Ctrl/Cmd + /)">
     <div class="sidebar-logo-container">
       <img src="img/logo.png" alt="EIGU Logo" class="sidebar-logo-img" style="width: 36px; height: 36px; object-fit: contain; flex-shrink: 0;">
-      <span class="sidebar-title">EIGU Platform</span>
+      <span class="sidebar-title" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+        EIGU Platform
+        <span style="font-size: 10px; background: rgba(255,255,255,0.1); color: var(--text-secondary); padding: 2px 6px; border-radius: 10px; font-weight: 600;">v1.0.0</span>
+        <button id="update-badge-btn" class="update-badge-btn hidden" onclick="handleAppUpdateClick(event)" title="Có bản cập nhật mới! Click để nâng cấp.">
+          <span data-icon="refreshCw" style="vertical-align:middle; font-size:10px;"></span> Update
+        </button>
+      </span>
     </div>
     <span class="nav-icon toggle-icon" data-icon="chevronLeft" style="font-size: 20px; color: var(--text-secondary); transition: transform 0.3s; position: absolute; right: 16px;" title="Ctrl/Cmd + /"></span>
   </div>
@@ -47,11 +53,32 @@ const SidebarComponent = `
         <div class="nav-sub-item tai-khoan" data-sub="tk-tiktok" onclick="switchView('tk-tiktok', document.querySelector('[data-view=tai-khoan]'), 'tk-tiktok', event)"><span data-icon="tiktok" style="vertical-align:middle;margin-right:4px;"></span> TikTok</div>
         <div class="nav-sub-item tai-khoan" data-sub="tk-facebook" onclick="switchView('tk-facebook', document.querySelector('[data-view=tai-khoan]'), 'tk-facebook', event)"><span data-icon="facebook" style="vertical-align:middle;margin-right:4px;"></span> Facebook</div>
         <div class="nav-sub-item tai-khoan" data-sub="tk-youtube" onclick="switchView('tk-youtube', document.querySelector('[data-view=tai-khoan]'), 'tk-youtube', event)"><span data-icon="youtube" style="vertical-align:middle;margin-right:4px;"></span> YouTube</div>
-        <div class="nav-sub-item tai-khoan" data-sub="tk-x" onclick="switchView('tk-x', document.querySelector('[data-view=tai-khoan]'), 'tk-x', event)"><span data-icon="x" style="vertical-align:middle;margin-right:4px;"></span> X (Twitter)</div>
+        <div class="nav-sub-item tai-khoan" data-sub="tk-x" onclick="switchView('tk-x', document.querySelector('[data-view=tai-khoan]'), 'tk-x', event)"><span data-icon="twitter" style="vertical-align:middle;margin-right:4px;"></span> X (Twitter)</div>
         <div class="nav-sub-item tai-khoan" data-sub="tk-instagram" onclick="switchView('tk-instagram', document.querySelector('[data-view=tai-khoan]'), 'tk-instagram', event)"><span data-icon="instagram" style="vertical-align:middle;margin-right:4px;"></span> Instagram</div>
         <div class="nav-sub-item tai-khoan" data-sub="tk-threads" onclick="switchView('tk-threads', document.querySelector('[data-view=tai-khoan]'), 'tk-threads', event)"><span data-icon="threads" style="vertical-align:middle;margin-right:4px;"></span> Threads</div>
       </div>
     </div>
+    
+    <!-- Tab Chat Support dành cho Staff & Admin -->
+    <div class="nav-item staff-only hidden" data-view="chat-support" onclick="switchView('chat-support', this, null, event)">
+      <span class="nav-icon" data-icon="messageSquare"></span>
+      <span class="nav-label">Chat Support</span>
+    </div>
+
+    <!-- Tab Quản lý dành cho Admin -->
+    <div class="nav-item admin-only hidden" data-view="user-management" onclick="switchView('user-management', this, null, event)">
+      <span class="nav-icon" data-icon="userCheck"></span>
+      <span class="nav-label">Quản lý User/Staff</span>
+    </div>
+    <div class="nav-item admin-only hidden" data-view="create-notification" onclick="switchView('create-notification', this, null, event)">
+      <span class="nav-icon" data-icon="bell"></span>
+      <span class="nav-label">Tạo thông báo</span>
+    </div>
+    <div class="nav-item admin-only hidden" data-view="feedback-management" onclick="switchView('feedback-management', this, null, event)">
+      <span class="nav-icon" data-icon="helpCircle"></span>
+      <span class="nav-label">Quản lý Feedback</span>
+    </div>
+
     <div class="nav-item" data-view="tiep-thi" onclick="switchView('tiep-thi', this, null, event)">
       <span class="nav-icon" data-icon="link"></span>
       <span class="nav-label">Tiếp thị liên kết</span>

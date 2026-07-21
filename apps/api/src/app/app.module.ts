@@ -7,9 +7,11 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { FeedbackModule } from '../feedback/feedback.module';
 import { VoiceModule } from '../voice/voice.module';
+import { UsersModule } from '../users/users.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, FeedbackModule, VoiceModule],
+  imports: [PrismaModule, AuthModule, FeedbackModule, VoiceModule, UsersModule, NotificationsModule],
   controllers: [AppController],
   providers: [
     AppService,

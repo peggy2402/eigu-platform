@@ -46,6 +46,10 @@ function switchView(view, navEl, sub, e) {
     'tien-ich': ['Tiện ích', 'Các tiện ích bổ sung'],
     'guide': ['Hướng dẫn sử dụng', 'Các tính năng của EIGU Platform'],
     'settings': ['Cài đặt', 'Giao diện & cấu hình hệ thống'],
+    'chat-support': ['Chat Support', 'Hỗ trợ khách hàng thời gian thực'],
+    'user-management': ['Quản lý User/Staff', 'Phân quyền tài khoản hệ thống'],
+    'create-notification': ['Tạo thông báo', 'Phát thông báo tới hệ thống máy trạm'],
+    'feedback-management': ['Quản lý Feedback', 'Theo dõi và xử lý các báo cáo góp ý từ người dùng'],
   };
   const [t, s] = titles[view] || ['', ''];
   document.getElementById('view-title').textContent = t;
@@ -55,6 +59,26 @@ function switchView(view, navEl, sub, e) {
   if (sub) {
     const subEl = document.querySelector('.nav-sub-item[data-sub="' + sub + '"]');
     if (subEl) subEl.classList.add('active');
+  }
+
+  // Load API Keys if entering Settings view
+  if (view === 'settings' && typeof loadApiKeys === 'function') {
+    loadApiKeys();
+  }
+
+  // Load Real Database User Data if entering User Management view
+  if (view === 'user-management' && typeof loadRealUserData === 'function') {
+    loadRealUserData();
+  }
+
+  // Load Real Notification History if entering Notification Management view
+  if (view === 'create-notification' && typeof loadAdminNotificationHistory === 'function') {
+    loadAdminNotificationHistory();
+  }
+
+  // Load Real Feedback Data if entering Feedback Management view
+  if (view === 'feedback-management' && typeof loadRealFeedbackData === 'function') {
+    loadRealFeedbackData();
   }
 }
 

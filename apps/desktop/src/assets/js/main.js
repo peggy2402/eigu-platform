@@ -6,14 +6,72 @@ function updateProfile() {
     document.getElementById('profile-created').textContent = userProfile.createdAt ? new Date(userProfile.createdAt).toLocaleDateString('vi-VN') : '—';
     const name = userProfile.username || userProfile.email.split('@')[0];
     document.getElementById('greeting-text').textContent = 'Xin chào, ' + name;
+
+    // Phân quyền cho phần Cài đặt API
+    const apiSettingsSection = document.getElementById('secure-api-settings-section');
+    if (apiSettingsSection) {
+      if (userProfile.role === 'admin' || userProfile.role === 'staff') {
+        apiSettingsSection.style.display = 'block';
+      } else {
+        apiSettingsSection.style.display = 'none';
+      }
+    }
+
+    // Phân quyền hiển thị Sidebar Tabs cho Admin & Staff
+    document.querySelectorAll('.staff-only').forEach(el => {
+      if (userProfile.role === 'admin' || userProfile.role === 'staff') {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    });
+
+    document.querySelectorAll('.admin-only').forEach(el => {
+      if (userProfile.role === 'admin') {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    });
+
+    // Ẩn Floating Live Chat Widget đối với Role Staff và Admin (vì đã có Tab Chat Support)
+    const liveChatWidget = document.getElementById('live-chat-container');
+    if (liveChatWidget) {
+      if (userProfile.role === 'admin' || userProfile.role === 'staff') {
+        liveChatWidget.style.display = 'none';
+      } else {
+        liveChatWidget.style.display = 'block';
+      }
+    }
   }
 }
 
-async function enterApp() {
+function broadcastAdminNotification() {
+  const title = document.getElementById('admin-notif-title').value.trim();
+  const content = document.getElementById('admin-notif-content').value.trim();
+  const target = document.getElementById('admin-notif-target').value;
+  const ttl = document.getElementById('admin-notif-ttl') ? document.getElementById('admin-notif-ttl').value : '24h';
+
+  if (!title || !content) {
+    showToast('Lỗi', 'Vui lòng nhập tiêu đề và nội dung thông báo!', 'error');
+    return;
+  }
+
+  if (typeof addSystemNotification === 'function') {
+    addSystemNotification(title, content, target, ttl);
+  }
+  showToast('Thành công', `Đã phát thông báo "${title}" (Hạn dùng: ${ttl})!`, 'success');
+  document.getElementById('admin-notif-title').value = '';
+  document.getElementById('admin-notif-content').value = '';
+}
+
+async function enterApp(showToastNotice = false) {
   document.getElementById('auth-container').style.display = 'none';
   document.getElementById('app-container').style.display = 'flex';
   addLog('[SYSTEM] Dang nhap thanh cong.');
-  showToast('Đăng nhập thành công', 'Chào mừng bạn đến với EIGU Platform', 'success');
+  if (showToastNotice) {
+    showToast('Đăng nhập thành công', 'Chào mừng bạn đến với EIGU Platform', 'success');
+  }
   if (!userProfile || !userProfile.createdAt) {
     try { userProfile = await apiFetch('/auth/me'); } catch (e) { }
   }
@@ -24,7 +82,7 @@ async function checkAuth() {
   if (accessToken) {
     try {
       userProfile = await apiFetch('/auth/me');
-      enterApp();
+      enterApp(false); // Không bắn Toast khi F5 / Cmd+R / reload trang
       return;
     } catch (e) { /* token expired */ }
   }
@@ -76,8 +134,23 @@ document.addEventListener('keydown', e => {
     }
   }
   if (e.key === 'Escape') {
+    if (typeof closeTabConfigModal === 'function') closeTabConfigModal();
+
+    const chatBox = document.getElementById('live-chat-box');
+    if (chatBox && !chatBox.classList.contains('hidden')) {
+      chatBox.classList.add('hidden');
+      chatBox.style.display = 'none';
+      if (typeof isChatOpen !== 'undefined') isChatOpen = false;
+    }
+
     const overlay = document.getElementById('search-popup-overlay');
-    if (!overlay.classList.contains('hidden')) closeSearchPopup();
+    if (overlay && !overlay.classList.contains('hidden')) closeSearchPopup();
+
+    const notifDrawer = document.getElementById('notif-drawer');
+    if (notifDrawer) notifDrawer.classList.add('hidden');
+
+    const profileMenu = document.querySelector('.profile-menu-wrapper');
+    if (profileMenu) profileMenu.classList.remove('open');
   }
 });
 

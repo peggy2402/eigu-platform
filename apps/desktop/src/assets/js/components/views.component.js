@@ -54,13 +54,31 @@ const ViewsComponent = `
           <option value="split_5" selected>5 phút / video</option>
           <option value="split_10">10 phút / video</option>
           <option value="split_20">20 phút / video</option>
-          <option value="custom">Tùy chỉnh</option>
+          <option value="custom">Tùy chỉnh thời gian</option>
+          <option value="ai_smart">AI Smart Cutter (Tự động 30-90s)</option>
         </select>
         <div id="custom-times" class="hidden" style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="time-start" placeholder="00:00:00" style="flex:1;" />
           <span style="color:var(--text-muted);">→</span>
           <input type="text" id="time-end" placeholder="00:01:20" style="flex:1;" />
         </div>
+        
+        <label style="margin-top:8px;">Cách thức Cắt</label>
+        <select id="cut-engine">
+          <option value="fast" selected>🟢 Fast Mode (Siêu tốc, giữ nguyên chất lượng)</option>
+          <option value="accurate">🟡 Accurate Mode (Chậm hơn, cắt cực chuẩn từng frame)</option>
+        </select>
+        
+        <div id="quality-config" class="hidden" style="margin-top:8px;">
+          <label>Chất lượng xuất (Re-encode)</label>
+          <select id="cut-quality">
+            <option value="auto">Tự động (H.264)</option>
+            <option value="h264">H.264 (Tương thích tốt)</option>
+            <option value="h265">H.265 / HEVC (Dung lượng thấp)</option>
+            <option value="av1">AV1 (Chất lượng tốt nhất)</option>
+          </select>
+        </div>
+
         <label style="margin-top:8px;">Tỉ lệ khung hình</label>
         <select id="aspect-ratio">
           <option value="original">Giữ nguyên bản</option>
@@ -167,8 +185,103 @@ const ViewsComponent = `
 
 <!-- Placeholder Views -->
 <div id="view-ai-video" class="view">
-  <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
-    <div><span data-icon="zap" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Tạo video AI</h3><p style="color:var(--text-muted);">Tính năng đang phát triển</p></div>
+  <div class="automation-container">
+    <div class="automation-grid">
+      <div class="input-section">
+        
+        <!-- Toggle Chế độ -->
+        <div style="display:flex; gap:8px; margin-bottom: 16px; background: var(--bg-primary); padding: 6px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <button id="mode-copy-btn" class="btn-primary" style="flex:1; padding: 8px; border-radius: 6px; font-weight: 500;" onclick="switchAiVideoMode('copy')">Copy Video</button>
+          <button id="mode-idea-btn" class="btn-outline" style="flex:1; padding: 8px; border-radius: 6px; font-weight: 500;" onclick="switchAiVideoMode('idea')">Tạo từ Ý Tưởng</button>
+        </div>
+
+        <!-- Chế độ Copy (Dán link) -->
+        <div id="ai-video-copy-section">
+          <input type="text" id="ai-copy-url" class="yt-input" placeholder="Dán link TikTok/YouTube/Facebook..." autocomplete="off" />
+          <button id="ai-analyze-btn" class="btn-outline" style="width: 100%; margin-top: 8px; padding: 10px; font-weight: 500;" onclick="startAiVideoAnalysis()">Phân tích Video & Lấy Kịch bản</button>
+        </div>
+
+        <!-- Chế độ Ý tưởng (Nhập Text) -->
+        <div id="ai-video-idea-section" class="hidden">
+          <textarea id="ai-idea-text" placeholder="Nhập ý tưởng của bạn... VD: Một video kể về hành trình thám hiểm vũ trụ, có người ngoài hành tinh..." rows="4" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); resize: vertical; margin-bottom: 8px;"></textarea>
+          <button id="ai-generate-script-btn" class="btn-outline" style="width: 100%; padding: 10px; font-weight: 500;" onclick="startAiScriptGeneration()">Tạo Kịch bản chi tiết (Prompts)</button>
+        </div>
+
+        <!-- Kết quả kịch bản phân cảnh -->
+        <div id="ai-script-result" class="hidden" style="margin-top: 16px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); padding: 12px;">
+          <h4 style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">Kịch bản Phân cảnh (Prompts)</h4>
+          <div id="ai-scenes-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
+             <!-- Render scene prompts here -->
+          </div>
+        </div>
+        
+      </div>
+
+      <div class="settings-card">
+        <label>Mô hình tạo Video (Video Model)</label>
+        <select id="ai-video-model">
+          <option value="veo3">Veo 3 (8s/clip)</option>
+          <option value="runway">Runway Gen-3 Alpha</option>
+          <option value="luma">Luma Dream Machine</option>
+          <option value="kling">Kling AI</option>
+        </select>
+        
+        <label style="margin-top:8px;">Số lượng phân cảnh (Scenes)</label>
+        <select id="ai-video-scenes-count">
+          <option value="auto">Tự động (Dựa trên nội dung)</option>
+          <option value="3">3 Cảnh (~24s)</option>
+          <option value="5">5 Cảnh (~40s)</option>
+          <option value="8">8 Cảnh (~1 phút)</option>
+        </select>
+
+        <label style="margin-top:8px;">Tỉ lệ khung hình (Aspect Ratio)</label>
+        <select id="ai-video-ratio">
+          <option value="9:16">9:16 (TikTok, Shorts)</option>
+          <option value="16:9">16:9 (YouTube)</option>
+        </select>
+        
+        <hr />
+        
+        <label style="font-weight:600;color:#38bdf8;">Âm thanh & Giọng nói</label>
+        <label class="checkbox-row"><input type="checkbox" id="ai-video-keep-audio" checked />Giữ lại âm thanh gốc (Chỉ cho chế độ Copy)</label>
+        
+        <div id="ai-video-voice-options" class="hidden">
+          <label>Lồng tiếng (AI Voice)</label>
+          <select id="ai-video-voice-engine">
+            <option value="elevenlabs">ElevenLabs</option>
+            <option value="omnivoice">Omni Voice API</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <button id="ai-video-start-btn" class="btn-primary" style="margin-top:16px;" onclick="startAiVideoRender()"><span data-icon="zap" style="margin-right:6px;vertical-align:middle;"></span> Bắt đầu Render Hàng loạt</button>
+    
+    <!-- Progress Bar -->
+    <div id="ai-video-progress-section" class="progress-section hidden" style="margin-top:16px;">
+      <div class="progress-header">
+        <span id="ai-video-status-text">Đang chuẩn bị...</span>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <span id="ai-video-eta" style="color:var(--text-muted);font-size:12px;"></span>
+          <span id="ai-video-progress-percent">0%</span>
+        </div>
+      </div>
+      <div class="progress-track"><div id="ai-video-progress-fill" class="progress-fill"></div></div>
+    </div>
+    
+    <!-- Preview Section -->
+    <div id="ai-video-preview-section" class="hidden" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+      <h3 style="color: var(--text-primary); margin-bottom: 12px; font-size: 15px; display: flex; align-items: center;"><span data-icon="playCircle" style="margin-right: 6px;"></span> Preview Video Thành Phẩm</h3>
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center;">
+        <video id="ai-video-player" controls style="max-width: 100%; max-height: 400px; border-radius: 6px; background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.2);"></video>
+        <div style="margin-top: 12px; display: flex; justify-content: center; gap: 8px;">
+           <button class="btn-primary" onclick="openOutputFolder()"><span data-icon="folder" style="margin-right:4px;vertical-align:middle;"></span> Mở thư mục chứa File</button>
+        </div>
+      </div>
+    </div>
+    
   </div>
 </div>
 <div id="view-hot-niche" class="view">
@@ -214,7 +327,7 @@ const ViewsComponent = `
 </div>
 <div id="view-tk-x" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
-    <div><span data-icon="x" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">X (Twitter) Accounts</h3><p style="color:var(--text-muted);">Quản lý tài khoản X & đăng Tweet tự động</p></div>
+    <div><span data-icon="twitter" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">X (Twitter) Accounts</h3><p style="color:var(--text-muted);">Quản lý tài khoản X & đăng Tweet tự động</p></div>
   </div>
 </div>
 <div id="view-tk-instagram" class="view">
@@ -286,6 +399,40 @@ const ViewsComponent = `
     </div>
   </div>
 
+  <div id="secure-api-settings-section" class="settings-card-section" style="margin-top:16px; display: none;">
+    <h3 style="margin-bottom:8px;">Bể chứa API Keys (Tự động xoay vòng)</h3>
+    <p class="settings-hint">Các key sẽ được mã hóa an toàn bằng chip bảo mật của máy tính (Keychain/DPAPI) trước khi lưu xuống ổ đĩa, đảm bảo 100% không bị rò rỉ.</p>
+    
+    <!-- Form thêm Key -->
+    <div style="display:flex; gap:8px; margin-bottom: 12px; margin-top: 12px;">
+      <select id="new-key-type" style="width: 120px; padding: 8px; border-radius: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);">
+        <option value="GEMINI_API_KEY">Gemini API</option>
+        <option value="FAL_KEY">Fal.ai API</option>
+        <option value="OPENAI_API_KEY">OpenAI API</option>
+      </select>
+      <input type="password" id="new-key-value" placeholder="Dán API Key vào đây..." style="flex:1; padding: 8px; border-radius: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);" />
+      <input type="text" id="new-key-note" placeholder="Ghi chú (Ví dụ: Acc 1)" style="width: 120px; padding: 8px; border-radius: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);" />
+      <button class="btn-primary" onclick="addNewApiKey()" style="padding: 8px 16px; border-radius: 6px;">Thêm</button>
+    </div>
+
+    <!-- Danh sách Key hiện tại -->
+    <div style="overflow-x:auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-card);">
+            <th style="padding: 10px;">Loại</th>
+            <th style="padding: 10px;">Key (Ẩn)</th>
+            <th style="padding: 10px;">Ghi chú</th>
+            <th style="padding: 10px; width: 60px; text-align:center;">Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="api-keys-list-body">
+          <!-- Render danh sách key ở đây -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="settings-card-section" style="margin-top:16px;">
     <h3 style="margin-bottom:8px;">Cache & Dữ liệu</h3>
     <p class="settings-hint">Quản lý bộ nhớ đệm, xoá dữ liệu workflow, cấu hình đầu ra mặc định.</p>
@@ -331,6 +478,249 @@ const ViewsComponent = `
       </div>
       <button id="feedback-submit-btn" type="submit" class="btn-primary" style="width: 100%; padding: 10px;">Gửi Báo Cáo</button>
     </form>
+  </div>
+</div>
+
+<!-- Chat Support View (Staff & Admin) -->
+<div id="view-chat-support" class="view">
+  <div style="display: flex; gap: 16px; height: 520px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden;">
+    <!-- Lista phiên chat bên trái -->
+    <div style="width: 260px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; background: var(--bg-primary);">
+      <div style="padding: 14px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 14px;">Hộp thoại Khách hàng</div>
+      <div id="staff-chat-list" style="flex:1; overflow-y:auto; padding: 8px; display: flex; flex-direction: column; gap: 6px;">
+        <div class="chat-session-item active" style="padding: 10px; background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer;">
+          <div style="font-weight: 600; font-size: 13px;">User: Client #1042</div>
+          <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">Yêu cầu Staff hỗ trợ...</div>
+        </div>
+      </div>
+    </div>
+    <!-- Cửa sổ Chat tương tác bên phải -->
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      <div style="padding: 14px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-primary);">
+        <div>
+          <div style="font-weight: 600; font-size: 14px;">Đang chat với: Client #1042</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Tài khoản: client1042@gmail.com</div>
+        </div>
+        <button class="btn-outline" style="padding: 4px 10px; font-size: 12px;" onclick="showToast('Thông báo', 'Đã đánh dấu hoàn tất hỗ trợ.', 'success')">Hoàn tất Hỗ trợ</button>
+      </div>
+      <div id="staff-chat-messages" style="flex:1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: var(--bg-primary);">
+        <div class="chat-msg ai" style="max-width: 80%; background: var(--bg-card); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13px;">
+          <strong>AI Bot:</strong> Xin chào! Tôi có thể giúp gì cho bạn?
+        </div>
+        <div class="chat-msg user" style="max-width: 80%; align-self: flex-end; background: var(--accent); color: white; padding: 10px; border-radius: 8px; font-size: 13px;">
+          Tôi không nạp được API key Gemini, nhờ nhân viên kiểm tra giúp.
+        </div>
+      </div>
+      <div style="padding: 12px 16px; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;">
+        <input type="text" id="staff-chat-input" placeholder="Nhập câu trả lời của Staff..." style="flex: 1; padding: 10px 16px; border-radius: 20px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();sendStaffChatMessage(event);}" />
+        <button type="button" class="btn-primary" style="width: auto !important; min-width: 90px; flex-shrink: 0; padding: 10px 24px; border-radius: 20px; margin: 0;" onclick="sendStaffChatMessage(event)">Gửi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- User / Staff Management View (Admin) -->
+<div id="view-user-management" class="view" style="width: 100%; box-sizing: border-box;">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; width: 100%; box-sizing: border-box;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+      <div>
+        <h3 style="margin-bottom:4px;">Quản lý Người dùng & Nhân viên (Dữ liệu Thực)</h3>
+        <p class="settings-hint">Theo dõi địa chỉ IP, Hệ điều hành, Thiết bị, Phân quyền Role, Khóa tài khoản (Block/Ban) và Phân quyền Tab.</p>
+      </div>
+      <button class="btn-primary" onclick="loadRealUserData()" style="padding: 8px 16px; border-radius:6px; font-size:13px;">
+        <span data-icon="refreshCw" style="vertical-align:middle; margin-right:4px;"></span> Tải lại Dữ liệu
+      </button>
+    </div>
+
+    <!-- Thanh Tìm kiếm, Bộ lọc & Sắp xếp -->
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; margin-top:16px; background:var(--bg-primary); padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+      <input type="text" id="user-search-input" placeholder="Tìm theo Email hoặc Username..." style="flex:1; min-width:200px; padding:8px 12px; border-radius:6px; background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:13px;" onkeyup="if(event.key==='Enter') loadRealUserData()" />
+      
+      <select id="user-role-filter" style="width:140px; padding:8px; border-radius:6px; background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:13px;" onchange="loadRealUserData()">
+        <option value="all">Tất cả Role</option>
+        <option value="user">Role: User</option>
+        <option value="staff">Role: Staff</option>
+        <option value="admin">Role: Admin</option>
+      </select>
+
+      <select id="user-sort-filter" style="width:140px; padding:8px; border-radius:6px; background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:13px;" onchange="loadRealUserData()">
+        <option value="newest">Mới nhất</option>
+        <option value="oldest">Cũ nhất</option>
+        <option value="email">Theo Email</option>
+      </select>
+
+      <button class="btn-outline" onclick="loadRealUserData()" style="padding:8px 14px; border-radius:6px; font-size:13px;">Lọc</button>
+    </div>
+
+    <!-- Bảng hiển thị Dữ liệu Thực -->
+    <div style="overflow-x:auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-card);">
+            <th style="padding: 10px;">User</th>
+            <th style="padding: 10px;">Địa chỉ IP</th>
+            <th style="padding: 10px;">HĐH / Thiết bị</th>
+            <th style="padding: 10px;">Ngày tạo</th>
+            <th style="padding: 10px;">Trạng thái</th>
+            <th style="padding: 10px;">Vai trò (Role)</th>
+            <th style="padding: 10px; text-align:center;">Hành động (Ban / Phân Tab)</th>
+          </tr>
+        </thead>
+        <tbody id="user-mgmt-table-body">
+          <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">Đang kết nối tới Supabase Database để tải dữ liệu thật...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Create & Manage Notification View (Admin) -->
+<div id="view-create-notification" class="view" style="width: 100%; box-sizing: border-box;">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; width: 100%; box-sizing: border-box;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+      <div>
+        <h3 id="admin-notif-form-title" style="margin-bottom:4px;">Tạo & Quản lý Thông báo (Dữ liệu Thực)</h3>
+        <p class="settings-hint">Gửi thông báo tới Client/Staff, xem Lịch sử thông báo, Tìm kiếm, Sửa & Xóa thông báo realtime.</p>
+      </div>
+      <button class="btn-primary" onclick="loadAdminNotificationHistory()" style="padding: 8px 16px; border-radius:6px; font-size:13px; width:auto;">
+        🔄 Tải lại Lịch sử
+      </button>
+    </div>
+
+    <!-- Form Tạo / Edit Thông báo -->
+    <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+      <input type="hidden" id="admin-notif-edit-id" value="" />
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 12px;">
+        <div>
+          <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600;">Tiêu đề thông báo</label>
+          <input type="text" id="admin-notif-title" placeholder="VD: Khuyến mãi tính năng AI Video..." style="width: 100%; padding: 8px 12px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px;" />
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600;">Đối tượng nhận</label>
+          <select id="admin-notif-target" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px;">
+            <option value="all">Tất cả người dùng (All Client)</option>
+            <option value="user">Chỉ Role User</option>
+            <option value="staff">Chỉ Role Staff</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600;">Hạn dùng (Tự động xóa)</label>
+          <select id="admin-notif-ttl" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px;">
+            <option value="1h">1 Tiếng</option>
+            <option value="12h">12 Tiếng</option>
+            <option value="24h" selected>24 Tiếng (1 Ngày)</option>
+            <option value="7d">7 Ngày</option>
+            <option value="30d">30 Ngày</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600;">Nội dung thông báo</label>
+        <textarea id="admin-notif-content" rows="3" placeholder="Nhập chi tiết nội dung thông báo..." style="width: 100%; padding: 8px 12px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; resize: vertical;"></textarea>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button id="admin-notif-submit-btn" class="btn-primary" style="padding: 8px 20px; border-radius: 6px; font-size: 13px; width: auto;" onclick="broadcastAdminNotification()">Phát Thông Báo Ngay</button>
+        <button id="admin-notif-cancel-btn" class="btn-outline hidden" style="padding: 8px 16px; border-radius: 6px; font-size: 13px;" onclick="cancelEditNotification()">Hủy Chỉnh Sửa</button>
+      </div>
+    </div>
+
+    <!-- Thanh Tìm kiếm & Bộ lọc Lịch sử Thông báo -->
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; background:var(--bg-primary); padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+      <input type="text" id="notif-search-input" placeholder="Tìm kiếm Tiêu đề / Nội dung thông báo..." style="flex:1; min-width:200px; padding:8px 12px; border-radius:6px; background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:13px;" onkeyup="if(event.key==='Enter') loadAdminNotificationHistory()" />
+      
+      <select id="notif-target-filter" style="width:140px; padding:8px; border-radius:6px; background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:13px;" onchange="loadAdminNotificationHistory()">
+        <option value="all">Tất cả Đối tượng</option>
+        <option value="user">Role: User</option>
+        <option value="staff">Role: Staff</option>
+      </select>
+
+      <select id="notif-sort-filter" style="width:140px; padding:8px; border-radius:6px; background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:13px;" onchange="loadAdminNotificationHistory()">
+        <option value="newest">Mới nhất</option>
+        <option value="oldest">Cũ nhất</option>
+        <option value="title">Theo Tiêu đề</option>
+      </select>
+
+      <button class="btn-outline" onclick="loadAdminNotificationHistory()" style="padding:8px 14px; border-radius:6px; font-size:13px;">Lọc</button>
+    </div>
+
+    <!-- Bảng Lịch sử Thông báo -->
+    <div style="overflow-x:auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-card);">
+            <th style="padding: 10px;">Tiêu đề</th>
+            <th style="padding: 10px;">Nội dung</th>
+            <th style="padding: 10px;">Đối tượng</th>
+            <th style="padding: 10px;">Hạn dùng</th>
+            <th style="padding: 10px;">Ngày tạo</th>
+            <th style="padding: 10px; text-align:center;">Hành động (Sửa / Xóa)</th>
+          </tr>
+        </thead>
+        <tbody id="admin-notif-table-body">
+          <tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">Đang nạp Lịch sử Thông báo tu Supabase Database...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Configuration Modal -->
+<div id="tab-config-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 420px; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+    <h3 style="margin-bottom: 8px; font-size:16px;">Phân Quyền Tab Màn Hình</h3>
+    <p class="settings-hint" style="margin-bottom: 16px;">Tích chọn các Tab được phép hiển thị cho tài khoản này:</p>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; max-height: 240px; overflow-y: auto; padding: 12px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 16px;">
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="ho-so" checked /> <span>Hồ sơ (Thông tin cá nhân)</span></label>
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="cong-cu" checked /> <span>Công cụ (Cắt, AI Video, Reup...)</span></label>
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="tu-dong-hoa" checked /> <span>Tự động hóa (Workflow, Record)</span></label>
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="tai-khoan" checked /> <span>Tài khoản (TikTok, Facebook, YT...)</span></label>
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="tiep-thi" checked /> <span>Tiếp thị liên kết</span></label>
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="doi-nhom" checked /> <span>Đội nhóm</span></label>
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="tien-ich" checked /> <span>Tiện ích</span></label>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+      <button class="btn-outline" style="padding: 8px 16px; font-size:13px; border-radius:6px;" onclick="closeTabConfigModal()">Hủy</button>
+      <button class="btn-primary" style="padding: 8px 20px; width: auto; font-size:13px; border-radius:6px;" onclick="saveTabConfigModal()">Lưu Cấu Hình</button>
+    </div>
+  </div>
+</div>
+<!-- Feedback Management View (Admin) -->
+<div id="view-feedback-management" class="view" style="width: 100%; box-sizing: border-box;">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; width: 100%; box-sizing: border-box;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+      <div>
+        <h3 style="margin-bottom:4px;">Quản lý Phản hồi & Báo lỗi (Feedback Dữ liệu Thực)</h3>
+        <p class="settings-hint">Theo dõi các phản hồi từ người dùng, xem thông tin Email, Username, Nội dung góp ý và quản lý xử lý.</p>
+      </div>
+      <button class="btn-primary" onclick="loadRealFeedbackData()" style="padding: 8px 16px; border-radius:6px; font-size:13px; width:auto;">
+        🔄 Tải lại Dữ liệu
+      </button>
+    </div>
+
+    <!-- Thanh Tìm kiếm Feedback -->
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; background:var(--bg-primary); padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+      <input type="text" id="feedback-search-input" placeholder="Tìm theo Email, Username hoặc Nội dung..." style="flex:1; min-width:240px; padding:8px 12px; border-radius:6px; background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:13px;" onkeyup="if(event.key==='Enter') loadRealFeedbackData()" />
+      <button class="btn-outline" onclick="loadRealFeedbackData()" style="padding:8px 16px; border-radius:6px; font-size:13px;">Lọc</button>
+    </div>
+
+    <!-- Bảng hiển thị Dữ liệu Feedback Thực -->
+    <div style="overflow-x:auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-card);">
+            <th style="padding: 10px;">Người gửi (User)</th>
+            <th style="padding: 10px;">Nội dung phản hồi</th>
+            <th style="padding: 10px;">Thời gian gửi</th>
+            <th style="padding: 10px; text-align:center;">Hành động (Xóa)</th>
+          </tr>
+        </thead>
+        <tbody id="feedback-mgmt-table-body">
+          <tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">Đang kết nối tới Supabase Database để tải dữ liệu Feedback thực...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 `;

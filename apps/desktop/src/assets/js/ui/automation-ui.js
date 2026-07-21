@@ -17,6 +17,9 @@ const splitModeSelect = document.getElementById('split-mode');
 const customTimes = document.getElementById('custom-times');
 const timeStartInput = document.getElementById('time-start');
 const timeEndInput = document.getElementById('time-end');
+const cutEngineSelect = document.getElementById('cut-engine');
+const cutQualitySelect = document.getElementById('cut-quality');
+const qualityConfig = document.getElementById('quality-config');
 const aspectRatioSelect = document.getElementById('aspect-ratio');
 const autoPartInput = document.getElementById('auto-part');
 
@@ -36,6 +39,14 @@ function renderAutomation() {
   startBtn.disabled = !(isLocal || isYoutube) || isProcessing;
 
   customTimes.classList.toggle('hidden', appState.options.splitMode !== 'custom');
+  
+  // Show quality config only if accurate mode or if not fast mode
+  if (appState.options.cutEngine === 'accurate') {
+    qualityConfig.classList.remove('hidden');
+  } else {
+    qualityConfig.classList.add('hidden');
+  }
+  
   youtubeInput.disabled = isProcessing || isLocal;
   dropZone.classList.toggle('disabled', isProcessing || isYoutube);
 
@@ -174,6 +185,19 @@ youtubeInput.addEventListener('input', e => {
 splitModeSelect.addEventListener('change', e => { appState.options.splitMode = e.target.value; renderAutomation(); });
 timeStartInput.addEventListener('input', e => { appState.options.customStart = e.target.value; });
 timeEndInput.addEventListener('input', e => { appState.options.customEnd = e.target.value; });
+
+if (cutEngineSelect) {
+  cutEngineSelect.addEventListener('change', e => { 
+    appState.options.cutEngine = e.target.value; 
+    renderAutomation(); 
+  });
+}
+if (cutQualitySelect) {
+  cutQualitySelect.addEventListener('change', e => { 
+    appState.options.cutQuality = e.target.value; 
+  });
+}
+
 aspectRatioSelect.addEventListener('change', e => { appState.options.aspectRatio = e.target.value; });
 autoPartInput.addEventListener('change', e => { appState.options.autoPartText = e.target.checked; });
 document.getElementById('opt-metadata').addEventListener('change', e => { appState.options.metadataStripping = e.target.checked; });

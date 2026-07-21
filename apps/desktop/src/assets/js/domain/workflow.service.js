@@ -21,17 +21,25 @@ function cancelWorkflow() {
 }
 
 ipcRenderer.on('workflow-progress', (e, p) => { appState.progress = p; renderAutomation(); });
-ipcRenderer.on('workflow-status', (e, msg) => {
+ipcRenderer.on('workflow-status', (e, payload) => {
+  // Hỗ trợ tương thích ngược nếu payload vẫn là string (trong trường hợp backend cũ chưa update)
+  const isObj = typeof payload === 'object' && payload !== null;
+  const state = isObj ? payload.state : 'processing';
+  const msg = isObj ? payload.message : payload;
+  
   appState.status = msg;
-  if (msg.includes('Hoan tat toan bo quy trinh!')) {
+  
+  if (state === 'success') {
     appState.mode = 'idle'; appState.progress = 100;
-    appState.status = 'Hoan tat!'; appState.file = null; appState.youtubeLink = '';
+    appState.status = msg; appState.file = null; appState.youtubeLink = '';
     appState.startTime = null;
+    document.getElementById('youtube-input').value = '';
+    document.getElementById('file-input').value = '';
     showToast('Hoàn tất tiến trình', 'Video đã được xử lý thành công.', 'success');
-  } else if (msg.includes('Loi') || msg.includes('Da huy')) {
+  } else if (state === 'error' || state === 'cancelled') {
     appState.progress = 0; appState.startTime = null;
-    if (msg.includes('Loi')) showToast('Tiến trình lỗi', 'Đã xảy ra lỗi trong quá trình xử lý.', 'error');
-    if (msg.includes('Da huy')) showToast('Đã hủy', 'Tiến trình đã bị hủy bởi người dùng.', 'warning');
+    if (state === 'error') showToast('Tiến trình lỗi', msg, 'error');
+    if (state === 'cancelled') showToast('Đã hủy', msg, 'warning');
     renderAutomation();
     
     setTimeout(() => {

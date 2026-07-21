@@ -50,6 +50,25 @@
   opacity: 1; transition: opacity var(--transition);
 }
 .sidebar.collapsed .sidebar-title { opacity: 0; width: 0; display: none; }
+
+.update-badge-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(16,185,129,0.4);
+  transition: all 0.2s;
+  -webkit-app-region: no-drag;
+  -webkit-text-fill-color: initial;
+}
+.update-badge-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 4px 10px rgba(16,185,129,0.6);
+}
 .sidebar.collapsed .sidebar-header .toggle-icon {
   transform: rotate(180deg);
   opacity: 0;

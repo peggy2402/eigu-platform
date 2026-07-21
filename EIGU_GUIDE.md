@@ -13,16 +13,13 @@
 ```
 eigu-platform/
 ├── apps/
-│   ├── api/              # Backend NestJS + Prisma
-│   │   ├── prisma/
-│   │   │   └── schema.prisma   # Định nghĩa database models
+│   ├── api/              # Backend NestJS + Supabase
 │   │   ├── src/
 │   │   │   ├── auth/           # Module xác thực (register, login, OTP, JWT)
-│   │   │   ├── prisma/         # PrismaService kết nối database
+│   │   │   ├── supabase/       # Supabase client service
 │   │   │   ├── app/            # App module gốc
 │   │   │   └── main.ts         # Entry point (cổng 3001, Swagger)
-│   │   ├── .env                # Biến môi trường (đã gitignore)
-│   │   └── prisma.config.ts    # Cấu hình Prisma v7
+│   │   └── .env                # Biến môi trường (đã gitignore)
 │   └── web/              # Frontend Next.js (Auth pages)
 │       └── src/
 │           ├── app/auth/       # Login, Register, Forgot-password pages
@@ -35,41 +32,16 @@ eigu-platform/
 
 ## 3. Cấu Hình Database
 
-### 3.1. Local PostgreSQL
+### 3.1. Supabase Cloud (Khuyên dùng)
+Bạn chỉ cần tạo dự án trên Supabase, lấy chuỗi kết nối và dán vào biến `DATABASE_URL`.
 
-Nếu chưa có local PostgreSQL, cài bằng:
-
-```bash
-# macOS
-brew install postgresql@17
-brew services start postgresql@17
-```
-
-### 3.2. Tạo Database
-
-```bash
-createdb eigu_platform
-# hoặc dùng sẵn database template1
-```
-
-### 3.3. Cấu Hình DATABASE_URL
+### 3.2. Cấu Hình DATABASE_URL
 
 File `apps/api/.env`:
 
 ```env
-DATABASE_URL="postgres://postgres:postgres@localhost:5432/eigu_platform?sslmode=disable"
+DATABASE_URL="postgresql://postgres.xxx:password@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
 ```
-
-**Giải thích URL:**
-| Phần | Ý nghĩa |
-|---|---|
-| `postgres://` | Giao thức PostgreSQL |
-| `postgres:postgres` | `username:password` |
-| `@localhost:5432` | Host:Port mặc định |
-| `/eigu_platform` | Tên database |
-| `?sslmode=disable` | Tắt SSL cho local |
-
-> **Lưu ý:** Mọi `postgres://` hoặc `postgresql://` URL đều dùng `@prisma/adapter-pg` (kết nối trực tiếp). Các URL dạng `prisma+postgres://` dùng `accelerateUrl` (Prisma Accelerate).
 
 ---
 
@@ -85,37 +57,16 @@ npm install --legacy-peer-deps
 
 ---
 
-## 5. Đồng Bộ Database Schema
+## 5. Đồng Bộ Database Schema (Supabase)
 
-```bash
-cd apps/api
-npx prisma db push
-```
-
-Lệnh này tạo 4 bảng: `User`, `Proxy`, `TikTokAccount`, `VideoTask`.
-
-> `npx prisma db push` đồng bộ schema mà không tạo migration files. Dùng trong development.
+Tất cả các bảng (`User`, `Proxy`, `TikTokAccount`, `VideoTask`) sẽ được khởi tạo và quản lý trực tiếp trên giao diện **SQL Editor** hoặc **Table Editor** của bảng điều khiển Supabase Dashboard.
 
 ---
 
-## 6. Chạy Prisma Studio (GUI quản lý database)
+## 6. Quản Lý Dữ Liệu (Supabase Dashboard)
 
-```bash
-cd apps/api
-npx prisma studio --port=5556
-```
-
-Mở trình duyệt tại **http://localhost:5556** để xem/sửa dữ liệu trực quan.
-
-Nếu gặp lỗi `Cannot find module 'dotenv/config'`:
-
-```bash
-# Đảm bảo dotenv đã được cài:
-npm install dotenv --save-dev
-# Hoặc chạy từ thư mục gốc:
-cd eigu-platform
-npx prisma studio --config=apps/api/prisma.config.ts --port=5556
-```
+Bạn có thể thêm/sửa/xóa dữ liệu trực quan bằng cách truy cập vào trang quản trị của Supabase:
+**https://app.supabase.com/**
 
 ---
 
@@ -249,16 +200,7 @@ SMTP_PASS=
 
 ---
 
-## 11. Lệnh Prisma Thường Dùng
-
-| Lệnh | Mô tả |
-|---|---|
-| `npx prisma db push` | Đồng bộ schema lên database |
-| `npx prisma studio` | Mở GUI quản lý database |
-| `npx prisma generate` | Sinh Prisma Client từ schema |
-| `npx prisma migrate dev` | Tạo migration và apply |
-| `npx prisma migrate deploy` | Apply migration lên production |
-| `npx prisma db pull` | Kéo schema từ database về |
+## 11. (Bỏ trống)
 
 ---
 
@@ -307,7 +249,7 @@ git push
 │             │     │              │     │            │
 │ Auth Pages  │     │ Auth Module  │     │ 4 tables   │
 │ Login       │     │ JWT Strategy │     │ User       │
-│ Register    │     │ PrismaService│     │ Proxy      │
+│ Register    │     │ Supabase Svc │     │ Proxy      │
 │ Forgot Pwd  │     │ Swagger Docs │     │ TikTokAcc  │
 └─────────────┘     └──────────────┘     │ VideoTask  │
                                           └────────────┘

@@ -46,13 +46,62 @@
     renderViews();
   </script>
 
+  <!-- Floating Live Chat Widget (Bottom Right) -->
+  <div id="live-chat-container">
+    <button id="live-chat-trigger" class="live-chat-trigger" onclick="toggleLiveChatWidget(event)" title="Hỗ trợ EIGU (AI & Staff)">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span id="chat-badge" class="chat-badge hidden">0</span>
+    </button>
+
+    <div id="live-chat-box" class="live-chat-box hidden">
+      <div class="chat-header">
+        <div class="chat-header-info">
+          <div class="chat-avatar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
+          </div>
+          <div>
+            <div class="chat-title">Hỗ trợ EIGU (AI & Staff)</div>
+            <div class="chat-status" style="font-size: 11px; color: var(--accent);"><span class="status-dot"></span> Tin nhắn tự động xóa sau 24 giờ</div>
+          </div>
+        </div>
+        <button type="button" class="chat-close-btn" onclick="toggleLiveChatWidget(event)" title="Đóng chat">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div id="chat-messages" class="chat-messages">
+        <div class="chat-msg ai">
+          <div class="msg-bubble">Xin chào! Tôi là AI Assistant của EIGU Platform. Bạn cần hỗ trợ gì về hệ thống hôm nay?</div>
+          <div class="msg-time">Vừa xong</div>
+        </div>
+      </div>
+
+      <div style="padding: 6px 12px; background: var(--bg-card); border-top: 1px solid var(--border-color); text-align: center;">
+        <button class="btn-outline" style="font-size: 11px; padding: 4px 10px; width: 100%; border-color: var(--accent); color: var(--accent);" onclick="requestHumanSupport()">💬 Yêu cầu Nhân viên (Staff) hỗ trợ</button>
+      </div>
+
+      <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="Gõ câu hỏi của bạn..." onkeydown="if(event.key==='Enter') sendChatMessage()" />
+        <button id="chat-send-btn" onclick="sendChatMessage()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/ui/toast.js"></script>
   <script src="js/ui/password-toggle.js"></script>
   <script src="js/ui/auth-forms.js"></script>
   <script src="js/domain/auth.service.js"></script>
   <script src="js/ui/sidebar.js"></script>
   <script src="js/ui/settings.js"></script>
+  <script src="js/ui/notifications.js"></script>
+  <script src="js/ui/live-chat.js"></script>
+  <script src="js/ui/auto-update.js"></script>
+  <script src="js/ui/user-mgmt.js"></script>
+  <script src="js/ui/feedback-mgmt.js"></script>
   <script src="js/ui/automation-ui.js"></script>
+  <script src="js/ui/ai-video-ui.js"></script>
   <script src="js/domain/workflow.service.js"></script>
   <script src="js/main.js"></script>
   <script>document.querySelectorAll('[data-icon]').forEach(e=>{e.innerHTML=ICONS[e.dataset.icon]||'';e.removeAttribute('data-icon');})</script>

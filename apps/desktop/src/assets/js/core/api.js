@@ -8,3 +8,10 @@ async function apiFetch(path, options = {}) {
   if (!res.ok) throw new Error(data.message || JSON.stringify(data));
   return data;
 }
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.innerText = String(text);
+  return div.innerHTML;
+}

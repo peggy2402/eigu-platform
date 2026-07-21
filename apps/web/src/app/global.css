@@ -150,11 +150,32 @@ html, body {
 }
 
 .toast-close {
-  flex-shrink: 0; background: none; border: none; cursor: pointer;
-  color: var(--text-muted); padding: 4px; border-radius: 4px;
-  height: max-content; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  color: var(--text-primary);
+  opacity: 0.85;
+  padding: 4px;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  margin-left: auto;
 }
-.toast-close:hover { background: rgba(128,128,128,0.1); color: var(--text-primary); }
+.toast-close:hover {
+  background: rgba(255, 255, 255, 0.35);
+  opacity: 1;
+  transform: scale(1.1);
+  color: var(--text-primary);
+}
+.toast-close * {
+  pointer-events: none;
+}
 
 .sidebar.collapsed .sidebar-header { padding: 20px 12px; justify-content: center; }
 .sidebar-logo {

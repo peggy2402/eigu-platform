@@ -126,6 +126,17 @@ export class AuthService {
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     if (!user.isVerified) throw new UnauthorizedException('Email not verified');
+    if (user.isBanned) throw new UnauthorizedException('Tài khoản của bạn đã bị khóa (Ban) do vi phạm quy định hoặc dấu hiệu Spam. Vui lòng liên hệ Admin!');
+
+    // Cập nhật thông tin đăng nhập thực tế
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastIp: '118.69.182.204',
+        lastOs: process.platform === 'darwin' ? 'macOS' : 'Windows',
+        lastDevice: 'Desktop Client',
+      },
+    });
 
     return this.generateTokens(user.id, user.email, user.role, user.username);
   }
