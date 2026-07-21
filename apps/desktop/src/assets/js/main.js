@@ -11,9 +11,9 @@ function updateProfile() {
     const roleBadge = document.getElementById('role-badge');
     if (roleBadge && userProfile.role) {
       const roleMap = {
-        admin: { label: 'ADMIN', bg: 'rgba(99,102,241,0.2)', color: 'var(--accent)' },
-        staff: { label: 'STAFF', bg: 'rgba(34,197,94,0.2)', color: '#22c55e' },
-        user:  { label: 'USER',  bg: 'rgba(148,163,184,0.2)', color: 'var(--text-secondary)' },
+        admin: { label: 'ADMIN', bg: 'rgba(239,68,68,0.2)', color: '#ef4444' },
+        staff: { label: 'STAFF', bg: 'rgba(234,179,8,0.2)', color: '#eab308' },
+        user:  { label: 'USER',  bg: 'rgba(34,197,94,0.2)', color: '#22c55e' },
       };
       const cfg = roleMap[userProfile.role] || roleMap.user;
       roleBadge.textContent = cfg.label;

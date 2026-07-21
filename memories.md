@@ -397,3 +397,40 @@ Xử lý:
 
 ### 16.6 Logout reset
 - `auth.service.js handleLogout()`: reset `hidden` trên sidebar, profile dropdown, search popup
+
+## Phase 17: Phân quyền Tab chi tiết đến sub-item & Fix auth service (22/07/2026)
+
+### 17.1 Mở rộng ALL_TABS với sub-items (15 tab con)
+- **File:** `apps/api/src/users/users.service.ts`
+- Thêm 15 sub-item vào `ALL_TABS` với field `parentKey` để nhóm:
+  - **cong-cu:** cut, ai-video, reup, hot-niche, bulk-download
+  - **tu-dong-hoa:** workflow, record
+  - **tai-khoan:** tk-tiktok, tk-facebook, tk-youtube, tk-x, tk-instagram, tk-threads
+- `parentKey` được spread qua API response → frontend dùng để hiển thị phân cấp trong modal.
+
+### 17.2 Ẩn/Hiện sub-item riêng lẻ trên sidebar
+- **File:** `apps/desktop/src/assets/js/main.js`
+- Thêm section 2b trong `updateProfile()`: query `.nav-sub-item[data-sub]`, gọi `setTabVisibility(sub, el)` cho từng sub-item.
+- Nếu parent bị ẩn → cả wrapper ẩn (section 2 cũ). Nếu chỉ sub-item bị ẩn → chỉ sub đó bị `display: none`.
+
+### 17.3 Modal phân quyền hiển thị cây thư mục
+- **File:** `apps/desktop/src/assets/js/ui/user-mgmt.js`
+- `renderTabConfigCheckboxes()` được viết lại: tách parents (không `parentKey`) và children (có `parentKey`).
+- Parent in đậm, children thụt vào 28px bên dưới parent tương ứng.
+
+### 17.4 FIX BUG NGHIÊM TRỌNG: Auth service không merge với ALL_TABS
+- **Vấn đề:** `AuthService.getProfile()` và `generateTokens()` query thẳng bảng `TabPermission` — chỉ trả về các dòng đã lưu trong DB. Nếu chưa có row nào (user mới hoặc chưa cấu hình), mảng `tabPermissions` rỗng → frontend thấy `perms.length === 0` → bỏ qua không ẩn gì.
+- **Hậu quả:** Dù admin đã cấu hình ẩn tab qua modal "Phân Tab", user thường vẫn thấy tất cả tab.
+- **Khắc phục:**
+  - `auth.module.ts`: Import `UsersModule`
+  - `auth.service.ts`: Inject `UsersService`, thay `prisma.tabPermission.findMany()` bằng `usersService.getTabPermissions(userId)` — method này merge với `ALL_TABS` và default `visible: true` cho tab chưa cấu hình.
+  - Response luôn trả về đủ 25 tabs với trạng thái `visible`, frontend filter chính xác.
+
+### 17.5 Logout reset sub-item
+- **File:** `apps/desktop/src/assets/js/domain/auth.service.js`
+- `handleLogout()` bổ sung reset `.nav-sub-item[data-sub]` để tránh leak trạng thái cũ khi đăng nhập lại.
+
+### 17.6 Role badge trên header
+- **File:** `apps/desktop/src/assets/js/components/header.component.js` + `main.js`
+- Thêm `<span id="role-badge">` nằm dưới greeting "Xin chào, {{username}}".
+- `updateProfile()` set label và màu theo role: ADMIN (tím `#6366f1`), STAFF (xanh lá `#22c55e`), USER (xám `var(--text-secondary)`).
