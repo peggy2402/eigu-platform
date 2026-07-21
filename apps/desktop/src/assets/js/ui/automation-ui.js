@@ -112,6 +112,42 @@ document.getElementById('opt-noise').addEventListener('change', e => { appState.
 document.getElementById('opt-decimate').addEventListener('change', e => { appState.options.decimation = e.target.checked; });
 document.getElementById('opt-audio').addEventListener('change', e => { appState.options.audioSpatialPanning = e.target.checked; });
 
+/* Advanced Editing Controls */
+document.getElementById('opt-flip').addEventListener('change', e => { appState.options.flip = e.target.value; });
+document.getElementById('opt-brightness').addEventListener('input', e => { appState.options.brightness = parseFloat(e.target.value) || 1.0; });
+document.getElementById('opt-contrast').addEventListener('input', e => { appState.options.contrast = parseFloat(e.target.value) || 1.0; });
+document.getElementById('opt-saturation').addEventListener('input', e => { appState.options.saturation = parseFloat(e.target.value) || 1.0; });
+document.getElementById('opt-frame-bend').addEventListener('change', e => { appState.options.frameBend = e.target.value; });
+document.getElementById('opt-voice').addEventListener('change', e => {
+  appState.options.voiceMode = e.target.value;
+  const ffmpegConfig = document.getElementById('voice-ffmpeg-config');
+  const apiConfig = document.getElementById('voice-api-config');
+  ffmpegConfig.classList.toggle('hidden', e.target.value !== 'ffmpeg');
+  apiConfig.classList.toggle('hidden', e.target.value !== 'elevenlabs' && e.target.value !== 'omnivoice' && e.target.value !== 'self-hosted');
+  if (e.target.value === 'elevenlabs' || e.target.value === 'omnivoice' || e.target.value === 'self-hosted') {
+    fetchVoiceSpeakers(e.target.value);
+  }
+});
+document.getElementById('voice-pitch').addEventListener('input', e => { appState.options.voicePitch = parseFloat(e.target.value) || 1.0; });
+document.getElementById('voice-speed').addEventListener('input', e => { appState.options.voiceSpeed = parseFloat(e.target.value) || 1.0; });
+document.getElementById('voice-speaker').addEventListener('change', e => { appState.options.voiceSpeaker = e.target.value; });
+
+async function fetchVoiceSpeakers(provider) {
+  const select = document.getElementById('voice-speaker');
+  select.innerHTML = '<option value="">Đang tải...</option>';
+  select.disabled = true;
+  try {
+    const data = await apiFetch(`/voice/speakers?provider=${provider}`);
+    select.innerHTML = '<option value="">Chọn giọng nói...</option>';
+    (data.speakers || []).forEach(s => {
+      select.innerHTML += `<option value="${s.id}">${s.name}${s.accent ? ' (' + s.accent + ')' : ''}</option>`;
+    });
+    select.disabled = false;
+  } catch (err) {
+    select.innerHTML = '<option value="">Lỗi kết nối server</option>';
+  }
+}
+
     function addLog(msg) {
       let tagClass = 'tag-info', tag = '[INFO]';
       if (msg.includes('ERROR')||msg.includes('Loi')||msg.includes('loi')) { tagClass='tag-error'; tag='[ERROR]'; }

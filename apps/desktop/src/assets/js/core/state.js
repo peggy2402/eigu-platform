@@ -18,7 +18,16 @@ const appState = {
     metadataStripping: true,
     noiseInjection: false,
     decimation: false,
-    audioSpatialPanning: false
+    audioSpatialPanning: false,
+    flip: 'none',
+    brightness: 1.00,
+    contrast: 1.00,
+    saturation: 1.00,
+    frameBend: 'none',
+    voiceMode: 'none',
+    voiceSpeaker: '',
+    voicePitch: 1.0,
+    voiceSpeed: 1.0
   },
   progress: 0,
   status: 'Đang chờ...',

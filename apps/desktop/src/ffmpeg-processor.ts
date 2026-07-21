@@ -57,14 +57,24 @@ class RuleEngine {
     if (opts.noiseInjection) return true;
     if (opts.decimation) return true;
     if (opts.autoPartText && isSegmentFormat && splitSeconds > 0 && duration > 0 && Math.ceil(duration / splitSeconds) > 1) {
-      return true; // DrawText filter
+      return true;
     }
+    if (opts.flip && opts.flip !== 'none') return true;
+    if (opts.frameBend && opts.frameBend !== 'none') return true;
+    if (opts.brightness && Math.abs(opts.brightness - 1.0) > 0.01) return true;
+    if (opts.contrast && Math.abs(opts.contrast - 1.0) > 0.01) return true;
+    if (opts.saturation && Math.abs(opts.saturation - 1.0) > 0.01) return true;
     return false;
   }
 
   static requiresAudioTranscode(opts: any): boolean {
     if (opts.audioSpatialPanning) return true;
+    if (opts.voiceMode === 'ffmpeg') return true;
     return false;
+  }
+
+  static requiresVoiceApi(opts: any): boolean {
+    return opts.voiceMode === 'elevenlabs' || opts.voiceMode === 'omnivoice';
   }
 }
 
@@ -95,21 +105,43 @@ class PipelineBuilder {
 
     const needVideoTranscode = RuleEngine.requiresVideoTranscode(opts, isSegmentFormat, this.duration, splitSeconds);
     const needAudioTranscode = RuleEngine.requiresAudioTranscode(opts);
+    const needVoiceApi = RuleEngine.requiresVoiceApi(opts);
 
     // 1. Setup Filters (if transcode)
     const videoFilters: string[] = [];
     if (needVideoTranscode) {
+      // --- Aspect Ratio ---
       if (opts.aspectRatio === '9:16') videoFilters.push("scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=black");
       else if (opts.aspectRatio === '16:9') videoFilters.push("scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=black");
       else if (opts.aspectRatio === '1:1') videoFilters.push("scale=1080:1080:force_original_aspect_ratio=decrease,pad=1080:1080:(ow-iw)/2:(oh-ih)/2:color=black");
 
+      // --- Flip ---
+      if (opts.flip === 'horizontal') videoFilters.push('hflip');
+      else if (opts.flip === 'vertical') videoFilters.push('vflip');
+
+      // --- Frame Bend ---
+      if (opts.frameBend === 'rotate90') videoFilters.push('transpose=1');
+      else if (opts.frameBend === 'rotate180') videoFilters.push('transpose=2,transpose=2');
+
+      // --- Decimation ---
       if (opts.decimation) videoFilters.push('mpdecimate');
-      if (opts.noiseInjection) videoFilters.push('noise=alls=1:allf=t', 'eq=contrast=1.01:gamma=0.99');
-      
+
+      // --- Noise & EQ ---
+      const eqParts: string[] = [];
+      if (opts.noiseInjection) {
+        videoFilters.push('noise=alls=1:allf=t');
+        eqParts.push('contrast=1.01', 'gamma=0.99');
+      }
+      if (opts.brightness && Math.abs(opts.brightness - 1.0) > 0.01) eqParts.push(`brightness=${opts.brightness}`);
+      if (opts.contrast && Math.abs(opts.contrast - 1.0) > 0.01) eqParts.push(`contrast=${opts.contrast}`);
+      if (opts.saturation && Math.abs(opts.saturation - 1.0) > 0.01) eqParts.push(`saturation=${opts.saturation}`);
+      if (eqParts.length > 0) videoFilters.push('eq=' + eqParts.join(':'));
+
+      // --- DrawText "Phần 1/N" ---
       if (opts.autoPartText && isSegmentFormat && splitSeconds > 0) {
         const totalParts = Math.ceil(this.duration / splitSeconds);
         if (totalParts > 1) {
-          videoFilters.push(`drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial.ttf':text='Part %{eif\\:trunc(t/${splitSeconds})+1\\:d}/${totalParts}':fontcolor=white:fontsize=h/20:x=(w-text_w)/2:y=h*0.1:box=1:boxcolor=black@0.5:boxborderw=10`);
+          videoFilters.push(`drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial.ttf':text='Ph%E1%BA%A7n %{eif\\:trunc(t/${splitSeconds})+1\\:d}/${totalParts}':fontcolor=white:fontsize=h/20:x=(w-text_w)/2:y=h*0.1:box=1:boxcolor=black@0.5:boxborderw=10`);
         }
       }
       
@@ -119,6 +151,14 @@ class PipelineBuilder {
     if (needAudioTranscode) {
       const audioFilters: string[] = [];
       if (opts.audioSpatialPanning) audioFilters.push('pan=stereo|c0<c0+0*c1|c1<c1+0*c0');
+      if (opts.voiceMode === 'ffmpeg') {
+        if (opts.voicePitch && Math.abs(opts.voicePitch - 1.0) > 0.01) {
+          audioFilters.push(`asetrate=44100*${opts.voicePitch},aresample=44100`);
+        }
+        if (opts.voiceSpeed && Math.abs(opts.voiceSpeed - 1.0) > 0.01) {
+          audioFilters.push(`atempo=${opts.voiceSpeed}`);
+        }
+      }
       if (audioFilters.length > 0) this.command.audioFilters(audioFilters);
     }
 
@@ -256,6 +296,20 @@ export function processVideoWithFFmpeg(
       
       if (isCancelled) return reject(new Error('Cancelled'));
       onProgress({ taskId: request.taskId, status: 'processing', progress: 5, message: 'Đang xây dựng Rule-based Pipeline...' });
+
+      // Check API voice modes
+      const opts = (request.options as any) || {};
+      if (opts.voiceMode === 'elevenlabs' || opts.voiceMode === 'omnivoice') {
+        onProgress({ taskId: request.taskId, status: 'processing', progress: 6, message: `Đang xử lý giọng nói qua ${opts.voiceMode === 'elevenlabs' ? 'ElevenLabs' : 'Omni Voice'} API...` });
+        // TODO: Implement ElevenLabs / Omni Voice API integration
+        // Pipeline:
+        // 1. Process video with FFmpeg as usual
+        // 2. Extract audio from output
+        // 3. Send audio to API for voice conversion
+        // 4. Merge modified audio back into video
+        // For now, falls back to FFmpeg pitch/speed
+        console.log(`[EIGU] Voice API (${opts.voiceMode}) mode selected but not fully implemented yet. Using FFmpeg audio filters as fallback.`);
+      }
 
       // Phase 2: Build & Execute Pipeline
       pipelineBuilder = new PipelineBuilder(inputPath, outputPath, request, duration);

@@ -6,9 +6,10 @@ import { WorkflowGateway } from './workflow.gateway';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { FeedbackModule } from '../feedback/feedback.module';
+import { VoiceModule } from '../voice/voice.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, FeedbackModule],
+  imports: [PrismaModule, AuthModule, FeedbackModule, VoiceModule],
   controllers: [AppController],
   providers: [
     AppService,

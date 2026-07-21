@@ -192,3 +192,73 @@ Nếu bất kỳ option video-encode nào được bật → toàn bộ pipeline
 ### 9.4 Validation Mạng (Offline / Online)
 - **Web / Desktop:** Thêm EventListener lắng nghe `online` và `offline` trên `window`. Bắn Toast Success khi có mạng lại, Toast Error khi mất kết nối.
 - **Mobile (`main.dart`):** Sử dụng `connectivity_plus` (bản mới nhất dùng `List<ConnectivityResult>`) để lắng nghe thay đổi mạng ở cấp độ toàn ứng dụng. Gắn Global NavigatorKey để show Toast từ bất kỳ đâu. Thêm permission `INTERNET` và `ACCESS_NETWORK_STATE` vào `AndroidManifest.xml` và `Info.plist`.
+
+## Phase 10: Giao diện Quản lý Tài khoản Mạng Xã hội (Desktop) (21/07/2026)
+
+### 10.1 Submenu "Tài khoản" — 6 nền tảng
+- **File:** `apps/desktop/src/assets/js/components/sidebar.component.js`
+- Chuyển "Tài khoản" từ nav-item phẳng thành `nav-item-wrapper` dropdown (giống Công cụ / Tự động hóa).
+- **6 submenu:** TikTok, Facebook, YouTube, X (Twitter), Instagram, Threads.
+- Mỗi sub-item gọi `switchView` với view tương ứng (`tk-tiktok`, `tk-facebook`, ...), có icon brand riêng.
+
+### 10.2 Views riêng cho từng nền tảng
+- **File:** `apps/desktop/src/assets/js/components/views.component.js`
+- Thay layout tabs bằng 6 view riêng biệt: `#view-tk-tiktok`, `#view-tk-facebook`, `#view-tk-youtube`, `#view-tk-x`, `#view-tk-instagram`, `#view-tk-threads`.
+- Mỗi view icon màu brand riêng, placeholder chờ fill nội dung sau.
+
+### 10.3 Social Media Icons
+- **File:** `apps/desktop/src/assets/js/ui/icons.js`
+- Thêm 6 icon SVG: TikTok, Facebook, YouTube, X, Instagram, Threads.
+
+### 10.4 View titles
+- **File:** `apps/desktop/src/assets/js/ui/sidebar.js`
+- Thêm title mapping cho 6 view mới, xóa `switchSocialTab`.
+- Xóa file `accounts.css` (không còn dùng).
+
+## Phase 11: Nâng cấp "Tự động cắt" — Feature mới & Tối ưu tốc độ (21/07/2026)
+
+### 11.1 "Tạo video Reup" trong Công cụ
+- **File:** `apps/desktop/src/assets/js/components/sidebar.component.js`
+- Thêm sub-item "Tạo video Reup" sau "Tạo video AI", icon `upload` (mũi tên lên).
+- View placeholder `#view-reup` + title mapping trong `sidebar.js`.
+
+### 11.2 UI Chỉnh sửa nâng cao
+- **File:** `apps/desktop/src/assets/js/components/views.component.js`
+- Thêm section "Chỉnh sửa nâng cao" (tím `#a78bfa`) sau Anti-Detect:
+  - **Lật video:** dropdown (Không / Ngang / Dọc)
+  - **Màu sắc EQ:** 3 số input (Độ sáng / Tương phản / Bão hòa), grid 3 cột
+  - **Bẻ khung hình:** dropdown (Không / Xoay 90° / Xoay 180° / Lật dọc)
+  - **Giọng nói:** dropdown (Giữ nguyên / FFmpeg / ElevenLabs / Omni Voice) + API config fields
+
+### 11.3 State & Event wiring
+- **File:** `apps/desktop/src/assets/js/core/state.js` — Thêm 8 option mới (flip, brightness, contrast, saturation, frameBend, voiceMode, voiceSpeaker, voicePitch, voiceSpeed)
+- **File:** `apps/desktop/src/assets/js/ui/automation-ui.js` — Wire listeners cho tất cả control mới; voice config chia 2 nhóm: FFmpeg (cao độ/tốc độ) và API (chọn giọng nói từ server). `fetchVoiceSpeakers()` gọi `GET /api/voice/speakers?provider=` để lấy danh sách giọng nói.
+
+### 11.6 Backend Voice API (NestJS)
+- **Module mới:** `apps/api/src/voice/` — `VoiceModule`, `VoiceController`, `VoiceService`
+- **Endpoints:**
+  - `GET /api/voice/speakers?provider=elevenlabs|omnivoice|self-hosted` — danh sách giọng nói
+  - `POST /api/voice/convert` — biến đổi giọng nói (multipart: audio + provider + speaker_id)
+- **Providers:**
+  - **ElevenLabs:** Proxy API key server-side, voice conversion qua `POST /v1/voice-conversion`
+  - **OmniVoice API:** Proxy qua `api.omnivoice.ai/v1/voice-convert`
+  - **Self-hosted:** 2 chế độ — Python child_process (`scripts/omnivoice_infer.py`) hoặc REST server riêng (`OMNIVOICE_HOST`)
+- **Scripts:**
+  - `apps/api/scripts/omnivoice_infer.py` — Python inference script (clone/TTS)
+  - `apps/api/scripts/setup_omnivoice.sh` — 1-liner cài dependencies
+- **Env vars:** `ELEVENLABS_API_KEY`, `OMNI_VOICE_API_KEY`, `OMNIVOICE_MODE`, `OMNIVOICE_HOST`
+
+### 11.4 FFmpeg Filters (ffmpeg-processor.ts)
+- **RuleEngine:** Thêm detect cho flip, frameBend, EQ, voice (FFmpeg & API)
+- **PipelineBuilder.build():**
+  - `hflip` / `vflip` cho lật video
+  - `transpose=1` / `transpose=2,transpose=2` cho xoay
+  - `eq=brightness=:contrast=:saturation=` cho màu sắc (gộp với noise EQ)
+  - `asetrate=44100*X,aresample=44100` + `atempo=X` cho giọng nói FFmpeg
+  - Placeholder cho ElevenLabs/Omni Voice API (chờ implement sau)
+- Fix `drawtext` text từ "Part %{eif...}" sang "Phần %{eif...}" (Unicode encode đúng)
+
+### 11.5 Tối ưu tốc độ (đã có & chưa có)
+- **Đã tối ưu:** Stream Copy khi không filter, `-quality 1`, `-g 60` GOP, `-b:v 3000k`
+- **Giới hạn:** Bật bất kỳ filter video nào → buộc transcode toàn bộ (encode GPU)
+- **Hướng tới:** 2-pass pipeline (split trước → filter từng segment sau) sẽ giúp tăng tốc đáng kể cho video dài (>30 phút) nhưng cần refactor kiến trúc

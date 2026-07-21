@@ -33,6 +33,7 @@ async function bootstrap() {
     .addTag('Auth', 'Xác thực người dùng (Register, Login, OTP, JWT)')
     .addTag('Workflow', 'Quản lý luồng xử lý video (FFmpeg, Browser)')
     .addTag('System', 'Cấu hình và trạng thái hệ thống')
+    .addTag('Voice', 'Quản lý giọng nói AI (ElevenLabs, Omni Voice)')
     .addBearerAuth()
     .build();
 

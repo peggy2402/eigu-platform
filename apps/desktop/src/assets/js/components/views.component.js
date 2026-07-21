@@ -59,6 +59,66 @@ const ViewsComponent = `
         <label class="checkbox-row"><input type="checkbox" id="opt-noise" />Nhiễu hạt & Cân bằng sáng (Noise & EQ)</label>
         <label class="checkbox-row"><input type="checkbox" id="opt-decimate" />Xóa khung hình tĩnh (Decimation)</label>
         <label class="checkbox-row"><input type="checkbox" id="opt-audio" />Đảo chiều âm thanh 3D (Spatial Panning)</label>
+        <hr />
+        <label style="font-weight:600;color:#a78bfa;">Chỉnh sửa nâng cao</label>
+
+        <label>Lật video</label>
+        <select id="opt-flip">
+          <option value="none">Không lật</option>
+          <option value="horizontal">Lật ngang (Horizontal)</option>
+          <option value="vertical">Lật dọc (Vertical)</option>
+        </select>
+
+        <label>Màu sắc (EQ)</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+          <div>
+            <label style="font-size:11px;color:var(--text-muted);">Độ sáng</label>
+            <input type="number" id="opt-brightness" value="1.00" step="0.05" min="0" max="2" style="width:100%;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;" />
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text-muted);">Tương phản</label>
+            <input type="number" id="opt-contrast" value="1.00" step="0.05" min="0" max="2" style="width:100%;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;" />
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text-muted);">Độ bão hòa</label>
+            <input type="number" id="opt-saturation" value="1.00" step="0.05" min="0" max="2" style="width:100%;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;" />
+          </div>
+        </div>
+
+        <label>Bẻ khung hình</label>
+        <select id="opt-frame-bend">
+          <option value="none">Không</option>
+          <option value="rotate90">Xoay 90°</option>
+          <option value="rotate180">Xoay 180°</option>
+          <option value="vflip">Lật dọc</option>
+        </select>
+
+        <label>Giọng nói</label>
+        <select id="opt-voice">
+          <option value="none">Giữ nguyên</option>
+          <option value="ffmpeg">FFmpeg (Thay đổi cao độ)</option>
+          <option value="elevenlabs">ElevenLabs AI Voice</option>
+          <option value="omnivoice">Omni Voice API</option>
+          <option value="self-hosted">OmniVoice (Tự host)</option>
+        </select>
+        <div id="voice-ffmpeg-config" class="hidden" style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;gap:6px;">
+            <div style="flex:1;">
+              <label style="font-size:11px;color:var(--text-muted);">Cao độ (0.5-2.0)</label>
+              <input type="number" id="voice-pitch" value="1.0" step="0.1" min="0.5" max="2.0" style="width:100%;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;" />
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:11px;color:var(--text-muted);">Tốc độ (0.5-2.0)</label>
+              <input type="number" id="voice-speed" value="1.0" step="0.1" min="0.5" max="2.0" style="width:100%;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;" />
+            </div>
+          </div>
+        </div>
+        <div id="voice-api-config" class="hidden" style="display:flex;flex-direction:column;gap:6px;">
+          <select id="voice-speaker">
+            <option value="">Đang tải danh sách giọng nói...</option>
+          </select>
+          <p style="font-size:11px;color:var(--text-muted);">API key được quản lý tập trung trên server. Chọn giọng nói từ thư viện.</p>
+        </div>
       </div>
     </div>
 
@@ -105,6 +165,11 @@ const ViewsComponent = `
     <div><span data-icon="downloadCloud" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Tải video hàng loạt</h3><p style="color:var(--text-muted);">Tính năng đang phát triển</p></div>
   </div>
 </div>
+<div id="view-reup" class="view">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
+    <div><span data-icon="refreshCw" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Tạo video Reup</h3><p style="color:var(--text-muted);">Tính năng đang phát triển</p></div>
+  </div>
+</div>
 <div id="view-workflow" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="refreshCw" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Tạo workflow</h3><p style="color:var(--text-muted);">Tính năng đang phát triển</p></div>
@@ -115,9 +180,35 @@ const ViewsComponent = `
     <div><span data-icon="mic" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Ghi thao tác</h3><p style="color:var(--text-muted);">Tính năng đang phát triển</p></div>
   </div>
 </div>
-<div id="view-tai-khoan" class="view">
+<!-- Social Account Views -->
+<div id="view-tk-tiktok" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
-    <div><span data-icon="users" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Tài khoản</h3><p style="color:var(--text-muted);">Tính năng đang phát triển</p></div>
+    <div><span data-icon="tiktok" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#ff0050;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">TikTok Accounts</h3><p style="color:var(--text-muted);">Quản lý tài khoản TikTok — thêm, xóa, theo dõi trạng thái</p></div>
+  </div>
+</div>
+<div id="view-tk-facebook" class="view">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
+    <div><span data-icon="facebook" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#1877F2;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Facebook Accounts</h3><p style="color:var(--text-muted);">Quản lý tài khoản Facebook & Fanpage</p></div>
+  </div>
+</div>
+<div id="view-tk-youtube" class="view">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
+    <div><span data-icon="youtube" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#FF0000;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">YouTube Channels</h3><p style="color:var(--text-muted);">Quản lý kênh YouTube & đăng tải tự động</p></div>
+  </div>
+</div>
+<div id="view-tk-x" class="view">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
+    <div><span data-icon="x" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">X (Twitter) Accounts</h3><p style="color:var(--text-muted);">Quản lý tài khoản X & đăng Tweet tự động</p></div>
+  </div>
+</div>
+<div id="view-tk-instagram" class="view">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
+    <div><span data-icon="instagram" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#E4405F;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Instagram Accounts</h3><p style="color:var(--text-muted);">Quản lý tài khoản Instagram & đăng bài tự động</p></div>
+  </div>
+</div>
+<div id="view-tk-threads" class="view">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
+    <div><span data-icon="threads" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Threads Accounts</h3><p style="color:var(--text-muted);">Quản lý tài khoản Threads</p></div>
   </div>
 </div>
 <div id="view-tiep-thi" class="view">
