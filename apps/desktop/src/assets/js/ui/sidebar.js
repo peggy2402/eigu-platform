@@ -2,24 +2,24 @@ function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('collapsed');
 }
 
-function toggleDropdown(el) {
+function toggleDropdown(el, e) {
+  if (e) { e.stopPropagation(); }
   const sidebar = document.getElementById('sidebar');
-  if (sidebar && sidebar.classList.contains('collapsed')) {
-    sidebar.classList.remove('collapsed');
-  }
 
   const wasOpen = el.classList.contains('open');
   document.querySelectorAll('.nav-item.open').forEach(i => i.classList.remove('open'));
   if (!wasOpen) el.classList.add('open');
 }
 
-function switchView(view, navEl, sub) {
+function switchView(view, navEl, sub, e) {
+  if (e) { e.stopPropagation(); }
   currentView = view;
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const target = document.getElementById('view-' + view);
   if (target) target.classList.add('active');
 
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.nav-item.open').forEach(i => i.classList.remove('open'));
   if (navEl) {
     navEl.classList.add('active');
     if (sub) navEl.classList.add('open');
@@ -65,10 +65,4 @@ document.addEventListener('keydown', e => {
   }
 });
 
-document.addEventListener('click', e => {
-  const sidebar = document.getElementById('sidebar');
-  if (!sidebar || sidebar.classList.contains('collapsed')) return;
-  if (!sidebar.contains(e.target) && !e.target.closest('.title-bar-overlay')) {
-    sidebar.classList.add('collapsed');
-  }
-});
+

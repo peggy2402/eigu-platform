@@ -120,7 +120,7 @@
   max-height: none;
   visibility: hidden;
   opacity: 0;
-  transition: opacity 0.2s, visibility 0s linear 0.2s;
+  transition: none;
 }
 .sidebar.collapsed .nav-sub::before {
   content: '';

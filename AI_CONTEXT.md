@@ -22,6 +22,8 @@ Du an duoc quan ly trong mot **Nx Workspace** (`npx nx ...`) bao gom 4 ung dung 
    - **Web:** Dung `lucide-react` icons (da co trong dependencies).
    - **Mobile:** Dung Material Icons (`Icons.*`).
    - **CSS/UI:** Dark mode, gradient, animation muot ma.
+   - **Sidebar UI State (CRITICAL):** Khi viet code chuyen tab (switchView / toggleDropdown), LUON LUON phai don dep trang thai cua cac menu khac (`.nav-item.open`). Tuyet doi khong de quen xoa class `.open` khi chuyen sang mot tab khong co dropdown, de tranh loi cac submenu cua tab cu van bi hien thi chong cheo len nhau.
+   - **Search Popup Navigation (CRITICAL):** Đối với các tab có dropdown submenu (như "Công cụ", "Tự động hóa", "Tài khoản"), trong menu tìm kiếm (`header.component.js`) tuyệt đối KHÔNG ĐƯỢC để kết quả tìm kiếm trỏ thẳng vào thẻ cha (ví dụ `data-view="tai-khoan"`) vì thẻ cha không có View riêng. Phải đưa toàn bộ các thẻ con (sub-items) vào kết quả tìm kiếm để điều hướng đúng vào chức năng.
 3. **Moi truong Development / Production:**
    - **Backend (`apps/api`):**
      - Su dung `Logger` tu `@nestjs/common` (khong dung `console.log`).

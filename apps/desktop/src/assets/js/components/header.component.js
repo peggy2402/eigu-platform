@@ -19,10 +19,10 @@ const HeaderComponent = `
         <span data-icon="chevronDown" class="chevron-icon"></span>
       </div>
       <div class="profile-menu-dropdown" id="profile-dropdown">
-        <div class="profile-menu-item" onclick="switchView('settings')">
+        <div class="profile-menu-item" onclick="switchView('settings', null, null, event)">
           <span data-icon="settings"></span> Cài đặt
         </div>
-        <div class="profile-menu-item" onclick="switchView('feedback')">
+        <div class="profile-menu-item" onclick="switchView('feedback', null, null, event)">
           <span data-icon="bug"></span> Góp ý / Báo lỗi
         </div>
         <div class="profile-menu-divider"></div>
@@ -42,40 +42,55 @@ const HeaderComponent = `
       <button class="search-popup-close" onclick="closeSearchPopup()"><span data-icon="x"></span></button>
     </div>
     <div class="search-popup-body" id="search-popup-body">
-      <div class="search-result" data-view="ho-so" onclick="closeSearchPopup();switchView('ho-so',document.querySelector('[data-view=ho-so]'))">
+      <div class="search-result" data-view="ho-so" onclick="closeSearchPopup();switchView('ho-so',document.querySelector('[data-view=ho-so]'), null, event)">
         <span data-icon="user"></span> Hồ sơ
       </div>
-      <div class="search-result" data-view="cut" onclick="closeSearchPopup();switchView('cut', document.querySelector('[data-view=cong-cu]'), 'cut')">
+      <div class="search-result" data-view="cut" onclick="closeSearchPopup();switchView('cut', document.querySelector('[data-view=cong-cu]'), 'cut', event)">
         <span data-icon="scissors"></span> Tự động cắt
       </div>
-      <div class="search-result" data-view="ai-video" onclick="closeSearchPopup();switchView('ai-video', document.querySelector('[data-view=cong-cu]'), 'ai-video')">
+      <div class="search-result" data-view="ai-video" onclick="closeSearchPopup();switchView('ai-video', document.querySelector('[data-view=cong-cu]'), 'ai-video', event)">
         <span data-icon="zap"></span> Tạo video AI
       </div>
-      <div class="search-result" data-view="hot-niche" onclick="closeSearchPopup();switchView('hot-niche', document.querySelector('[data-view=cong-cu]'), 'hot-niche')">
+      <div class="search-result" data-view="hot-niche" onclick="closeSearchPopup();switchView('hot-niche', document.querySelector('[data-view=cong-cu]'), 'hot-niche', event)">
         <span data-icon="trendingUp"></span> Tìm ngách hot
       </div>
-      <div class="search-result" data-view="workflow" onclick="closeSearchPopup();switchView('workflow', document.querySelector('[data-view=tu-dong-hoa]'), 'workflow')">
+      <div class="search-result" data-view="workflow" onclick="closeSearchPopup();switchView('workflow', document.querySelector('[data-view=tu-dong-hoa]'), 'workflow', event)">
         <span data-icon="refreshCw"></span> Tạo workflow
       </div>
-      <div class="search-result" data-view="record" onclick="closeSearchPopup();switchView('record', document.querySelector('[data-view=tu-dong-hoa]'), 'record')">
+      <div class="search-result" data-view="record" onclick="closeSearchPopup();switchView('record', document.querySelector('[data-view=tu-dong-hoa]'), 'record', event)">
         <span data-icon="mic"></span> Ghi thao tác
       </div>
-      <div class="search-result" data-view="tai-khoan" onclick="closeSearchPopup();switchView('tai-khoan',document.querySelector('[data-view=tai-khoan]'))">
-        <span data-icon="users"></span> Tài khoản
+      <div class="search-result" data-view="tk-tiktok" onclick="closeSearchPopup();switchView('tk-tiktok', document.querySelector('[data-view=tai-khoan]'), 'tk-tiktok', event)">
+        <span data-icon="tiktok"></span> TikTok
       </div>
-      <div class="search-result" data-view="tiep-thi" onclick="closeSearchPopup();switchView('tiep-thi',document.querySelector('[data-view=tiep-thi]'))">
+      <div class="search-result" data-view="tk-facebook" onclick="closeSearchPopup();switchView('tk-facebook', document.querySelector('[data-view=tai-khoan]'), 'tk-facebook', event)">
+        <span data-icon="facebook"></span> Facebook
+      </div>
+      <div class="search-result" data-view="tk-youtube" onclick="closeSearchPopup();switchView('tk-youtube', document.querySelector('[data-view=tai-khoan]'), 'tk-youtube', event)">
+        <span data-icon="youtube"></span> YouTube
+      </div>
+      <div class="search-result" data-view="tk-x" onclick="closeSearchPopup();switchView('tk-x', document.querySelector('[data-view=tai-khoan]'), 'tk-x', event)">
+        <span data-icon="x"></span> X (Twitter)
+      </div>
+      <div class="search-result" data-view="tk-instagram" onclick="closeSearchPopup();switchView('tk-instagram', document.querySelector('[data-view=tai-khoan]'), 'tk-instagram', event)">
+        <span data-icon="instagram"></span> Instagram
+      </div>
+      <div class="search-result" data-view="tk-threads" onclick="closeSearchPopup();switchView('tk-threads', document.querySelector('[data-view=tai-khoan]'), 'tk-threads', event)">
+        <span data-icon="threads"></span> Threads
+      </div>
+      <div class="search-result" data-view="tiep-thi" onclick="closeSearchPopup();switchView('tiep-thi',document.querySelector('[data-view=tiep-thi]'), null, event)">
         <span data-icon="link"></span> Tiếp thị liên kết
       </div>
-      <div class="search-result" data-view="doi-nhom" onclick="closeSearchPopup();switchView('doi-nhom',document.querySelector('[data-view=doi-nhom]'))">
+      <div class="search-result" data-view="doi-nhom" onclick="closeSearchPopup();switchView('doi-nhom',document.querySelector('[data-view=doi-nhom]'), null, event)">
         <span data-icon="users"></span> Đội nhóm
       </div>
-      <div class="search-result" data-view="tien-ich" onclick="closeSearchPopup();switchView('tien-ich',document.querySelector('[data-view=tien-ich]'))">
+      <div class="search-result" data-view="tien-ich" onclick="closeSearchPopup();switchView('tien-ich',document.querySelector('[data-view=tien-ich]'), null, event)">
         <span data-icon="grid"></span> Tiện ích
       </div>
-      <div class="search-result" data-view="guide" onclick="closeSearchPopup();switchView('guide',document.querySelector('[data-view=guide]'))">
+      <div class="search-result" data-view="guide" onclick="closeSearchPopup();switchView('guide',document.querySelector('[data-view=guide]'), null, event)">
         <span data-icon="book"></span> Hướng dẫn sử dụng
       </div>
-      <div class="search-result" data-view="settings" onclick="closeSearchPopup();switchView('settings',document.querySelector('[data-view=settings]'))">
+      <div class="search-result" data-view="settings" onclick="closeSearchPopup();switchView('settings',document.querySelector('[data-view=settings]'), null, event)">
         <span data-icon="settings"></span> Cài đặt
       </div>
     </div>
