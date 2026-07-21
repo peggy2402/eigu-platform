@@ -354,3 +354,46 @@ Nếu bất kỳ option video-encode nào được bật → toàn bộ pipeline
 - **Khắc phục:** 
   - Trong `handleLogout()`, hệ thống lập tức clear và ép `hidden` lên toàn bộ `.admin-only` và `.staff-only`.
   - Tự động Reset giao diện về `ho-so` (Trang cá nhân) thay vì bị kẹt ở tab admin/staff cũ.
+
+## Phase 16: Hoàn thiện Phân quyền Tab — Bảng TabPermission riêng + Ẩn/Hiện toàn diện (22/07/2026)
+
+### 16.1 Vấn đề ban đầu
+- Backend dùng field `allowedTabs` (string comma-separated) trên User — không chuẩn, khó mở rộng
+- Frontend modal thiếu tab "Góp ý / Báo lỗi" (feedback)
+- Tab "Cài đặt" (settings) nằm trong profile dropdown, không phải sidebar → logic ẩn cũ không chạm tới được
+- Search popup cũng không bị ảnh hưởng bởi tab config
+
+### 16.2 Database: Bảng TabPermission riêng
+- **Model mới `TabPermission`** trong `schema.prisma`:
+  - `id` (uuid), `userId` (FK → User), `tabKey` (string), `visible` (boolean, default true)
+  - `@@unique([userId, tabKey])` — mỗi user chỉ 1 dòng/tab
+- Relation `User.tabPermissions TabPermission[]` thêm vào User model
+- `prisma db push` đồng bộ lên Supabase
+
+### 16.3 Backend API
+- **`UsersService.ALL_TABS`** — danh sách cố định 10 tab (8 sidebar + 2 profile)
+- **`GET /users/:id/tab-permissions`** — trả về ALL_TABS kèm `visible` từ DB (nếu chưa có → default true)
+- **`PATCH /users/:id/tab-permissions`** — nhận `[{tabKey, visible}]`, xoá cũ + tạo mới, đồng thời cập nhật `allowedTabs` string cho backward compatibility
+- **`AuthService.getProfile()`** — trả về thêm `tabPermissions[]` trong `/auth/me`
+- **`AuthService.generateTokens()`** — login response cũng bao gồm `tabPermissions[]`
+
+### 16.4 Frontend — Modal động
+- **`views.component.js`:** Modal dùng container `#tab-config-list` rỗng, render động bởi JS
+- **`user-mgmt.js`:** `configureUserTabsReal()` gọi `GET /users/:id/tab-permissions`, render checkbox theo group (Sidebar / Menu hồ sơ)
+- **`user-mgmt.js`:** `saveTabConfigModal()` gọi `PATCH /users/:id/tab-permissions` với mảng `[{tabKey, visible}]`
+- 10 tab đầy đủ: ho-so, cong-cu, tu-dong-hoa, tai-khoan, tiep-thi, doi-nhom, tien-ich, guide, settings, feedback
+
+### 16.5 Frontend — Ẩn/Hiện toàn diện ở 4 vị trí
+**`main.js` `updateProfile()`:**
+1. **Sidebar nav-item phẳng:** ho-so, tiep-thi, doi-nhom, tien-ich, guide
+2. **Sidebar nav-item-wrapper:** cong-cu, tu-dong-hoa, tai-khoan (ẩn cả wrapper + sub-items)
+3. **Profile dropdown:** settings, feedback (dùng regex bắt `switchView('xxx')` trong onclick)
+4. **Search popup results:** tất cả kết quả tìm kiếm (dùng regex tương tự)
+
+Xử lý:
+- Admin/staff: luôn thấy tất cả (role override)
+- User có tabPermissions: ẩn tab có `visible = false`
+- User không có tabPermissions nào: hiện tất cả (mặc định)
+
+### 16.6 Logout reset
+- `auth.service.js handleLogout()`: reset `hidden` trên sidebar, profile dropdown, search popup

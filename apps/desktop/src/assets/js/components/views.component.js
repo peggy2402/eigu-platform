@@ -666,18 +666,11 @@ const ViewsComponent = `
 
 <!-- Tab Configuration Modal -->
 <div id="tab-config-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center;">
-  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 420px; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 440px; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
     <h3 style="margin-bottom: 8px; font-size:16px;">Phân Quyền Tab Màn Hình</h3>
-    <p class="settings-hint" style="margin-bottom: 16px;">Tích chọn các Tab được phép hiển thị cho tài khoản này:</p>
+    <p class="settings-hint" style="margin-bottom: 16px;">Tích chọn các Tab được phép hiển thị cho tài khoản này — các tab bị bỏ tích sẽ bị ẩn khỏi giao diện người dùng:</p>
 
-    <div style="display: flex; flex-direction: column; gap: 10px; max-height: 240px; overflow-y: auto; padding: 12px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 16px;">
-      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="ho-so" checked /> <span>Hồ sơ (Thông tin cá nhân)</span></label>
-      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="cong-cu" checked /> <span>Công cụ (Cắt, AI Video, Reup...)</span></label>
-      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="tu-dong-hoa" checked /> <span>Tự động hóa (Workflow, Record)</span></label>
-      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="tai-khoan" checked /> <span>Tài khoản (TikTok, Facebook, YT...)</span></label>
-      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="tiep-thi" checked /> <span>Tiếp thị liên kết</span></label>
-      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="doi-nhom" checked /> <span>Đội nhóm</span></label>
-      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;"><input type="checkbox" class="tab-config-cb" value="tien-ich" checked /> <span>Tiện ích</span></label>
+    <div id="tab-config-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 360px; overflow-y: auto; padding: 12px 16px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 16px;">
     </div>
 
     <div style="display: flex; justify-content: flex-end; gap: 10px;">

@@ -7,6 +7,20 @@ function updateProfile() {
     const name = userProfile.username || userProfile.email.split('@')[0];
     document.getElementById('greeting-text').textContent = 'Xin chào, ' + name;
 
+    // Role badge
+    const roleBadge = document.getElementById('role-badge');
+    if (roleBadge && userProfile.role) {
+      const roleMap = {
+        admin: { label: 'ADMIN', bg: 'rgba(99,102,241,0.2)', color: 'var(--accent)' },
+        staff: { label: 'STAFF', bg: 'rgba(34,197,94,0.2)', color: '#22c55e' },
+        user:  { label: 'USER',  bg: 'rgba(148,163,184,0.2)', color: 'var(--text-secondary)' },
+      };
+      const cfg = roleMap[userProfile.role] || roleMap.user;
+      roleBadge.textContent = cfg.label;
+      roleBadge.style.background = cfg.bg;
+      roleBadge.style.color = cfg.color;
+    }
+
     // Phân quyền cho phần Cài đặt API
     const apiSettingsSection = document.getElementById('secure-api-settings-section');
     if (apiSettingsSection) {
@@ -31,6 +45,71 @@ function updateProfile() {
         el.classList.remove('hidden');
       } else {
         el.classList.add('hidden');
+      }
+    });
+
+    // Phân quyền Tab: dùng userProfile.tabPermissions[]
+    let hiddenTabs = []; // danh sách tabKey bị ẩn
+    if (userProfile.role !== 'admin' && userProfile.role !== 'staff') {
+      const perms = userProfile.tabPermissions;
+      if (perms && Array.isArray(perms) && perms.length > 0) {
+        hiddenTabs = perms.filter(p => !p.visible).map(p => p.tabKey);
+      }
+    }
+
+    // Hàm phụ: ẩn/hiện một element
+    function setTabVisibility(view, el) {
+      if (!el) return;
+      if (hiddenTabs.length > 0 && hiddenTabs.includes(view)) {
+        el.classList.add('hidden');
+      } else {
+        el.classList.remove('hidden');
+      }
+    }
+
+    // 1. Sidebar nav-item phẳng (ho-so, tiep-thi, doi-nhom, tien-ich, guide)
+    document.querySelectorAll('.sidebar-nav > .nav-item[data-view]').forEach(el => {
+      const view = el.getAttribute('data-view');
+      if (!el.classList.contains('staff-only') && !el.classList.contains('admin-only')) {
+        setTabVisibility(view, el);
+      }
+    });
+
+    // 2. Sidebar nav-item-wrapper (cong-cu, tu-dong-hoa, tai-khoan)
+    document.querySelectorAll('.sidebar-nav > .nav-item-wrapper').forEach(wrapper => {
+      const navItem = wrapper.querySelector('.nav-item[data-view]');
+      if (navItem) {
+        const view = navItem.getAttribute('data-view');
+        if (!navItem.classList.contains('staff-only') && !navItem.classList.contains('admin-only')) {
+          setTabVisibility(view, wrapper);
+        }
+      }
+    });
+
+    // 2b. Sidebar nav-sub-item (cut, ai-video, workflow, record, tk-tiktok, tk-facebook, ...)
+    document.querySelectorAll('.nav-sub-item[data-sub]').forEach(el => {
+      const sub = el.getAttribute('data-sub');
+      setTabVisibility(sub, el);
+    });
+
+    // 3. Profile dropdown (settings, feedback)
+    document.querySelectorAll('#profile-dropdown .profile-menu-item').forEach(el => {
+      const onclick = el.getAttribute('onclick') || '';
+      // Tìm tabKey trong onclick: switchView('settings', ...) hoặc switchView('feedback', ...)
+      const m = onclick.match(/switchView\('([^']+)'/);
+      if (m) {
+        const view = m[1];
+        setTabVisibility(view, el);
+      }
+    });
+
+    // 4. Search popup results
+    document.querySelectorAll('#search-popup-body .search-result').forEach(el => {
+      const onclick = el.getAttribute('onclick') || '';
+      const m = onclick.match(/switchView\('([^']+)'/);
+      if (m) {
+        const view = m[1];
+        setTabVisibility(view, el);
       }
     });
 

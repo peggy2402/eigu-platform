@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as nodemailer from 'nodemailer';
 import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -20,6 +21,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private usersService: UsersService,
   ) {
     this.initTransporter();
   }
@@ -199,10 +201,17 @@ export class AuthService {
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, username: true, role: true, isVerified: true, createdAt: true },
+      select: { id: true, email: true, username: true, role: true, isVerified: true, createdAt: true, allowedTabs: true },
     });
     if (!user) throw new UnauthorizedException('User not found');
-    return user;
+
+    // Lấy tab permissions (merge với ALL_TABS để có default visible=true)
+    const tabPerms = await this.usersService.getTabPermissions(userId);
+
+    return {
+      ...user,
+      tabPermissions: tabPerms.map(tp => ({ tabKey: tp.tabKey, visible: tp.visible })),
+    };
   }
 
   private async generateTokens(userId: string, email: string, role: string, username?: string | null) {
@@ -215,11 +224,26 @@ export class AuthService {
       secret: process.env.JWT_SECRET || 'eigu-dev-secret-key',
     });
 
-    await this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data: { refreshToken },
+      select: { allowedTabs: true },
     });
 
-    return { accessToken, refreshToken, user: { id: userId, email, role, username } };
+    // Lấy tab permissions (merge với ALL_TABS để có default visible=true)
+    const tabPerms = await this.usersService.getTabPermissions(userId);
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: userId,
+        email,
+        role,
+        username,
+        allowedTabs: user.allowedTabs,
+        tabPermissions: tabPerms.map(tp => ({ tabKey: tp.tabKey, visible: tp.visible })),
+      },
+    };
   }
 }

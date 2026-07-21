@@ -1,4 +1,4 @@
-// User & Staff Management UI - Fetching Real Data from Supabase / NestJS API
+let currentEditingUserId = null;
 
 async function loadRealUserData() {
   const tbody = document.getElementById('user-mgmt-table-body');
@@ -64,7 +64,7 @@ async function loadRealUserData() {
         </td>
         <td style="padding: 10px; text-align:center; display:flex; gap:6px; justify-content:center;">
           <button class="btn-outline" onclick="toggleUserBanReal('${u.id}', ${!u.isBanned})" style="padding: 3px 8px; font-size:11px; border-radius: 4px; ${banBtnStyle}">${banBtnText}</button>
-          <button class="btn-outline" onclick="configureUserTabsReal('${u.id}', '${u.allowedTabs || ''}')" style="padding: 3px 8px; font-size:11px; border-radius: 4px;">Phân Tab</button>
+          <button class="btn-outline" onclick="configureUserTabsReal('${u.id}')" style="padding: 3px 8px; font-size:11px; border-radius: 4px;">Phân Tab</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -81,7 +81,7 @@ async function updateUserRoleReal(userId, newRole) {
       method: 'PATCH',
       body: JSON.stringify({ role: newRole })
     });
-    showToast('Thành công', `Đã cập nhật role thành ${newRole.toUpperCase()} trên Database thực!`, 'success');
+    showToast('Thành công', `Đã cập nhật role thành ${newRole.toUpperCase()}!`, 'success');
     loadRealUserData();
   } catch (err) {
     showToast('Lỗi', err.message || 'Không thể cập nhật role', 'error');
@@ -90,7 +90,7 @@ async function updateUserRoleReal(userId, newRole) {
 
 async function toggleUserBanReal(userId, shouldBan) {
   const actionText = shouldBan ? 'Khóa (Block/Ban)' : 'Mở khóa';
-  if (!confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản này trên Database thực không?`)) return;
+  if (!confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản này không?`)) return;
 
   try {
     await apiFetch(`/users/${userId}/ban`, {
@@ -104,25 +104,68 @@ async function toggleUserBanReal(userId, shouldBan) {
   }
 }
 
-let currentEditingUserId = null;
-
-function configureUserTabsReal(userId, currentTabs) {
+async function configureUserTabsReal(userId) {
   currentEditingUserId = userId;
   const modal = document.getElementById('tab-config-modal');
   if (!modal) return;
 
-  const allowedList = currentTabs ? currentTabs.split(',').map(t => t.trim()) : [];
-  
-  document.querySelectorAll('.tab-config-cb').forEach(cb => {
-    if (allowedList.length === 0) {
-      cb.checked = true;
-    } else {
-      cb.checked = allowedList.includes(cb.value);
-    }
+  try {
+    // Fetch tab permissions từ API (trả về ALL_TABS kèm visible)
+    const tabs = await apiFetch(`/users/${userId}/tab-permissions`);
+    renderTabConfigCheckboxes(tabs);
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  } catch (err) {
+    showToast('Lỗi', 'Không thể tải cấu hình tab: ' + err.message, 'error');
+  }
+}
+
+function renderTabConfigCheckboxes(tabs) {
+  const container = document.getElementById('tab-config-list');
+  if (!container) return;
+
+  const sidebarTabs = tabs.filter(t => t.group === 'sidebar');
+  const profileTabs = tabs.filter(t => t.group === 'profile');
+
+  const parents = sidebarTabs.filter(t => !t.parentKey);
+  const children = sidebarTabs.filter(t => t.parentKey);
+
+  let html = `
+    <div style="margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px;">Sidebar</div>
+  `;
+
+  parents.forEach(p => {
+    html += `
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; padding: 2px 0; font-weight: 600;">
+        <input type="checkbox" class="tab-config-cb" value="${p.tabKey}" ${p.visible ? 'checked' : ''} />
+        <span>${escapeHtml(p.label)}</span>
+      </label>
+    `;
+    const subs = children.filter(c => c.parentKey === p.tabKey);
+    subs.forEach(c => {
+      html += `
+        <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; padding: 2px 0 2px 28px;">
+          <input type="checkbox" class="tab-config-cb" value="${c.tabKey}" ${c.visible ? 'checked' : ''} />
+          <span>${escapeHtml(c.label)}</span>
+        </label>
+      `;
+    });
   });
 
-  modal.classList.remove('hidden');
-  modal.style.display = 'flex';
+  html += `
+    <div style="margin: 10px 0 8px; font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px;">Menu hồ sơ</div>
+  `;
+
+  profileTabs.forEach(t => {
+    html += `
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; padding: 2px 0;">
+        <input type="checkbox" class="tab-config-cb" value="${t.tabKey}" ${t.visible ? 'checked' : ''} />
+        <span>${escapeHtml(t.label)}</span>
+      </label>
+    `;
+  });
+
+  container.innerHTML = html;
 }
 
 function closeTabConfigModal() {
@@ -135,12 +178,15 @@ function closeTabConfigModal() {
 
 async function saveTabConfigModal() {
   if (!currentEditingUserId) return;
-  const selectedTabs = Array.from(document.querySelectorAll('.tab-config-cb:checked')).map(cb => cb.value).join(',');
+  const tabPermissions = Array.from(document.querySelectorAll('.tab-config-cb')).map(cb => ({
+    tabKey: cb.value,
+    visible: cb.checked,
+  }));
 
   try {
-    await apiFetch(`/users/${currentEditingUserId}/tabs`, {
+    await apiFetch(`/users/${currentEditingUserId}/tab-permissions`, {
       method: 'PATCH',
-      body: JSON.stringify({ allowedTabs: selectedTabs })
+      body: JSON.stringify({ tabPermissions }),
     });
     showToast('Thành công', 'Đã lưu cấu hình Phân quyền Tab cho User!', 'success');
     closeTabConfigModal();

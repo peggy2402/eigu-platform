@@ -149,6 +149,11 @@ async function handleLogout() {
   // Reset phân quyền UI Sidebar khi Đăng xuất
   document.querySelectorAll('.staff-only').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.sidebar-nav > .nav-item[data-view]').forEach(el => el.classList.remove('hidden'));
+  document.querySelectorAll('.sidebar-nav > .nav-item-wrapper').forEach(el => el.classList.remove('hidden'));
+  document.querySelectorAll('.nav-sub-item[data-sub]').forEach(el => el.classList.remove('hidden'));
+  document.querySelectorAll('#profile-dropdown .profile-menu-item').forEach(el => el.classList.remove('hidden'));
+  document.querySelectorAll('#search-popup-body .search-result').forEach(el => el.classList.remove('hidden'));
 
   // Trả view về Hồ sơ
   if (typeof switchView === 'function') switchView('ho-so');

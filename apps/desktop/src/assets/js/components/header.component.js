@@ -27,7 +27,10 @@ const HeaderComponent = `
     </div>
     <div class="profile-menu-wrapper" onclick="toggleProfileMenu(event)">
       <div class="profile-menu-trigger">
-        <span id="greeting-text">Xin chào</span>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <span id="greeting-text">Xin chào</span>
+          <span id="role-badge" style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;width:fit-content;"></span>
+        </div>
         <span data-icon="chevronDown" class="chevron-icon"></span>
       </div>
       <div class="profile-menu-dropdown" id="profile-dropdown">

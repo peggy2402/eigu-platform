@@ -34,9 +34,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  proxies   Proxy[]
-  accounts  TikTokAccount[]
-  feedbacks Feedback[]
+  proxies        Proxy[]
+  accounts       TikTokAccount[]
+  feedbacks      Feedback[]
+  tabPermissions TabPermission[]
 }
 
 model Proxy {
@@ -107,4 +108,15 @@ model ChatMessage {
   message   String
   userId    String?
   createdAt DateTime @default(now())
+}
+
+model TabPermission {
+  id        String   @id @default(uuid())
+  userId    String
+  tabKey    String   // "ho-so", "cong-cu", "settings", "feedback", etc.
+  visible   Boolean  @default(true)
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tabKey])
 }

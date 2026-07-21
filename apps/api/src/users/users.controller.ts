@@ -26,6 +26,25 @@ export class UsersController {
     return this.usersService.toggleBan(id, isBanned);
   }
 
+  // Tab Permission endpoints
+  @Get(':id/tab-permissions')
+  async getTabPermissions(@Param('id') id: string) {
+    return this.usersService.getTabPermissions(id);
+  }
+
+  @Patch(':id/tab-permissions')
+  async setTabPermissions(
+    @Param('id') id: string,
+    @Body('tabPermissions') tabPermissions: { tabKey: string; visible: boolean }[],
+  ) {
+    return this.usersService.setTabPermissions(id, tabPermissions);
+  }
+
+  @Get(':id/tabs')
+  async getTabs(@Param('id') id: string) {
+    return this.usersService.getTabPermissions(id);
+  }
+
   @Patch(':id/tabs')
   async updateAllowedTabs(@Param('id') id: string, @Body('allowedTabs') allowedTabs: string) {
     return this.usersService.updateAllowedTabs(id, allowedTabs);
