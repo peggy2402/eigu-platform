@@ -61,8 +61,12 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  overflow-y: visible;
-  overflow-x: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar.collapsed .sidebar-nav {
+  overflow: visible;
 }
 .sidebar-nav::-webkit-scrollbar { width: 4px; }
 .sidebar-nav::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
