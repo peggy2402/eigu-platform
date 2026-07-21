@@ -308,3 +308,28 @@ Nếu bất kỳ option video-encode nào được bật → toàn bộ pipeline
   - Trong `ffmpeg-processor.ts`, hàm `cancel()` được nâng cấp thêm đoạn mã hẹn giờ 1 giây (đợi process bị kill hoàn toàn).
   - Quét toàn bộ thư mục `outputs` (mặc định Downloads/eigu/outputs) bằng `fs.readdirSync`.
   - Tự động check và gọi `fs.unlinkSync` để xóa đi các file video phân đoạn (`eigu_processed_${taskId}_xxx.mp4`) đang được cắt dở dang của tiến trình vừa bị hủy, giữ cho hệ thống file gọn gàng và không bị phình to.
+
+## 14. Phiên làm việc 21/07/2026 — Xử lý triệt để lỗi UI Sidebar và Lỗi NPM Windows
+
+### 14.1 Fix lỗi Search Popup trỏ sai thẻ cha
+- **Vấn đề:** Khi tìm kiếm "Tài khoản", thanh Search trỏ thẳng vào `data-view="tai-khoan"` (thẻ cha không có view giao diện). Khi click sẽ dẫn đến màn hình trắng, làm hỏng trạng thái của Sidebar. Lỗi này từng xảy ra với "Công cụ" và "Tự động hóa".
+- **Khắc phục:** 
+  - Trong `header.component.js`, xóa kết quả tìm kiếm trỏ vào thẻ cha "Tài khoản".
+  - Thêm danh sách toàn bộ 6 chức năng con (TikTok, Facebook, YouTube, X, Instagram, Threads) vào kết quả tìm kiếm để định tuyến (route) chính xác vào View và mở Submenu.
+  - Cập nhật file `AI_CONTEXT.md` (Thêm rule `Search Popup Navigation (CRITICAL)`) để AI tương lai không lặp lại lỗi cấu trúc HTML này.
+
+### 14.2 Khắc phục lỗi "nháy" (flicker) Submenu khi thu gọn
+- **Vấn đề:** Khi nhấn `Cmd + /` thu nhỏ Sidebar, menu con của tab đang mở có hiệu ứng `transition: opacity 0.2s` (fade out) kết hợp với việc chuyển sang `position: absolute`, khiến giao diện bị chớp bóng ma (ghost menu) lệch trước khi biến mất.
+- **Khắc phục:** 
+  - Xóa bỏ `transition` của `.sidebar.collapsed .nav-sub` trong `sidebar.css`. Giờ đây, khi Sidebar đóng lại hoặc khi hết Hover, menu con sẽ lập tức ẩn đi một cách dứt khoát.
+
+### 14.3 Cải tiến logic Đóng/Mở Sidebar thủ công
+- **Vấn đề:** Sidebar tự động mở khi nhấn menu hoặc đóng khi click ra ngoài, gây phiền toái. Cửa sổ nhỏ thì bị Sidebar mở bung đè vào màn hình.
+- **Khắc phục:** 
+  - Xóa tính năng tự động đóng (click-outside listener) và tự mở (trong `toggleDropdown`) ở `sidebar.js`.
+  - Quy chuẩn: Cửa sổ thu nhỏ -> Sidebar thu nhỏ và KHÔNG tự nở ra khi dùng tính năng, muốn mở phải dùng phím tắt. Phóng to cửa sổ -> Sidebar mở. Phím tắt là thứ duy nhất đóng/mở được.
+  - Cập nhật Tooltip giao diện thành `(Ctrl/Cmd + /)` hỗ trợ tốt cho Windows.
+
+### 14.4 Sửa lỗi xung đột `npm i ERESOLVE` trên Windows
+- **Vấn đề:** Clone repo về chạy `npm i` bị lỗi `ERESOLVE` liên quan đến `chokidar@5.0.0` và `@swc/cli`.
+- **Khắc phục:** Bổ sung file `.npmrc` chứa `legacy-peer-deps=true` để bắt buộc NPM trên mọi máy chạy trơn tru quá trình cài đặt dependencies trong Nx Workspace.
