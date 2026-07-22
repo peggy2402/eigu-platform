@@ -482,28 +482,31 @@ const ViewsComponent = `
 </div>
 
 <!-- Chat Support View (Staff & Admin Console) -->
-<div id="view-chat-support" class="view">
-  <div class="chat-support-container">
+<div id="view-chat-support" class="view" style="height: 100%; width: 100%; box-sizing: border-box; overflow: hidden;">
+  <div id="chat-support-container" class="chat-support-container show-list">
     <!-- List phiên chat bên trái -->
-    <div class="chat-support-sidebar" style="width: 280px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; background: var(--bg-primary); flex-shrink: 0;">
-      <div style="padding: 14px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Hộp thoại Khách hàng</span>
-        <button class="btn-outline" style="padding:6px 10px; font-size:11px; display:inline-flex; align-items:center; gap:4px;" onclick="loadStaffChatConsole()" title="Tải lại danh sách"><span data-icon="refreshCw"></span> Tải lại</button>
+    <div class="chat-support-sidebar">
+      <div style="padding: 12px 14px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+        <span style="font-weight: 700; font-size: 13px; color: var(--text-primary);">Hộp thoại Khách hàng</span>
+        <button class="btn-outline" style="padding:4px 8px; font-size:11px; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;" onclick="loadStaffChatConsole()" title="Tải lại danh sách"><span data-icon="refreshCw"></span> Tải lại</button>
       </div>
-      <div id="staff-chat-list" style="flex:1; overflow-y:auto; padding: 8px; display: flex; flex-direction: column; gap: 6px;">
+      <div id="staff-chat-list" style="flex:1; min-height:0; overflow-y:auto; padding: 6px; display: flex; flex-direction: column; gap: 6px;">
         <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Đang tải danh sách cuộc trò chuyện...</div>
       </div>
     </div>
     <!-- Cửa sổ Chat tương tác bên phải -->
-    <div style="flex: 1; display: flex; flex-direction: column; background: var(--bg-primary); min-width: 0;">
-      <div style="padding: 14px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); flex-wrap: wrap; gap: 10px;">
-        <div>
-          <div id="staff-chat-target-name" style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Chọn cuộc trò chuyện để bắt đầu chat</div>
-          <div id="staff-chat-target-email" style="font-size: 11px; color: var(--text-muted);">Vui lòng chọn một phiên chat ở danh sách bên trái</div>
+    <div class="chat-support-main">
+      <div style="padding: 10px 14px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); gap: 8px; flex-shrink: 0; min-height: 52px; box-sizing: border-box;">
+        <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+          <button id="staff-chat-back-btn" class="btn-outline" style="padding: 4px 8px; font-size: 11px; display: none; flex-shrink: 0;" onclick="toggleStaffChatMobilePanel('list')">← Danh sách</button>
+          <div style="min-width:0; flex:1;">
+            <div id="staff-chat-target-name" style="font-weight: 700; font-size: 13px; color: var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Chọn cuộc trò chuyện để bắt đầu chat</div>
+            <div id="staff-chat-target-email" style="font-size: 11px; color: var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Vui lòng chọn một phiên chat ở danh sách bên trái</div>
+          </div>
         </div>
-        <button id="staff-resolve-btn" class="btn-outline" style="padding: 6px 14px; font-size: 12px;" onclick="resolveCurrentStaffChat()">Hoàn tất Hỗ trợ</button>
+        <button id="staff-resolve-btn" class="btn-outline" style="padding: 4px 12px; font-size: 11px; flex-shrink: 0; white-space: nowrap;" onclick="resolveCurrentStaffChat()">Hoàn tất Hỗ trợ</button>
       </div>
-      <div id="staff-chat-messages" style="flex:1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: var(--bg-primary);">
+      <div id="staff-chat-messages" style="flex:1; min-height:0; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: var(--bg-primary);">
         <div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">Chọn người dùng ở cột bên trái để trao đổi thông tin trực tiếp.</div>
       </div>
       <!-- Quote Reply Preview Bar -->
@@ -515,7 +518,7 @@ const ViewsComponent = `
         <button type="button" onclick="cancelStaffReplyQuote()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:0 4px;">✕</button>
       </div>
 
-      <div style="padding: 12px 16px; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px; position: relative;">
+      <div style="padding: 10px 14px; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px; position: relative; flex-shrink: 0;">
         <!-- Mention Auto-complete Menu -->
         <div id="staff-mention-dropdown" class="mention-dropdown-menu hidden" style="bottom: 60px; left: 16px;">
           <div class="mention-item" onclick="insertStaffMention('@Eigu AI ')">

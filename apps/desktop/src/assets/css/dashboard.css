@@ -246,6 +246,7 @@
 .main-content::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
 .view { display: none; }
 .view.active { display: block; }
+#view-chat-support.view.active { display: flex !important; flex-direction: column !important; }
 .stats-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px; margin-bottom: 24px;
@@ -637,7 +638,9 @@
   display: flex; align-items: center; gap: 8px;
 }
 .chat-input-area input, .chat-input-editable {
-  flex: 1; background: var(--bg-primary); border: 1px solid var(--border-color);
+  flex: 1;
+  min-width: 120px;
+  background: var(--bg-primary); border: 1px solid var(--border-color);
   border-radius: 20px; padding: 8px 14px; color: var(--text-primary);
   font-size: 13px; outline: none;
   min-height: 38px;
@@ -652,6 +655,10 @@
   content: attr(data-placeholder);
   color: var(--text-muted);
   pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 .mention-chip {

@@ -51,9 +51,9 @@ let socket: Socket;
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 860,
-    height: 620,
+    height: 660,
     minWidth: 860,
-    minHeight: 620,
+    minHeight: 660,
     center: true,
     resizable: true,
     maximizable: true,
@@ -220,10 +220,10 @@ app.whenReady().then(() => {
       const pipeline = new AIVideoPipeline();
       const prompts = payload.prompts || [];
       const model = payload.model || 'veo3';
-      
+
       const videoFiles: string[] = [];
       const totalScenes = prompts.length;
-      
+
       for (let i = 0; i < totalScenes; i++) {
         event.reply('ai-video-status', `Đang Render Cảnh ${i + 1}/${totalScenes} (${model})...`);
         const p = await pipeline.generateVideoWithAI(prompts[i], model, i + 1, (progress) => {
@@ -234,16 +234,16 @@ app.whenReady().then(() => {
         });
         videoFiles.push(p);
       }
-      
+
       event.reply('ai-video-status', 'Đang nối các phân cảnh bằng FFmpeg...');
       const finalFile = await pipeline.concatVideos(videoFiles, (progress) => {
         event.reply('ai-video-progress', 80 + (progress * 0.2)); // FFmpeg takes 20%
       });
-      
+
       event.reply('ai-video-status', '✅ Hoàn tất render video AI!');
       event.reply('ai-video-progress', 100);
       event.reply('ai-video-done', finalFile);
-      
+
     } catch (err: any) {
       console.error('[AI Video] Error:', err);
       event.reply('ai-video-error', err.message);
