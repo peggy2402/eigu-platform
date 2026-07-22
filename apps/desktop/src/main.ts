@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import * as path from 'path';
 import { io, Socket } from 'socket.io-client';
 import { VideoWorkflowRequest } from '@eigu-platform/shared';
@@ -59,6 +59,7 @@ function createWindow() {
     maximizable: true,
     minimizable: true,
     movable: true,
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -67,6 +68,9 @@ function createWindow() {
     backgroundColor: '#0f172a',
     icon: path.resolve(process.cwd(), 'apps/desktop/src/assets/img/logo.png')
   });
+
+  // Ẩn Menu bar mặc định (File, Edit, View, Window) trên Windows/Linux
+  mainWindow.setMenu(null);
 
   // Tải file HTML giao diện của Desktop App trực tiếp từ mã nguồn
   const htmlPath = path.resolve(process.cwd(), 'apps/desktop/src/assets/index.html');
@@ -83,6 +87,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
   if (process.platform === 'darwin') {
     app.dock.setIcon(path.resolve(process.cwd(), 'apps/desktop/src/assets/img/logo.png'));
   }
