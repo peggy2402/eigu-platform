@@ -48,12 +48,16 @@ function updateProfile() {
       }
     });
 
-    // Phân quyền Tab: dùng userProfile.tabPermissions[]
+    // Phân quyền Tab: dùng userProfile.hiddenTabs[] hoặc userProfile.tabPermissions[]
     let hiddenTabs = []; // danh sách tabKey bị ẩn
     if (userProfile.role !== 'admin' && userProfile.role !== 'staff') {
-      const perms = userProfile.tabPermissions;
-      if (perms && Array.isArray(perms) && perms.length > 0) {
-        hiddenTabs = perms.filter(p => !p.visible).map(p => p.tabKey);
+      if (Array.isArray(userProfile.hiddenTabs)) {
+        hiddenTabs = userProfile.hiddenTabs;
+      } else {
+        const perms = userProfile.tabPermissions;
+        if (perms && Array.isArray(perms) && perms.length > 0) {
+          hiddenTabs = perms.filter(p => !p.visible).map(p => p.tabKey);
+        }
       }
     }
 
@@ -144,7 +148,20 @@ function broadcastAdminNotification() {
   document.getElementById('admin-notif-content').value = '';
 }
 
+function closeBannedScreen() {
+  if (typeof bannedCountdownInterval !== 'undefined' && bannedCountdownInterval) {
+    clearInterval(bannedCountdownInterval);
+    bannedCountdownInterval = null;
+  }
+  const overlay = document.getElementById('banned-screen-overlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    overlay.style.display = 'none';
+  }
+}
+
 async function enterApp(showToastNotice = false) {
+  closeBannedScreen();
   document.getElementById('auth-container').style.display = 'none';
   document.getElementById('app-container').style.display = 'flex';
   addLog('[SYSTEM] Dang nhap thanh cong.');
@@ -157,13 +174,92 @@ async function enterApp(showToastNotice = false) {
   updateProfile();
 }
 
+let bannedCountdownInterval = null;
+
+function showBannedScreen(banInfo) {
+  closeBannedScreen();
+  const overlay = document.getElementById('banned-screen-overlay');
+  if (!overlay) return;
+
+  const subtitleEl = document.getElementById('banned-screen-subtitle');
+  const titleEl = document.getElementById('banned-countdown-title');
+  const timerEl = document.getElementById('banned-countdown-timer');
+  const reasonEl = document.getElementById('banned-screen-reason');
+
+  const reason = banInfo?.banReason || banInfo?.data?.banReason || 'Vi phạm điều khoản dịch vụ hệ thống.';
+  if (reasonEl) {
+    reasonEl.textContent = reason;
+  }
+
+  if (bannedCountdownInterval) {
+    clearInterval(bannedCountdownInterval);
+    bannedCountdownInterval = null;
+  }
+
+  const bannedUntilStr = banInfo?.bannedUntil || banInfo?.data?.bannedUntil;
+
+  if (bannedUntilStr) {
+    const untilDate = new Date(bannedUntilStr);
+    
+    function updateCountdown() {
+      const now = new Date();
+      const diffMs = untilDate.getTime() - now.getTime();
+
+      if (diffMs <= 0) {
+        if (timerEl) timerEl.textContent = '00 giờ 00 phút 00 giây';
+        if (subtitleEl) subtitleEl.textContent = 'Hạn khóa tài khoản đã hết! Bạn có thể đăng nhập lại.';
+        if (bannedCountdownInterval) clearInterval(bannedCountdownInterval);
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+          overlay.style.display = 'none';
+          if (typeof handleLogout === 'function') handleLogout();
+          showToast('Thông báo', 'Tài khoản của bạn đã được tự động gỡ khóa! Vui lòng đăng nhập lại.', 'success');
+        }, 2000);
+        return;
+      }
+
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+      const hStr = String(hours).padStart(2, '0');
+      const mStr = String(minutes).padStart(2, '0');
+      const sStr = String(seconds).padStart(2, '0');
+
+      if (timerEl) {
+        timerEl.textContent = `${hStr} giờ ${mStr} phút ${sStr} giây`;
+      }
+      if (subtitleEl) {
+        subtitleEl.textContent = `Tài khoản bị cấm tạm thời trong khoảng ${hours > 0 ? hours + ' giờ ' : ''}${minutes} phút`;
+      }
+    }
+
+    if (titleEl) titleEl.textContent = 'Thời gian cấm còn lại';
+    updateCountdown();
+    bannedCountdownInterval = setInterval(updateCountdown, 1000);
+  } else {
+    // Vĩnh viễn
+    if (titleEl) titleEl.textContent = 'TRẠNG THÁI KHÓA';
+    if (timerEl) timerEl.textContent = 'KHÓA VĨNH VIỄN';
+    if (subtitleEl) subtitleEl.textContent = 'Tài khoản của bạn đã bị khóa vĩnh viễn do vi phạm quy định.';
+  }
+
+  overlay.classList.remove('hidden');
+  overlay.style.display = 'flex';
+}
+
 async function checkAuth() {
   if (accessToken) {
     try {
       userProfile = await apiFetch('/auth/me');
       enterApp(false); // Không bắn Toast khi F5 / Cmd+R / reload trang
       return;
-    } catch (e) { /* token expired */ }
+    } catch (e) {
+      if (e.data && e.data.isBanned) {
+        showBannedScreen(e.data);
+        return;
+      }
+    }
   }
   document.getElementById('auth-container').style.display = 'flex';
   document.getElementById('app-container').style.display = 'none';
@@ -214,6 +310,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') {
     if (typeof closeTabConfigModal === 'function') closeTabConfigModal();
+    if (typeof closeBanModal === 'function') closeBanModal();
 
     const chatBox = document.getElementById('live-chat-box');
     if (chatBox && !chatBox.classList.contains('hidden')) {

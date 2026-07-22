@@ -1,11 +1,14 @@
 async function handleLogin() {
+  if (typeof closeBannedScreen === 'function') closeBannedScreen();
   const identifier = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-pass').value;
   if (!identifier || !password) return setAuthError('login', 'Vui lòng nhập email hoặc tên đăng nhập và mật khẩu');
   const btn = document.getElementById('login-btn');
   btn.disabled = true; btn.textContent = 'Đang đăng nhập...';
   try {
-    const data = await apiFetch('/auth/login', { method:'POST', body:JSON.stringify({identifier,password}) });
+    const clientOs = (navigator.userAgent.includes('Mac') || navigator.platform.includes('Mac')) ? 'macOS' : (navigator.userAgent.includes('Win') || navigator.platform.includes('Win')) ? 'Windows 11' : 'Desktop OS';
+    const clientDevice = 'EIGU Desktop v1.0.0';
+    const data = await apiFetch('/auth/login', { method:'POST', body:JSON.stringify({identifier, password, os: clientOs, device: clientDevice}) });
     accessToken = data.accessToken;
     refreshToken = data.refreshToken;
     localStorage.setItem('accessToken', data.accessToken);
@@ -19,7 +22,13 @@ async function handleLogin() {
     }
     userProfile = data.user;
     enterApp(true);
-  } catch(e) { setAuthError('login', e.message); }
+  } catch(e) {
+    if (e.data && e.data.isBanned) {
+      showBannedScreen(e.data);
+    } else {
+      setAuthError('login', e.message);
+    }
+  }
   finally { btn.disabled = false; btn.textContent = 'Đăng nhập'; }
 }
 
@@ -146,6 +155,16 @@ async function handleLogout() {
   refreshToken = null;
   userProfile = null;
 
+  if (typeof bannedCountdownInterval !== 'undefined' && bannedCountdownInterval) {
+    clearInterval(bannedCountdownInterval);
+    bannedCountdownInterval = null;
+  }
+  const bannedOverlay = document.getElementById('banned-screen-overlay');
+  if (bannedOverlay) {
+    bannedOverlay.classList.add('hidden');
+    bannedOverlay.style.display = 'none';
+  }
+
   // Reset phân quyền UI Sidebar khi Đăng xuất
   document.querySelectorAll('.staff-only').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
@@ -158,9 +177,9 @@ async function handleLogout() {
   // Trả view về Hồ sơ
   if (typeof switchView === 'function') switchView('ho-so');
 
-  // Khôi phục Live Chat Widget
+  // Ẩn Live Chat Widget khi Đăng xuất
   const liveChatWidget = document.getElementById('live-chat-container');
-  if (liveChatWidget) liveChatWidget.style.display = 'block';
+  if (liveChatWidget) liveChatWidget.style.display = 'none';
 
   document.getElementById('auth-container').style.display = 'flex';
   document.getElementById('app-container').style.display = 'none';

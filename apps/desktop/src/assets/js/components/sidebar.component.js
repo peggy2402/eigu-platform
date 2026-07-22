@@ -7,7 +7,7 @@ const SidebarComponent = `
         EIGU Platform
         <span style="font-size: 10px; background: rgba(255,255,255,0.1); color: var(--text-secondary); padding: 2px 6px; border-radius: 10px; font-weight: 600;">v1.0.0</span>
         <button id="update-badge-btn" class="update-badge-btn hidden" onclick="handleAppUpdateClick(event)" title="Có bản cập nhật mới! Click để nâng cấp.">
-          <span data-icon="refreshCw" style="vertical-align:middle; font-size:10px;"></span> Update
+          Update
         </button>
       </span>
     </div>

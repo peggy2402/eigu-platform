@@ -29,8 +29,10 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password' })
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  login(@Body() dto: LoginDto, @Req() req: any) {
+    const clientIp = this.extractIp(req);
+    const userAgent = req.headers['user-agent'] || '';
+    return this.authService.login(dto, clientIp, userAgent);
   }
 
   @Post('forgot-password')
@@ -47,8 +49,9 @@ export class AuthController {
 
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token' })
-  refreshToken(@Body() dto: RefreshTokenDto) {
-    return this.authService.refreshToken(dto.refreshToken);
+  refreshToken(@Body() dto: RefreshTokenDto, @Req() req: any) {
+    const clientIp = this.extractIp(req);
+    return this.authService.refreshToken(dto.refreshToken, clientIp);
   }
 
   @Post('logout')
@@ -63,7 +66,17 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
-  getProfile(@CurrentUser('id') userId: string) {
-    return this.authService.getProfile(userId);
+  getProfile(@CurrentUser('id') userId: string, @Req() req: any) {
+    const clientIp = this.extractIp(req);
+    return this.authService.getProfile(userId, clientIp);
+  }
+
+  private extractIp(req: any): string {
+    const forwarded = req.headers['x-forwarded-for'];
+    let ip = forwarded ? (typeof forwarded === 'string' ? forwarded.split(',')[0] : forwarded[0]) : (req.socket?.remoteAddress || req.ip || '');
+    if (!ip || ip === '::1' || ip === '127.0.0.1' || ip === '::ffff:127.0.0.1') {
+      return '127.0.0.1 (Localhost)';
+    }
+    return ip.replace('::ffff:', '');
   }
 }

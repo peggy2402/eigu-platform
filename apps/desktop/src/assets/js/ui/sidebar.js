@@ -80,12 +80,44 @@ function switchView(view, navEl, sub, e) {
   if (view === 'feedback-management' && typeof loadRealFeedbackData === 'function') {
     loadRealFeedbackData();
   }
+
+  // Load Real Chat Console if entering Chat Support view
+  if (view === 'chat-support') {
+    if (typeof userProfile !== 'undefined' && userProfile && userProfile.role === 'user') {
+      if (typeof toggleLiveChatWidget === 'function') toggleLiveChatWidget();
+    } else if (typeof loadStaffChatConsole === 'function') {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          loadStaffChatConsole();
+        }, 30);
+      });
+    }
+  }
 }
 
 document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === '/') {
     e.preventDefault();
     toggleSidebar();
+  }
+});
+
+// Dynamic positioning for collapsed sidebar submenus when hovering
+document.addEventListener('mouseover', e => {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar || !sidebar.classList.contains('collapsed')) return;
+  const wrapper = e.target.closest('.nav-item-wrapper');
+  if (wrapper) {
+    const sub = wrapper.querySelector('.nav-sub');
+    if (sub) {
+      const rect = wrapper.getBoundingClientRect();
+      const subHeight = sub.offsetHeight || 200;
+      let topPos = rect.top;
+      if (topPos + subHeight > window.innerHeight - 10) {
+        topPos = Math.max(10, window.innerHeight - subHeight - 10);
+      }
+      sub.style.top = topPos + 'px';
+    }
   }
 });
 

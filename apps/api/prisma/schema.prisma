@@ -19,10 +19,13 @@ model User {
   role                 String     @default("user") // admin, staff, user
   isVerified           Boolean    @default(false)
   isBanned             Boolean    @default(false)
+  bannedUntil          DateTime?
+  banReason            String?
+  lastActiveAt         DateTime?
   lastIp               String?
   lastOs               String?
   lastDevice           String?
-  allowedTabs          String?    // Comma-separated or JSON list of allowed tabs
+  hiddenTabs           String[]   @default([])
 
   otpCode              String?
   otpExpiresAt         DateTime?
@@ -37,7 +40,6 @@ model User {
   proxies        Proxy[]
   accounts       TikTokAccount[]
   feedbacks      Feedback[]
-  tabPermissions TabPermission[]
 }
 
 model Proxy {
@@ -108,15 +110,4 @@ model ChatMessage {
   message   String
   userId    String?
   createdAt DateTime @default(now())
-}
-
-model TabPermission {
-  id        String   @id @default(uuid())
-  userId    String
-  tabKey    String   // "ho-so", "cong-cu", "settings", "feedback", etc.
-  visible   Boolean  @default(true)
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, tabKey])
 }

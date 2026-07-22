@@ -113,7 +113,7 @@ export class AuthService {
     return this.generateTokens(user.id, user.email, user.role, user.username);
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, clientIp?: string, userAgent?: string) {
     const user = await this.prisma.user.findFirst({
       where: {
         OR: [
@@ -128,15 +128,58 @@ export class AuthService {
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     if (!user.isVerified) throw new UnauthorizedException('Email not verified');
-    if (user.isBanned) throw new UnauthorizedException('Tài khoản của bạn đã bị khóa (Ban) do vi phạm quy định hoặc dấu hiệu Spam. Vui lòng liên hệ Admin!');
+
+    // Kiểm tra Ban tạm thời / Ban vĩnh viễn
+    if (user.isBanned) {
+      if (user.bannedUntil) {
+        const now = new Date();
+        if (now < user.bannedUntil) {
+          const formattedUntil = user.bannedUntil.toLocaleString('vi-VN', {
+            hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric',
+          });
+          throw new UnauthorizedException({
+            isBanned: true,
+            bannedUntil: user.bannedUntil,
+            banReason: user.banReason,
+            message: `Tài khoản của bạn đang bị khóa (Ban) đến ${formattedUntil}. Vui lòng liên hệ Admin!`,
+          });
+        } else {
+          // Đã hết hạn Ban -> Tự động gỡ Ban
+          await this.prisma.user.update({
+            where: { id: user.id },
+            data: { isBanned: false, bannedUntil: null, banReason: null },
+          });
+        }
+      } else {
+        throw new UnauthorizedException({
+          isBanned: true,
+          bannedUntil: null,
+          banReason: user.banReason,
+          message: 'Tài khoản của bạn đã bị khóa (Ban) vĩnh viễn do vi phạm quy định. Vui lòng liên hệ Admin!',
+        });
+      }
+    }
+
+    // Xử lý HĐH & Thiết bị thực tế từ Client payload hoặc User-Agent
+    let os = dto.os;
+    if (!os && userAgent) {
+      if (userAgent.includes('Macintosh') || userAgent.includes('Mac OS')) os = 'macOS';
+      else if (userAgent.includes('Windows')) os = 'Windows';
+      else if (userAgent.includes('Linux')) os = 'Linux';
+      else if (userAgent.includes('Android')) os = 'Android';
+      else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) os = 'iOS';
+    }
+
+    const device = dto.device || 'EIGU Desktop Client';
 
     // Cập nhật thông tin đăng nhập thực tế
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        lastIp: '118.69.182.204',
-        lastOs: process.platform === 'darwin' ? 'macOS' : 'Windows',
-        lastDevice: 'Desktop Client',
+        lastIp: clientIp || '127.0.0.1 (Localhost)',
+        lastOs: os || (process.platform === 'darwin' ? 'macOS' : 'Windows'),
+        lastDevice: device,
+        lastActiveAt: new Date(),
       },
     });
 
@@ -175,7 +218,7 @@ export class AuthService {
     return { message: 'Password reset successfully' };
   }
 
-  async refreshToken(refreshToken: string) {
+  async refreshToken(refreshToken: string, clientIp?: string) {
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_SECRET || 'eigu-dev-secret-key',
@@ -184,6 +227,13 @@ export class AuthService {
       if (!user || user.refreshToken !== refreshToken) {
         throw new UnauthorizedException('Invalid refresh token');
       }
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          lastActiveAt: new Date(),
+          ...(clientIp ? { lastIp: clientIp } : {}),
+        },
+      });
       return this.generateTokens(user.id, user.email, user.role, user.username);
     } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
@@ -198,12 +248,46 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
-  async getProfile(userId: string) {
+  async getProfile(userId: string, clientIp?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, username: true, role: true, isVerified: true, createdAt: true, allowedTabs: true },
+      select: { id: true, email: true, username: true, role: true, isVerified: true, isBanned: true, bannedUntil: true, banReason: true, createdAt: true, hiddenTabs: true },
     });
     if (!user) throw new UnauthorizedException('User not found');
+
+    if (user.isBanned) {
+      if (user.bannedUntil) {
+        if (new Date() < user.bannedUntil) {
+          throw new UnauthorizedException({
+            isBanned: true,
+            bannedUntil: user.bannedUntil,
+            banReason: user.banReason,
+            message: 'Tài khoản của bạn đang bị khóa (Ban).',
+          });
+        } else {
+          await this.prisma.user.update({
+            where: { id: user.id },
+            data: { isBanned: false, bannedUntil: null, banReason: null },
+          });
+        }
+      } else {
+        throw new UnauthorizedException({
+          isBanned: true,
+          bannedUntil: null,
+          banReason: user.banReason,
+          message: 'Tài khoản của bạn đã bị khóa (Ban) vĩnh viễn.',
+        });
+      }
+    }
+
+    // Cập nhật lastActiveAt thời gian thực khi user lấy profile
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        lastActiveAt: new Date(),
+        ...(clientIp ? { lastIp: clientIp } : {}),
+      },
+    });
 
     // Lấy tab permissions (merge với ALL_TABS để có default visible=true)
     const tabPerms = await this.usersService.getTabPermissions(userId);
@@ -227,7 +311,7 @@ export class AuthService {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: { refreshToken },
-      select: { allowedTabs: true },
+      select: { hiddenTabs: true },
     });
 
     // Lấy tab permissions (merge với ALL_TABS để có default visible=true)
@@ -241,7 +325,7 @@ export class AuthService {
         email,
         role,
         username,
-        allowedTabs: user.allowedTabs,
+        hiddenTabs: user.hiddenTabs,
         tabPermissions: tabPerms.map(tp => ({ tabKey: tp.tabKey, visible: tp.visible })),
       },
     };

@@ -64,38 +64,62 @@ export class UsersService {
         role: true,
         isVerified: true,
         isBanned: true,
+        bannedUntil: true,
+        banReason: true,
+        lastActiveAt: true,
         lastIp: true,
         lastOs: true,
         lastDevice: true,
-        allowedTabs: true,
+        hiddenTabs: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    return users.map(user => ({
-      ...user,
-      lastIp: user.lastIp || '118.69.182.204 (VN)',
-      lastOs: user.lastOs || (process.platform === 'darwin' ? 'macOS Sonoma' : 'Windows 11'),
-      lastDevice: user.lastDevice || 'EIGU Desktop v1.0.0',
-      isOnline: !user.isBanned,
-    }));
+    const now = new Date();
+
+    return users.map(user => {
+      let isBannedActive = user.isBanned;
+      let bannedUntil = user.bannedUntil;
+
+      if (user.isBanned && user.bannedUntil) {
+        if (now >= new Date(user.bannedUntil)) {
+          isBannedActive = false;
+          bannedUntil = null;
+          // Async auto-unban DB update in background
+          this.prisma.user.update({
+            where: { id: user.id },
+            data: { isBanned: false, bannedUntil: null, banReason: null },
+          }).catch(() => {});
+        }
+      }
+
+      const activeDate = user.lastActiveAt || user.updatedAt || user.createdAt;
+      const isOnline = !!user.lastActiveAt && (now.getTime() - new Date(user.lastActiveAt).getTime() < 5 * 60 * 1000);
+
+      return {
+        ...user,
+        isBanned: isBannedActive,
+        bannedUntil,
+        banReason: user.banReason,
+        lastActiveAt: activeDate,
+        lastIp: user.lastIp || '127.0.0.1 (Localhost)',
+        lastOs: user.lastOs || 'Desktop Client',
+        lastDevice: user.lastDevice || 'Electron Client',
+        isOnline,
+      };
+    });
   }
 
   async getTabPermissions(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User không tồn tại');
 
-    // Lấy TabPermission từ DB, trả về merge với ALL_TABS
-    const dbPerms = await this.prisma.tabPermission.findMany({
-      where: { userId },
-    });
-
-    const permMap = new Map(dbPerms.map(p => [p.tabKey, p.visible]));
+    const hiddenSet = new Set(user.hiddenTabs || []);
 
     return this.ALL_TABS.map(tab => ({
       ...tab,
-      visible: permMap.has(tab.tabKey) ? permMap.get(tab.tabKey) : true,
+      visible: !hiddenSet.has(tab.tabKey),
     }));
   }
 
@@ -106,24 +130,11 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User không tồn tại');
 
-    // Xoá tất cả permissions cũ, tạo mới
-    await this.prisma.tabPermission.deleteMany({ where: { userId } });
+    const hiddenTabs = tabPermissions.filter(tp => !tp.visible).map(tp => tp.tabKey);
 
-    if (tabPermissions.length > 0) {
-      await this.prisma.tabPermission.createMany({
-        data: tabPermissions.map(tp => ({
-          userId,
-          tabKey: tp.tabKey,
-          visible: tp.visible,
-        })),
-      });
-    }
-
-    // Cập nhật allowedTabs string cho backward compatibility
-    const visibleTabs = tabPermissions.filter(tp => tp.visible).map(tp => tp.tabKey).join(',');
     await this.prisma.user.update({
       where: { id: userId },
-      data: { allowedTabs: visibleTabs || null },
+      data: { hiddenTabs },
     });
 
     return this.getTabPermissions(userId);
@@ -138,21 +149,30 @@ export class UsersService {
     });
   }
 
-  async toggleBan(id: string, isBanned: boolean) {
+  async toggleBan(id: string, isBanned: boolean, bannedUntilRaw?: string | null, banReasonRaw?: string | null) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User không tồn tại');
+
+    const bannedUntil = (isBanned && bannedUntilRaw) ? new Date(bannedUntilRaw) : null;
+    const banReason = isBanned ? (banReasonRaw || null) : null;
+
     return this.prisma.user.update({
       where: { id },
-      data: { isBanned },
+      data: {
+        isBanned,
+        bannedUntil,
+        banReason,
+      },
     });
   }
 
   async updateAllowedTabs(id: string, allowedTabs: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User không tồn tại');
+    const hiddenTabs = (allowedTabs || '').split(',').filter(Boolean);
     return this.prisma.user.update({
       where: { id },
-      data: { allowedTabs },
+      data: { hiddenTabs },
     });
   }
 }

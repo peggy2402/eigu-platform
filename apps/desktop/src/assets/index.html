@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,18 +14,74 @@
   <link rel="stylesheet" href="css/profile-settings.css" />
   <link rel="stylesheet" href="css/toast.css" />
 </head>
+
 <body>
-  <div class="title-bar-overlay" style="position: fixed; top: 0; left: 0; right: 0; height: 16px; -webkit-app-region: drag; z-index: 9999;"></div>
+  <div class="title-bar-overlay"
+    style="position: fixed; top: 0; left: 0; right: 0; height: 16px; -webkit-app-region: drag; z-index: 9999;"></div>
   <div id="toast-container"></div>
 
   <!-- Components Roots -->
   <div id="auth-root"></div>
-  
+
   <div id="app-container" style="display:none;flex:1;min-width:0;">
     <div id="sidebar-root"></div>
     <div class="main" style="flex:1;">
       <div id="header-root"></div>
       <div id="views-root"></div>
+    </div>
+  </div>
+
+  <!-- Màn hình Khóa Toàn Màn Hình cho Banned User (Root Level Overlay) -->
+  <div id="banned-screen-overlay" class="modal-overlay hidden"
+    style="position: fixed; inset: 0; z-index: 999999; background: rgba(10, 12, 18, 0.95); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; padding: 20px;">
+    <div
+      style="background: var(--bg-card, #12151e); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; max-width: 480px; width: 100%; padding: 32px 24px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(239, 68, 68, 0.15); position: relative; box-sizing: border-box;">
+      <!-- GIF Animating Ban Badge -->
+      <div
+        style="margin: 0 auto 20px; width: 110px; height: 110px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);">
+        <img src="https://i.pinimg.com/originals/3c/6d/9b/3c6d9bff507dcadeea0885fda9fe3789.gif" alt="Banned GIF"
+          style="width: 130%; height: 130%; object-fit: cover; mix-blend-mode: multiply;" />
+      </div>
+
+      <h2 style="color: #ef4444; font-size: 20px; font-weight: 800; margin: 0 0 8px; letter-spacing: 0.5px;">🚫 TÀI
+        KHOẢN CỦA BẠN ĐÃ BỊ KHÓA</h2>
+      <p id="banned-screen-subtitle"
+        style="color: var(--text-secondary, #94a3b8); font-size: 13px; margin: 0 0 16px; line-height: 1.5;">Tài khoản
+        của bạn đã bị cấm truy cập vào hệ thống EIGU Platform.</p>
+
+      <!-- Đếm ngược giảm dần / Countdown Box -->
+      <div id="banned-countdown-box"
+        style="background: #111827; border: 1.5px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
+        <div id="banned-countdown-title"
+          style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #f87171; font-weight: 800; margin-bottom: 6px;">
+          Thời gian cấm còn lại</div>
+        <div id="banned-countdown-timer"
+          style="font-family: monospace; font-size: 22px; font-weight: 900; color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.4);">
+          00 giờ 00 phút 00 giây</div>
+      </div>
+
+      <!-- Lý do khóa tài khoản -->
+      <div
+        style="background: var(--bg-primary, #090b10); border: 1px solid var(--border-color, #1e2433); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; text-align: left;">
+        <div style="font-size: 11px; color: var(--text-muted, #64748b); font-weight: 600; margin-bottom: 4px;">⚠️ LÝ DO
+          BỊ KHÓA:</div>
+        <div id="banned-screen-reason"
+          style="font-size: 13px; color: var(--text-primary, #f8fafc); font-weight: 500; word-break: break-word;">Không
+          có lý do cụ thể.</div>
+      </div>
+
+      <!-- Thông tin liên hệ -->
+      <div
+        style="font-size: 12px; color: var(--text-muted, #64748b); margin-bottom: 24px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.03);">
+        📧 <b>Liên hệ Hỗ trợ / Khiếu nại:</b><br />
+        <a href="mailto:tranvanchien24022003@gmail.com"
+          style="color: var(--accent, #6366f1); text-decoration: none; font-weight: 600; font-size: 13px;">tranvanchien24022003@gmail.com</a>
+      </div>
+
+      <button class="btn-primary"
+        onclick="if (typeof closeBannedScreen === 'function') closeBannedScreen(); handleLogout();"
+        style="width: 100%; padding: 12px; font-weight: 700; background: #ef4444; border: none; border-radius: 8px; font-size:14px; cursor:pointer;">Đăng
+        Xuất / Thử Tài Khoản Khác</button>
     </div>
   </div>
 
@@ -46,44 +103,133 @@
     renderViews();
   </script>
 
-  <!-- Floating Live Chat Widget (Bottom Right) -->
-  <div id="live-chat-container">
-    <button id="live-chat-trigger" class="live-chat-trigger" onclick="toggleLiveChatWidget(event)" title="Hỗ trợ EIGU (AI & Staff)">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  <!-- Floating Live Chat Widget (Bottom Right - Hidden until user logs in) -->
+  <div id="live-chat-container" style="display: none;">
+    <button id="live-chat-trigger" class="live-chat-trigger" onclick="toggleLiveChatWidget(event)"
+      title="Hỗ trợ EIGU (AI & Staff)">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
       <span id="chat-badge" class="chat-badge hidden">0</span>
     </button>
 
     <div id="live-chat-box" class="live-chat-box hidden">
       <div class="chat-header">
         <div class="chat-header-info">
-          <div class="chat-avatar">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
+          <div class="chat-avatar" style="background: none; padding: 0;">
+            <img src="img/logo.png" style="width:28px; height:28px; border-radius:50%; object-fit:cover; display:block;" alt="EIGU Logo" />
           </div>
           <div>
             <div class="chat-title">Hỗ trợ EIGU (AI & Staff)</div>
-            <div class="chat-status" style="font-size: 11px; color: var(--accent);"><span class="status-dot"></span> Tin nhắn tự động xóa sau 24 giờ</div>
+            <div class="chat-status" style="font-size: 11px; color: var(--accent);"><span class="status-dot"></span> Tin
+              nhắn tự động xóa sau 24 giờ</div>
           </div>
         </div>
         <button type="button" class="chat-close-btn" onclick="toggleLiveChatWidget(event)" title="Đóng chat">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
 
       <div id="chat-messages" class="chat-messages">
         <div class="chat-msg ai">
-          <div class="msg-bubble">Xin chào! Tôi là AI Assistant của EIGU Platform. Bạn cần hỗ trợ gì về hệ thống hôm nay?</div>
+          <div class="msg-bubble">Xin chào! Tôi là AI Assistant của EIGU Platform. Bạn cần hỗ trợ gì về hệ thống hôm
+            nay?</div>
           <div class="msg-time">Vừa xong</div>
         </div>
       </div>
 
-      <div style="padding: 6px 12px; background: var(--bg-card); border-top: 1px solid var(--border-color); text-align: center;">
-        <button class="btn-outline" style="font-size: 11px; padding: 4px 10px; width: 100%; border-color: var(--accent); color: var(--accent);" onclick="requestHumanSupport()">💬 Yêu cầu Nhân viên (Staff) hỗ trợ</button>
+      <!-- Quote Reply Preview Bar -->
+      <div id="user-chat-reply-preview"
+        style="display:none; padding: 6px 12px; background: var(--bg-card); border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-secondary); align-items: center; justify-content: space-between;">
+        <div style="min-width:0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          <span style="font-weight:700; color:var(--accent);" id="user-reply-target-name">Đang trả lời:</span>
+          <span id="user-reply-target-text" style="margin-left:4px; opacity:0.85;">...</span>
+        </div>
+        <button type="button" onclick="cancelUserReplyQuote()"
+          style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:0 4px;">✕</button>
       </div>
 
-      <div class="chat-input-area">
-        <input type="text" id="chat-input" placeholder="Gõ câu hỏi của bạn..." onkeydown="if(event.key==='Enter') sendChatMessage()" />
+      <div
+        style="padding: 6px 12px; background: var(--bg-card); border-top: 1px solid var(--border-color); text-align: center;">
+        <button class="btn-outline"
+          style="font-size: 11px; padding: 6px 12px; width: 100%; border-color: var(--accent); color: var(--accent); display:inline-flex; align-items:center; justify-content:center; gap:6px;"
+          onclick="requestHumanSupport()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg> Yêu cầu Nhân viên (Staff) hỗ trợ</button>
+      </div>
+
+      <div class="chat-input-area" style="position: relative;">
+        <!-- Mention Auto-complete Menu -->
+        <div id="user-mention-dropdown" class="mention-dropdown-menu hidden" style="bottom: 50px; left: 10px;">
+          <div class="mention-item" onclick="insertUserMention('@Eigu AI ')">
+            <img src="img/logo.png" class="mention-avatar" style="background:#6366f1; padding:2px;" alt="AI" />
+            <div class="mention-info">
+              <div class="mention-title">@Eigu AI</div>
+              <div class="mention-sub">Đặt câu hỏi cho Trợ lý AI</div>
+            </div>
+          </div>
+          <div class="mention-item" onclick="insertUserMention('@Staff ')">
+            <img src="img/logo.png" class="mention-avatar" alt="Staff" />
+            <div class="mention-info">
+              <div class="mention-title">@Staff</div>
+              <div class="mention-sub">Yêu cầu Đội ngũ Staff hỗ trợ</div>
+            </div>
+          </div>
+          <div class="mention-item" onclick="insertUserMention('@mọi người ')">
+            <div class="mention-avatar"
+              style="background:var(--bg-card-hover); display:flex; align-items:center; justify-content:center; font-size:14px;">
+              👥</div>
+            <div class="mention-info">
+              <div class="mention-title">@mọi người</div>
+              <div class="mention-sub">Nhắc đến toàn bộ hệ thống</div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-outline"
+          style="padding: 4px 8px; font-size: 16px; border:none; background:none;"
+          onclick="toggleUserEmojiPicker(event)" title="Thêm Emoji">😊</button>
+
+        <!-- Popover Emoji Picker -->
+        <div id="user-emoji-picker"
+          style="display:none; position: absolute; bottom: 50px; left: 10px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 8px; grid-template-columns: repeat(5, 1fr); gap: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 9999;">
+          <button type="button" class="emoji-btn" onclick="insertUserEmoji('😊')"
+            style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">😊</button>
+          <button type="button" class="emoji-btn" onclick="insertUserEmoji('👍')"
+            style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">👍</button>
+          <button type="button" class="emoji-btn" onclick="insertUserEmoji('❤️')"
+            style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">❤️</button>
+          <button type="button" class="emoji-btn" onclick="insertUserEmoji('😂')"
+            style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">😂</button>
+          <button type="button" class="emoji-btn" onclick="insertUserEmoji('🔥')"
+            style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">🔥</button>
+          <button type="button" class="emoji-btn" onclick="insertUserEmoji('🎉')"
+            style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">🎉</button>
+          <button type="button" class="emoji-btn" onclick="insertUserEmoji('🙏')"
+            style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">🙏</button>
+          <button type="button" class="emoji-btn" onclick="insertUserEmoji('😍')"
+            style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">😍</button>
+          <button type="button" class="emoji-btn" onclick="insertUserEmoji('😮')"
+            style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">😮</button>
+          <button type="button" class="emoji-btn" onclick="insertUserEmoji('💯')"
+            style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">💯</button>
+        </div>
+
+        <div id="chat-input" class="chat-input-editable" contenteditable="true"
+          data-placeholder="Gõ văn bản (gõ @ để tag)..." oninput="handleUserMentionInput(event)"
+          onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendChatMessage(); }"></div>
         <button id="chat-send-btn" onclick="sendChatMessage()">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
         </button>
       </div>
     </div>
@@ -104,6 +250,7 @@
   <script src="js/ui/ai-video-ui.js"></script>
   <script src="js/domain/workflow.service.js"></script>
   <script src="js/main.js"></script>
-  <script>document.querySelectorAll('[data-icon]').forEach(e=>{e.innerHTML=ICONS[e.dataset.icon]||'';e.removeAttribute('data-icon');})</script>
+  <script>document.querySelectorAll('[data-icon]').forEach(e => { e.innerHTML = ICONS[e.dataset.icon] || ''; e.removeAttribute('data-icon'); })</script>
 </body>
+
 </html>

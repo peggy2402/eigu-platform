@@ -1,4 +1,8 @@
 function showAuth(form) {
+  if (typeof closeBannedScreen === 'function') closeBannedScreen();
+  const liveChatContainer = document.getElementById('live-chat-container');
+  if (liveChatContainer) liveChatContainer.style.display = 'none';
+
   ['login','register','forgot'].forEach(f => document.getElementById(f+'-form').classList.add('hidden'));
   document.getElementById(form+'-form').classList.remove('hidden');
   ['login','register','forgot'].forEach(f => document.getElementById(f+'-error').classList.remove('show'));
@@ -7,8 +11,11 @@ function showAuth(form) {
 
 function setAuthError(form, msg) {
   const el = document.getElementById(form+'-error');
-  el.textContent = msg;
-  el.classList.add('show');
+  if (el) {
+    const friendly = typeof formatFriendlyErrorMessage === 'function' ? formatFriendlyErrorMessage(msg) : msg;
+    el.textContent = friendly;
+    el.classList.add('show');
+  }
 }
 
 document.addEventListener('input', (e) => {
@@ -25,6 +32,11 @@ document.addEventListener('keydown', (e) => {
   }
 
   if (e.key === 'Enter') {
+    const authContainer = document.getElementById('auth-container');
+    if (!authContainer || authContainer.style.display === 'none') {
+      return; // Stop execution if user is already inside the application!
+    }
+
     if (!document.getElementById('login-form').classList.contains('hidden')) {
       handleLogin();
     } else if (!document.getElementById('register-form').classList.contains('hidden')) {

@@ -22,8 +22,11 @@ export class UsersController {
   }
 
   @Patch(':id/ban')
-  async toggleBan(@Param('id') id: string, @Body('isBanned') isBanned: boolean) {
-    return this.usersService.toggleBan(id, isBanned);
+  async toggleBan(
+    @Param('id') id: string,
+    @Body() body: { isBanned: boolean; bannedUntil?: string | null; banReason?: string | null },
+  ) {
+    return this.usersService.toggleBan(id, body.isBanned, body.bannedUntil, body.banReason);
   }
 
   // Tab Permission endpoints

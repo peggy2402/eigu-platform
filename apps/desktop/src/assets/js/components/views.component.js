@@ -481,38 +481,83 @@ const ViewsComponent = `
   </div>
 </div>
 
-<!-- Chat Support View (Staff & Admin) -->
+<!-- Chat Support View (Staff & Admin Console) -->
 <div id="view-chat-support" class="view">
-  <div style="display: flex; gap: 16px; height: 520px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden;">
-    <!-- Lista phiên chat bên trái -->
-    <div style="width: 260px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; background: var(--bg-primary);">
-      <div style="padding: 14px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 14px;">Hộp thoại Khách hàng</div>
+  <div class="chat-support-container">
+    <!-- List phiên chat bên trái -->
+    <div class="chat-support-sidebar" style="width: 280px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; background: var(--bg-primary); flex-shrink: 0;">
+      <div style="padding: 14px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Hộp thoại Khách hàng</span>
+        <button class="btn-outline" style="padding:6px 10px; font-size:11px; display:inline-flex; align-items:center; gap:4px;" onclick="loadStaffChatConsole()" title="Tải lại danh sách"><span data-icon="refreshCw"></span> Tải lại</button>
+      </div>
       <div id="staff-chat-list" style="flex:1; overflow-y:auto; padding: 8px; display: flex; flex-direction: column; gap: 6px;">
-        <div class="chat-session-item active" style="padding: 10px; background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer;">
-          <div style="font-weight: 600; font-size: 13px;">User: Client #1042</div>
-          <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">Yêu cầu Staff hỗ trợ...</div>
-        </div>
+        <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Đang tải danh sách cuộc trò chuyện...</div>
       </div>
     </div>
     <!-- Cửa sổ Chat tương tác bên phải -->
-    <div style="flex: 1; display: flex; flex-direction: column;">
-      <div style="padding: 14px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-primary);">
+    <div style="flex: 1; display: flex; flex-direction: column; background: var(--bg-primary); min-width: 0;">
+      <div style="padding: 14px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); flex-wrap: wrap; gap: 10px;">
         <div>
-          <div style="font-weight: 600; font-size: 14px;">Đang chat với: Client #1042</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Tài khoản: client1042@gmail.com</div>
+          <div id="staff-chat-target-name" style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Chọn cuộc trò chuyện để bắt đầu chat</div>
+          <div id="staff-chat-target-email" style="font-size: 11px; color: var(--text-muted);">Vui lòng chọn một phiên chat ở danh sách bên trái</div>
         </div>
-        <button class="btn-outline" style="padding: 4px 10px; font-size: 12px;" onclick="showToast('Thông báo', 'Đã đánh dấu hoàn tất hỗ trợ.', 'success')">Hoàn tất Hỗ trợ</button>
+        <button id="staff-resolve-btn" class="btn-outline" style="padding: 6px 14px; font-size: 12px;" onclick="resolveCurrentStaffChat()">Hoàn tất Hỗ trợ</button>
       </div>
-      <div id="staff-chat-messages" style="flex:1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: var(--bg-primary);">
-        <div class="chat-msg ai" style="max-width: 80%; background: var(--bg-card); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13px;">
-          <strong>AI Bot:</strong> Xin chào! Tôi có thể giúp gì cho bạn?
-        </div>
-        <div class="chat-msg user" style="max-width: 80%; align-self: flex-end; background: var(--accent); color: white; padding: 10px; border-radius: 8px; font-size: 13px;">
-          Tôi không nạp được API key Gemini, nhờ nhân viên kiểm tra giúp.
-        </div>
+      <div id="staff-chat-messages" style="flex:1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: var(--bg-primary);">
+        <div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">Chọn người dùng ở cột bên trái để trao đổi thông tin trực tiếp.</div>
       </div>
-      <div style="padding: 12px 16px; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;">
-        <input type="text" id="staff-chat-input" placeholder="Nhập câu trả lời của Staff..." style="flex: 1; padding: 10px 16px; border-radius: 20px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();sendStaffChatMessage(event);}" />
+      <!-- Quote Reply Preview Bar -->
+      <div id="staff-chat-reply-preview" style="display:none; padding: 6px 16px; background: var(--bg-card); border-top: 1px solid var(--border-color); font-size: 12px; color: var(--text-secondary); align-items: center; justify-content: space-between;">
+        <div style="min-width:0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          <span style="font-weight:700; color:var(--accent);" id="staff-reply-target-name">Đang trả lời:</span>
+          <span id="staff-reply-target-text" style="margin-left:4px; opacity:0.85;">...</span>
+        </div>
+        <button type="button" onclick="cancelStaffReplyQuote()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:0 4px;">✕</button>
+      </div>
+
+      <div style="padding: 12px 16px; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px; position: relative;">
+        <!-- Mention Auto-complete Menu -->
+        <div id="staff-mention-dropdown" class="mention-dropdown-menu hidden" style="bottom: 60px; left: 16px;">
+          <div class="mention-item" onclick="insertStaffMention('@Eigu AI ')">
+            <img src="img/logo.png" class="mention-avatar" style="background:#6366f1; padding:2px;" alt="AI" />
+            <div class="mention-info">
+              <div class="mention-title">@Eigu AI</div>
+              <div class="mention-sub">Đặt câu hỏi cho Trợ lý AI</div>
+            </div>
+          </div>
+          <div class="mention-item" onclick="insertStaffMention('@Khách hàng ')">
+            <img src="https://cdn2.fptshop.com.vn/unsafe/800x0/avatar_anime_nam_cute_14_60037b48e5.jpg" class="mention-avatar" alt="Client" />
+            <div class="mention-info">
+              <div class="mention-title">@Khách hàng</div>
+              <div class="mention-sub">Nhắc đến Khách hàng</div>
+            </div>
+          </div>
+          <div class="mention-item" onclick="insertStaffMention('@mọi người ')">
+            <div class="mention-avatar" style="background:var(--bg-card-hover); display:flex; align-items:center; justify-content:center; font-size:14px;">👥</div>
+            <div class="mention-info">
+              <div class="mention-title">@mọi người</div>
+              <div class="mention-sub">Nhắc đến toàn bộ hệ thống</div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-outline" style="padding: 8px 12px; font-size: 16px; border-radius: 20px; border-color: var(--border-color);" onclick="toggleStaffEmojiPicker(event)" title="Thêm biểu cảm Emoji">😊</button>
+        
+        <!-- Popover Emoji Picker -->
+        <div id="staff-emoji-picker" style="display:none; position: absolute; bottom: 60px; left: 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 8px; grid-template-columns: repeat(5, 1fr); gap: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 9999;">
+          <button type="button" class="emoji-btn" onclick="insertStaffEmoji('😊')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">😊</button>
+          <button type="button" class="emoji-btn" onclick="insertStaffEmoji('👍')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">👍</button>
+          <button type="button" class="emoji-btn" onclick="insertStaffEmoji('❤️')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">❤️</button>
+          <button type="button" class="emoji-btn" onclick="insertStaffEmoji('😂')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">😂</button>
+          <button type="button" class="emoji-btn" onclick="insertStaffEmoji('🔥')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">🔥</button>
+          <button type="button" class="emoji-btn" onclick="insertStaffEmoji('🎉')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">🎉</button>
+          <button type="button" class="emoji-btn" onclick="insertStaffEmoji('🙏')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">🙏</button>
+          <button type="button" class="emoji-btn" onclick="insertStaffEmoji('😍')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">😍</button>
+          <button type="button" class="emoji-btn" onclick="insertStaffEmoji('😮')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">😮</button>
+          <button type="button" class="emoji-btn" onclick="insertStaffEmoji('💯')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">💯</button>
+        </div>
+
+        <div id="staff-chat-input" class="chat-input-editable" contenteditable="true" data-placeholder="Gửi tin nhắn..." oninput="handleStaffMentionInput(event)" onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); event.stopPropagation(); sendStaffChatMessage(event); }"></div>
         <button type="button" class="btn-primary" style="width: auto !important; min-width: 90px; flex-shrink: 0; padding: 10px 24px; border-radius: 20px; margin: 0;" onclick="sendStaffChatMessage(event)">Gửi</button>
       </div>
     </div>
@@ -552,24 +597,28 @@ const ViewsComponent = `
       <button class="btn-outline" onclick="loadRealUserData()" style="padding:8px 14px; border-radius:6px; font-size:13px;">Lọc</button>
     </div>
 
-    <!-- Bảng hiển thị Dữ liệu Thực -->
-    <div style="overflow-x:auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
+    <!-- Bảng hiển thị Dữ liệu Thực (Desktop Table View) -->
+    <div class="user-mgmt-table-wrapper">
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
         <thead>
           <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-card);">
-            <th style="padding: 10px;">User</th>
-            <th style="padding: 10px;">Địa chỉ IP</th>
-            <th style="padding: 10px;">HĐH / Thiết bị</th>
-            <th style="padding: 10px;">Ngày tạo</th>
-            <th style="padding: 10px;">Trạng thái</th>
-            <th style="padding: 10px;">Vai trò (Role)</th>
-            <th style="padding: 10px; text-align:center;">Hành động (Ban / Phân Tab)</th>
+            <th style="padding: 10px; white-space: nowrap;">User</th>
+            <th style="padding: 10px; white-space: nowrap;">Địa chỉ IP</th>
+            <th style="padding: 10px; white-space: nowrap;">HĐH / Thiết bị</th>
+            <th style="padding: 10px; white-space: nowrap;">Ngày tạo</th>
+            <th style="padding: 10px; white-space: nowrap;">Trạng thái</th>
+            <th style="padding: 10px; white-space: nowrap;">Vai trò (Role)</th>
+            <th style="padding: 10px; text-align:center; white-space: nowrap;">Hành động (Ban / Phân Tab)</th>
           </tr>
         </thead>
         <tbody id="user-mgmt-table-body">
           <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">Đang kết nối tới Supabase Database để tải dữ liệu thật...</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Responsive Card View (Tự động chuyển đổi khi thu nhỏ cửa sổ < 900px) -->
+    <div id="user-mgmt-cards-container" class="user-mgmt-cards-wrapper">
     </div>
   </div>
 </div>
@@ -582,8 +631,8 @@ const ViewsComponent = `
         <h3 id="admin-notif-form-title" style="margin-bottom:4px;">Tạo & Quản lý Thông báo (Dữ liệu Thực)</h3>
         <p class="settings-hint">Gửi thông báo tới Client/Staff, xem Lịch sử thông báo, Tìm kiếm, Sửa & Xóa thông báo realtime.</p>
       </div>
-      <button class="btn-primary" onclick="loadAdminNotificationHistory()" style="padding: 8px 16px; border-radius:6px; font-size:13px; width:auto;">
-        🔄 Tải lại Lịch sử
+      <button class="btn-primary" onclick="loadAdminNotificationHistory()" style="padding: 8px 16px; border-radius:6px; font-size:13px; width:auto; display:inline-flex; align-items:center; gap:6px;">
+        <span data-icon="refreshCw"></span> Tải lại Lịch sử
       </button>
     </div>
 
@@ -643,23 +692,27 @@ const ViewsComponent = `
       <button class="btn-outline" onclick="loadAdminNotificationHistory()" style="padding:8px 14px; border-radius:6px; font-size:13px;">Lọc</button>
     </div>
 
-    <!-- Bảng Lịch sử Thông báo -->
-    <div style="overflow-x:auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
+    <!-- Bảng Lịch sử Thông báo (Desktop View) -->
+    <div class="admin-notif-table-wrapper">
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
         <thead>
           <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-card);">
-            <th style="padding: 10px;">Tiêu đề</th>
-            <th style="padding: 10px;">Nội dung</th>
-            <th style="padding: 10px;">Đối tượng</th>
-            <th style="padding: 10px;">Hạn dùng</th>
-            <th style="padding: 10px;">Ngày tạo</th>
-            <th style="padding: 10px; text-align:center;">Hành động (Sửa / Xóa)</th>
+            <th style="padding: 10px; white-space: nowrap;">Tiêu đề</th>
+            <th style="padding: 10px; white-space: nowrap;">Nội dung</th>
+            <th style="padding: 10px; white-space: nowrap;">Đối tượng</th>
+            <th style="padding: 10px; white-space: nowrap;">Hạn dùng</th>
+            <th style="padding: 10px; white-space: nowrap;">Ngày tạo</th>
+            <th style="padding: 10px; text-align:center; white-space: nowrap;">Hành động (Sửa / Xóa)</th>
           </tr>
         </thead>
         <tbody id="admin-notif-table-body">
-          <tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">Đang nạp Lịch sử Thông báo tu Supabase Database...</td></tr>
+          <tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">Đang nạp Lịch sử Thông báo từ Supabase Database...</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Responsive Card View (Tự động chuyển đổi khi thu nhỏ cửa sổ < 900px) -->
+    <div id="admin-notif-cards-container" class="admin-notif-cards-wrapper">
     </div>
   </div>
 </div>
@@ -679,6 +732,45 @@ const ViewsComponent = `
     </div>
   </div>
 </div>
+
+<!-- Temporary Ban Modal -->
+<div id="ban-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 460px; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+    <h3 style="margin-bottom: 6px; font-size:16px; color:#ef4444; display:flex; align-items:center; gap:8px;">🛑 Khóa / Block Tài khoản (Ban Tạm Thời)</h3>
+    <p style="font-size:13px; color:var(--text-secondary); margin-bottom: 16px;">Tài khoản: <strong id="ban-target-user" style="color:var(--text-primary);">—</strong></p>
+
+    <div style="background: var(--bg-primary); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div>
+        <label style="font-size:12px; color:var(--text-muted); font-weight:600; display:block; margin-bottom:4px;">THỜI ĐIỂM BẮT ĐẦU BAN (HIỆN TẠI)</label>
+        <div id="ban-start-time-text" style="font-size:13px; font-weight:600; color:var(--accent); font-family:var(--font-mono);">—</div>
+      </div>
+      <div>
+        <label style="font-size:12px; color:var(--text-muted); font-weight:600; display:block; margin-bottom:6px;">CHỌN THỜI ĐIỂM HẾT HẠN BAN (GIỜ / PHÚT / NGÀY / THÁNG / NĂM)</label>
+        <input type="datetime-local" id="ban-until-input" style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:13px; outline:none;" />
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:6px;">Lựa chọn nhanh:</label>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          <button type="button" class="btn-outline" style="padding:3px 8px; font-size:11px; border-radius:4px;" onclick="setBanPreset(1, 'hour')">+1 Giờ</button>
+          <button type="button" class="btn-outline" style="padding:3px 8px; font-size:11px; border-radius:4px;" onclick="setBanPreset(1, 'day')">+1 Ngày</button>
+          <button type="button" class="btn-outline" style="padding:3px 8px; font-size:11px; border-radius:4px;" onclick="setBanPreset(7, 'day')">+7 Ngày</button>
+          <button type="button" class="btn-outline" style="padding:3px 8px; font-size:11px; border-radius:4px;" onclick="setBanPreset(30, 'day')">+30 Ngày</button>
+          <button type="button" class="btn-outline" style="padding:3px 8px; font-size:11px; border-radius:4px; color:#ef4444; border-color:#ef4444;" onclick="setBanPreset(0, 'permanent')">Vĩnh Viễn</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px; color:var(--text-muted); font-weight:600; display:block; margin-bottom:6px;">LÝ DO KHÓA TÀI KHOẢN (HIỂN THỊ CHO USER):</label>
+        <textarea id="ban-reason-input" rows="2" placeholder="Ví dụ: Vi phạm điều khoản dịch vụ, Thao tác bất thường..." style="width:100%; padding:8px 10px; border-radius:6px; background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:12px; outline:none; resize:vertical;"></textarea>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+      <button class="btn-outline" style="padding: 8px 16px; font-size:13px; border-radius:6px;" onclick="closeBanModal()">Hủy</button>
+      <button class="btn-danger" style="padding: 8px 20px; width: auto; font-size:13px; border-radius:6px; background:#ef4444;" onclick="confirmBanUser()">Xác Nhận Ban</button>
+    </div>
+  </div>
+</div>
+
 <!-- Feedback Management View (Admin) -->
 <div id="view-feedback-management" class="view" style="width: 100%; box-sizing: border-box;">
   <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; width: 100%; box-sizing: border-box;">
@@ -687,8 +779,8 @@ const ViewsComponent = `
         <h3 style="margin-bottom:4px;">Quản lý Phản hồi & Báo lỗi (Feedback Dữ liệu Thực)</h3>
         <p class="settings-hint">Theo dõi các phản hồi từ người dùng, xem thông tin Email, Username, Nội dung góp ý và quản lý xử lý.</p>
       </div>
-      <button class="btn-primary" onclick="loadRealFeedbackData()" style="padding: 8px 16px; border-radius:6px; font-size:13px; width:auto;">
-        🔄 Tải lại Dữ liệu
+      <button class="btn-primary" onclick="loadRealFeedbackData()" style="padding: 8px 16px; border-radius:6px; font-size:13px; width:auto; display:inline-flex; align-items:center; gap:6px;">
+        <span data-icon="refreshCw"></span> Tải lại Dữ liệu
       </button>
     </div>
 
@@ -698,21 +790,25 @@ const ViewsComponent = `
       <button class="btn-outline" onclick="loadRealFeedbackData()" style="padding:8px 16px; border-radius:6px; font-size:13px;">Lọc</button>
     </div>
 
-    <!-- Bảng hiển thị Dữ liệu Feedback Thực -->
-    <div style="overflow-x:auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
+    <!-- Bảng hiển thị Dữ liệu Feedback Thực (Desktop View) -->
+    <div class="feedback-mgmt-table-wrapper">
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
         <thead>
           <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-card);">
-            <th style="padding: 10px;">Người gửi (User)</th>
-            <th style="padding: 10px;">Nội dung phản hồi</th>
-            <th style="padding: 10px;">Thời gian gửi</th>
-            <th style="padding: 10px; text-align:center;">Hành động (Xóa)</th>
+            <th style="padding: 10px; white-space: nowrap;">Người gửi (User)</th>
+            <th style="padding: 10px; white-space: nowrap;">Nội dung phản hồi</th>
+            <th style="padding: 10px; white-space: nowrap;">Thời gian gửi</th>
+            <th style="padding: 10px; text-align:center; white-space: nowrap;">Hành động (Xóa)</th>
           </tr>
         </thead>
         <tbody id="feedback-mgmt-table-body">
           <tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">Đang kết nối tới Supabase Database để tải dữ liệu Feedback thực...</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Responsive Card View (Tự động chuyển đổi khi thu nhỏ cửa sổ < 900px) -->
+    <div id="feedback-mgmt-cards-container" class="feedback-mgmt-cards-wrapper">
     </div>
   </div>
 </div>

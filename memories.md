@@ -434,3 +434,48 @@ Xử lý:
 - **File:** `apps/desktop/src/assets/js/components/header.component.js` + `main.js`
 - Thêm `<span id="role-badge">` nằm dưới greeting "Xin chào, {{username}}".
 - `updateProfile()` set label và màu theo role: ADMIN (tím `#6366f1`), STAFF (xanh lá `#22c55e`), USER (xám `var(--text-secondary)`).
+
+## Phase 18: Phiên làm việc 22/07/2026 - 23/07/2026 (01:59:36 GMT+7) — Nâng cấp Chat Support, Hệ thống Tri thức 25 Tab, Toast Bug Guard & Thông báo 2 chiều
+
+### 18.1 Khắc phục lỗi Toast "Đăng nhập thành công" khi gõ phím Enter trong ô Chat
+- **Thời gian xử lý:** 22/07/2026 17:34 GMT+7
+- **Nguyên nhân:** Trong `auth-forms.js`, sự kiện `keydown (Enter)` kiểm tra `!document.getElementById('login-form').classList.contains('hidden')`. Khi người dùng đã đăng nhập vào ứng dụng main, `#auth-container` bị ẩn bằng `display: none` nhưng `#login-form` vẫn không có class `.hidden`, dẫn đến mỗi khi nhấn Enter trong Chat hay bất kỳ ô input nào, hàm `handleLogin()` trong `auth.service.js` lại bị kích hoạt ngầm và phát ra Toast `showToast('Đăng nhập thành công')`.
+- **Khắc phục:** Thêm Guard `if (!authContainer || authContainer.style.display === 'none') return;` trong `auth-forms.js`.
+- **Cập nhật Skill (`AI_CONTEXT.md`):** Thêm quy chuẩn `Global Keydown Event Guards (CRITICAL)` vào tài liệu hướng dẫn dự án.
+
+### 18.2 Nâng cấp Trợ lý `@Eigu AI` & Hệ thống Tri thức 25 Tab (`EIGU_SYSTEM_KNOWLEDGE`)
+- **Thời gian xử lý:** 22/07/2026 17:30 GMT+7
+- **Chi tiết:** Viết lại `getAiSupportResponse()` trong `live-chat.js` tích hợp bộ tri thức chuẩn xác cho toàn bộ 25 `tabKey`:
+  - `ho-so`, `tiep-thi`, `doi-nhom`, `tien-ich`, `guide`, `cong-cu`, `cut`, `ai-video`, `reup`, `hot-niche`, `bulk-download`, `tu-dong-hoa`, `workflow`, `record`, `tai-khoan`, `tk-tiktok`, `tk-facebook`, `tk-youtube`, `tk-x`, `tk-instagram`, `tk-threads`, `settings`, `feedback`.
+- Tích hợp Menu `@` gợi ý tag tự động (`@Eigu AI`, `@Staff`, `@Khách hàng`, `@mọi người`).
+
+### 18.3 Hiệu ứng Bouncing Typing Indicator (Messenger / iMessage / Discord style)
+- **Thời gian xử lý:** 22/07/2026 17:39 GMT+7
+- **Chi tiết:** Bổ sung hiệu ứng 3 chấm nẩy lệch pha (`animation-delay: 0s, 0.2s, 0.4s`) cho bong bóng suy nghĩ của AI (`@keyframes typingBounce`) trong `dashboard.css` và `live-chat.js`.
+
+### 18.4 Định dạng Tag Mentions (Soft Translucent Chip Badge & Rich Contenteditable Input)
+- **Thời gian xử lý:** 22/07/2026 18:09 GMT+7
+- **Thiết kế Tag:** Chuyển đổi định dạng tag sang thẻ Chip mờ bán trong suốt (`rgba(..., 0.18)`), viền mỏng và bo góc 6px với màu sắc dịu mắt (Vàng Hổ Phách `#fde047`, Hồng Sen `#f472b6`, Xanh Mint `#34d399`, Cam Đào `#fdba74`).
+- **Rich Contenteditable Input Box:** Chuyển đổi ô `<input type="text">` cũ sang `<div contenteditable="true" class="chat-input-editable">` để hiển thị trực tiếp thẻ Tag Chip có phông nền ngay trong ô gõ khi đang gõ phím.
+
+### 18.5 Thay thế Icon Robot bằng Logo EIGU Branding
+- **Thời gian xử lý:** 22/07/2026 18:27 GMT+7
+- **Chi tiết:** Thay thế icon SVG robot cũ ở tiêu đề cửa sổ chat (`index.html`) bằng ảnh Logo thương hiệu `img/logo.png` bo tròn 28x28px.
+
+### 18.6 Khắc phục lỗi cuộn tin nhắn đầu tiên khi vào Staff Chat Console
+- **Thời gian xử lý:** 22/07/2026 18:31 GMT+7
+- **Nguyên nhân:** Khi vừa chuyển tab `chat-support`, khung chat đang ở trạng thái ẩn (`display: none`), hàm `scrollToBottom()` chạy trước khi trình duyệt tính xong layout `scrollHeight` (bằng 0), khiến thanh cuộn bị kẹt ở `scrollTop = 0` (tin nhắn đầu tiên ở trên cùng).
+- **Khắc phục:**
+  - Trì hoãn gọi `loadStaffChatConsole()` 30ms trong `sidebar.js` sau khi tab `chat-support` hiển thị hoàn toàn.
+  - Nâng cấp `scrollToBottom()` thực hiện cuộn đa mốc thời gian (`requestAnimationFrame`, `30ms`, `100ms`, `250ms`) và lắng nghe sự kiện `load` của ảnh avatar.
+
+### 18.7 Đảo vị trí bong bóng tin nhắn (Right-aligned My Sent Messages vs Left-aligned Received Messages)
+- **Thời gian xử lý:** 22/07/2026 18:47 - 18:51 GMT+7
+- **Quy chuẩn:** Tin nhắn do bản thân ngồi trước màn hình gõ gửi đi (`.sent-by-me`) luôn nằm ở **BÊN PHẢI** (Bong bóng màu tím `var(--accent)`, avatar ở bên phải). Tin nhắn từ người đối diện (`.received-by-me`) luôn nằm ở **BÊN TRÁI** (Bong bóng card `var(--bg-card)`, avatar ở bên trái).
+- **Khắc phục lỗi CSS Specificity:** Sử dụng thuộc tính `!important` trong `dashboard.css` trên `.msg-wrapper.sent-by-me` và `.msg-wrapper.received-by-me` để giải quyết triệt để lỗi class `.msg-wrapper.staff` cũ làm tin nhắn của Staff bị kéo về bên trái.
+
+### 18.8 Hệ thống Chuông Thông Báo Hai Chiều & Sửa lỗi Nháy / Tự nhận Thông báo của mình
+- **Thời gian xử lý:** 22/07/2026 18:38 - 18:54 GMT+7
+- **Lỗi 1 (Tự nhận thông báo của mình):** Cách ly thông báo theo vai trò đối tượng (`targetRole: 'staff'` cho Staff/Admin và `targetRole: 'user'` cho Khách hàng). Người vừa gõ gửi tin nhắn đi sẽ không bao giờ tự nhận bell notification của chính mình.
+- **Lỗi 2 (Khay thông báo bị nháy và mất nội dung):** Trong `notifications.js`, cập nhật `loadRealNotifications()` gán `notificationsData = localNotifs` ngay lập tức trước khi gọi API bất đồng bộ, thực hiện cơ chế gộp `Merge without overwrite` không làm mất dữ liệu thông báo chat trong `localStorage`.
+
