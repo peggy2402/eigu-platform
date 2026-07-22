@@ -2,7 +2,23 @@
   "name": "@eigu-platform/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "postinstall": "prisma generate --schema=apps/api/prisma/schema.prisma"
+  },
+  "allowScripts": {
+    "@parcel/watcher": true,
+    "@prisma/engines": true,
+    "@scarf/scarf": true,
+    "@swc/core": true,
+    "esbuild": true,
+    "less": true,
+    "nx": true,
+    "prisma": true,
+    "puppeteer": true,
+    "sharp": true,
+    "unrs-resolver": true,
+    "youtube-dl-exec": true
+  },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",
