@@ -128,11 +128,19 @@ class CapabilityDetector {
  */
 class RuleEngine {
   static requiresVideoTranscode(opts: any): boolean {
+    if (opts.cutEngine === 'fast') return false;
     if (opts.cutEngine === 'accurate') return true;
-    if (opts.cutEngine === 'fast') {
-      // In fast mode, we strictly force stream copy (NO transcode), completely ignoring video filters (text, colors, etc) to guarantee maximum speed.
-      return false;
-    }
+
+    if (opts.aspectRatio && opts.aspectRatio !== 'original') return true;
+    if (opts.flip && opts.flip !== 'none') return true;
+    if (opts.frameBend && opts.frameBend !== 'none') return true;
+    if (opts.decimation || opts.noiseInjection) return true;
+    if (opts.brightness && Math.abs(opts.brightness - 1.0) > 0.01) return true;
+    if (opts.contrast && Math.abs(opts.contrast - 1.0) > 0.01) return true;
+    if (opts.saturation && Math.abs(opts.saturation - 1.0) > 0.01) return true;
+    if (opts.autoPartText) return true;
+    if (opts.logoPath && fs.existsSync(opts.logoPath)) return true;
+
     return false;
   }
 
@@ -285,10 +293,35 @@ class ParallelPipeline {
           videoFilters.push('noise=alls=1:allf=t');
           eqParts.push('contrast=1.01', 'gamma=0.99');
         }
-        if (opts.brightness && Math.abs(opts.brightness - 1.0) > 0.01) eqParts.push(`brightness=${opts.brightness}`);
+        if (opts.brightness && Math.abs(opts.brightness - 1.0) > 0.01) eqParts.push(`brightness=${(opts.brightness - 1.0).toFixed(2)}`);
         if (opts.contrast && Math.abs(opts.contrast - 1.0) > 0.01) eqParts.push(`contrast=${opts.contrast}`);
         if (opts.saturation && Math.abs(opts.saturation - 1.0) > 0.01) eqParts.push(`saturation=${opts.saturation}`);
         if (eqParts.length > 0) videoFilters.push('eq=' + eqParts.join(':'));
+
+        if (opts.logoPath && fs.existsSync(opts.logoPath)) {
+          const escapedLogoPath = opts.logoPath.replace(/\\/g, '/').replace(/'/g, "'\\''").replace(/:/g, '\\:');
+          const sizeRatio = ((opts.logoSize || 15) / 100).toFixed(2);
+          const opacity = ((opts.logoOpacity !== undefined ? opts.logoOpacity : 100) / 100).toFixed(2);
+          const pos = opts.logoPosition || 'bottom-right';
+
+          let overlayPos = 'x=main_w-overlay_w-20:y=main_h-overlay_h-20';
+          if (pos === 'top-left') overlayPos = 'x=20:y=20';
+          else if (pos === 'top-center') overlayPos = 'x=(main_w-overlay_w)/2:y=20';
+          else if (pos === 'top-right') overlayPos = 'x=main_w-overlay_w-20:y=20';
+          else if (pos === 'center-left') overlayPos = 'x=20:y=(main_h-overlay_h)/2';
+          else if (pos === 'center') overlayPos = 'x=(main_w-overlay_w)/2:y=(main_h-overlay_h)/2';
+          else if (pos === 'center-right') overlayPos = 'x=main_w-overlay_w-20:(main_h-overlay_h)/2';
+          else if (pos === 'bottom-left') overlayPos = 'x=20:y=main_h-overlay_h-20';
+          else if (pos === 'bottom-center') overlayPos = 'x=(main_w-overlay_w)/2:y=main_h-overlay_h-20';
+          else if (pos === 'bottom-right') overlayPos = 'x=main_w-overlay_w-20:y=main_h-overlay_h-20';
+
+          let logoFilter = `movie='${escapedLogoPath}',scale=iw*${sizeRatio}:-1,format=rgba`;
+          if (parseFloat(opacity) < 1.0) {
+            logoFilter += `,colorchannelmixer=aa=${opacity}`;
+          }
+          logoFilter += `[logo];[in][logo]overlay=${overlayPos}`;
+          videoFilters.push(logoFilter);
+        }
 
         if (opts.autoPartText) {
           videoFilters.push(`drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial.ttf':text='Ph%E1%BA%A7n ${chunk.index}/${this.totalChunks}':fontcolor=white:fontsize=h/20:x=(w-text_w)/2:y=h*0.1:box=1:boxcolor=black@0.5:boxborderw=10`);

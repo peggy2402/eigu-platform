@@ -97,58 +97,121 @@ const ViewsComponent = `
         <label style="font-weight:600;color:#a78bfa;">Chỉnh sửa nâng cao</label>
 
         <label>Lật video</label>
-        <select id="opt-flip">
+        <select id="opt-flip" class="custom-select">
           <option value="none">Không lật</option>
           <option value="horizontal">Lật ngang (Horizontal)</option>
           <option value="vertical">Lật dọc (Vertical)</option>
         </select>
 
-        <label>Màu sắc (EQ)</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-          <div>
-            <label style="font-size:11px;color:var(--text-muted);">Độ sáng</label>
-            <input type="number" id="opt-brightness" value="1.00" step="0.05" min="0" max="2" style="width:100%;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;" />
+        <label style="margin-top:4px;">Màu sắc (EQ)</label>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div class="slider-group">
+            <div class="slider-header">
+              <label style="font-size:12px; color:var(--text-secondary);">Độ sáng (Brightness)</label>
+              <span class="slider-val-badge" id="val-brightness">1.00x</span>
+            </div>
+            <input type="range" id="opt-brightness" class="custom-range-slider" value="1.00" min="0.50" max="1.50" step="0.02" />
           </div>
-          <div>
-            <label style="font-size:11px;color:var(--text-muted);">Tương phản</label>
-            <input type="number" id="opt-contrast" value="1.00" step="0.05" min="0" max="2" style="width:100%;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;" />
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label style="font-size:12px; color:var(--text-secondary);">Tương phản (Contrast)</label>
+              <span class="slider-val-badge" id="val-contrast">1.00x</span>
+            </div>
+            <input type="range" id="opt-contrast" class="custom-range-slider" value="1.00" min="0.50" max="1.50" step="0.02" />
           </div>
-          <div>
-            <label style="font-size:11px;color:var(--text-muted);">Độ bão hòa</label>
-            <input type="number" id="opt-saturation" value="1.00" step="0.05" min="0" max="2" style="width:100%;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;" />
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label style="font-size:12px; color:var(--text-secondary);">Độ bão hòa (Saturation)</label>
+              <span class="slider-val-badge" id="val-saturation">1.00x</span>
+            </div>
+            <input type="range" id="opt-saturation" class="custom-range-slider" value="1.00" min="0.00" max="2.00" step="0.05" />
           </div>
         </div>
 
-        <label>Bẻ khung hình</label>
-        <select id="opt-frame-bend">
+        <label style="margin-top:4px;">Bẻ khung hình</label>
+        <select id="opt-frame-bend" class="custom-select">
           <option value="none">Không</option>
           <option value="rotate90">Xoay 90°</option>
           <option value="rotate180">Xoay 180°</option>
           <option value="vflip">Lật dọc</option>
         </select>
 
+        <hr style="margin:6px 0;" />
+        <label style="font-weight:600; color:#f472b6;">Chèn Logo & Watermark</label>
+
+        <div class="logo-upload-container">
+          <input type="file" id="logo-file-input" accept="image/png, image/jpeg, image/jpg, image/webp" class="hidden" />
+          <div id="logo-drop-area" class="logo-drop-area" onclick="document.getElementById('logo-file-input').click()">
+            <span data-icon="image" style="width:18px; height:18px; color:var(--text-muted);"></span>
+            <span id="logo-file-name" style="font-size:12px; color:var(--text-secondary);">Bấm để chọn tệp Logo (.png, .jpg)...</span>
+            <button id="logo-remove-btn" type="button" class="btn-outline hidden" onclick="event.stopPropagation(); removeLogoFile();" style="padding:2px 8px; font-size:11px; color:#ef4444; border-color:rgba(239,68,68,0.3);">Xóa</button>
+          </div>
+        </div>
+
+        <div id="logo-options-group" class="hidden" style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+          <label style="font-size:12px; color:var(--text-secondary);">Vị trí Logo (9 vị trí)</label>
+          <div class="logo-grid-selector">
+            <button type="button" class="grid-btn" data-pos="top-left" title="Trên Trái">↖</button>
+            <button type="button" class="grid-btn" data-pos="top-center" title="Giữa Trên">⬆</button>
+            <button type="button" class="grid-btn" data-pos="top-right" title="Trên Phải">↗</button>
+            
+            <button type="button" class="grid-btn" data-pos="center-left" title="Giữa Trái">⬅</button>
+            <button type="button" class="grid-btn" data-pos="center" title="Chính Giữa">⏺</button>
+            <button type="button" class="grid-btn" data-pos="center-right" title="Giữa Phải">➔</button>
+            
+            <button type="button" class="grid-btn" data-pos="bottom-left" title="Dưới Trái">↙</button>
+            <button type="button" class="grid-btn" data-pos="bottom-center" title="Giữa Dưới">⬇</button>
+            <button type="button" class="grid-btn active" data-pos="bottom-right" title="Dưới Phải">↘</button>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label style="font-size:12px; color:var(--text-secondary);">Kích thước Logo</label>
+              <span class="slider-val-badge" id="val-logo-size">15%</span>
+            </div>
+            <input type="range" id="opt-logo-size" class="custom-range-slider" value="15" min="5" max="40" step="1" />
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label style="font-size:12px; color:var(--text-secondary);">Độ trong suốt (Opacity)</label>
+              <span class="slider-val-badge" id="val-logo-opacity">100%</span>
+            </div>
+            <input type="range" id="opt-logo-opacity" class="custom-range-slider" value="100" min="10" max="100" step="5" />
+          </div>
+        </div>
+
+        <hr style="margin:6px 0;" />
         <label>Giọng nói</label>
-        <select id="opt-voice">
+        <select id="opt-voice" class="custom-select">
           <option value="none">Giữ nguyên</option>
           <option value="ffmpeg">FFmpeg (Thay đổi cao độ)</option>
           <option value="elevenlabs">ElevenLabs AI Voice</option>
           <option value="omnivoice">Omni Voice API</option>
           <option value="self-hosted">OmniVoice (Tự host)</option>
         </select>
-        <div id="voice-ffmpeg-config" class="hidden" style="display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;gap:6px;">
-            <div style="flex:1;">
-              <label style="font-size:11px;color:var(--text-muted);">Cao độ (0.5-2.0)</label>
-              <input type="number" id="voice-pitch" value="1.0" step="0.1" min="0.5" max="2.0" style="width:100%;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;" />
+        <div id="voice-ffmpeg-config" class="hidden" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1;" class="slider-group">
+              <div class="slider-header">
+                <label style="font-size:11px;color:var(--text-muted);">Cao độ</label>
+                <span class="slider-val-badge" id="val-voice-pitch">1.0x</span>
+              </div>
+              <input type="range" id="voice-pitch" class="custom-range-slider" value="1.0" min="0.5" max="2.0" step="0.05" />
             </div>
-            <div style="flex:1;">
-              <label style="font-size:11px;color:var(--text-muted);">Tốc độ (0.5-2.0)</label>
-              <input type="number" id="voice-speed" value="1.0" step="0.1" min="0.5" max="2.0" style="width:100%;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;" />
+            <div style="flex:1;" class="slider-group">
+              <div class="slider-header">
+                <label style="font-size:11px;color:var(--text-muted);">Tốc độ</label>
+                <span class="slider-val-badge" id="val-voice-speed">1.0x</span>
+              </div>
+              <input type="range" id="voice-speed" class="custom-range-slider" value="1.0" min="0.5" max="2.0" step="0.05" />
             </div>
           </div>
         </div>
         <div id="voice-api-config" class="hidden" style="display:flex;flex-direction:column;gap:6px;">
-          <select id="voice-speaker">
+          <select id="voice-speaker" class="custom-select">
             <option value="">Đang tải danh sách giọng nói...</option>
           </select>
           <p style="font-size:11px;color:var(--text-muted);">API key được quản lý tập trung trên server. Chọn giọng nói từ thư viện.</p>
@@ -158,7 +221,7 @@ const ViewsComponent = `
 
     <div class="output-row" style="margin-top:16px;">
       <span class="label">Thư mục lưu:</span>
-      <span class="path" id="output-path">Mặc định (Downloads/eigu/outputs)</span>
+      <span class="path clickable-path" id="output-path" onclick="openOutputFolder()" title="Bấm để mở thư mục trong Finder (macOS) / File Explorer (Windows)">Mặc định (Downloads/eigu/outputs)</span>
       <button class="change-btn" onclick="selectOutputFolder()">Thay đổi</button>
     </div>
 

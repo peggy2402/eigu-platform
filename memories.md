@@ -491,3 +491,42 @@ Xử lý:
   - **Phân quyền Console nghiêm ngặt:** Thêm kiểm tra `userProfile.role === 'admin' || userProfile.role === 'staff'` ngay đầu hàm `loadStaffChatConsole()`, chặn triệt để người dùng role `user` xem danh sách cuộc trò chuyện.
   - **Dọn dẹp RAM State khi Logout:** Hàm `handleLogout()` trong `auth.service.js` gọi `resetChatState()` dọn dẹp sạch sẽ DOM và các biến RAM (`activeStaffChatEmail`, `notificationsData`, `isChatOpen`), đảm bảo khi tài khoản mới đăng nhập không bị rò rỉ dữ liệu từ tài khoản trước.
 
+### 18.10 Xử lý Lỗi UnhandledPromiseRejection & Tải YouTube bị Hạn chế (Restricted Video)
+- **Thời gian xử lý:** 23/07/2026 12:25 GMT+7
+- **Nguyên nhân:**
+  1. `youtubedl.exec()` trong gói `youtube-dl-exec` trả về một Promise (`ExecPromise`). Khi `yt-dlp` trả về exit code 1 (do link lỗi/bị hạn chế), Promise này bị reject nhưng chưa được gắn `.catch()`, gây ra cảnh báo `UnhandledPromiseRejectionWarning: ChildProcessError` bắn tràn log Node.js/Electron.
+  2. Một số video YouTube bị khóa độ tuổi (Age-restricted), bị ẩn/riêng tư (Private), hoặc bật chế độ kiểm duyệt nội dung (Google Workspace Restricted Mode), dẫn đến `yt-dlp` bị chặn truy cập.
+- **Khắc phục:**
+  - **Catch Unhandled Promise:** Thêm `subprocess.catch((_err) => {})` ngay sau khi gọi `youtubedl.exec()`, triệt tiêu hoàn toàn cảnh báo `UnhandledPromiseRejectionWarning`. Luồng xử lý sự kiện `close` và `error` vẫn được bảo toàn nguyên vẹn.
+  - **Nâng cấp Cờ anti-bot cho `yt-dlp`:** Bổ sung `--no-check-certificates`, `--geo-bypass`, `--extractor-args "youtube:player_client=android,web"`, `userAgent` chuẩn trình duyệt MacOS Chrome, và linh hoạt định dạng video `format: 'bestvideo+bestaudio/best'`.
+  - **Trích xuất Lỗi Thân thiện (Friendly Error Parser):** Bổ sung hàm `parseYouTubeErrorMessage()` chuyển đổi các thông báo lỗi thô của YouTube (`Video unavailable. This video is restricted...`) thành thông báo tiếng Việt rõ ràng, chỉ dẫn người dùng sử dụng file MP4 từ máy hoặc đổi link YouTube công khai.
+
+### 18.11 Khắc phục lỗi Hủy tiến trình nhưng YouTube vẫn tải xong (YouTube Cancellation Wiring)
+- **Thời gian xử lý:** 23/07/2026 13:41 GMT+7
+- **Nguyên nhân:** Trong `main.ts`, biến `cancelCurrentWorkflow` chỉ được gán sau khi `downloadYouTubeVideo` đã tải xong và chuyển sang giai đoạn `processVideoWithFFmpeg`. Nếu người dùng nhấn "Hủy tiến trình" khi video YouTube đang được tải, nút Hủy vô tác dụng (do `cancelCurrentWorkflow === null`), khiến `yt-dlp` vẫn âm thầm chạy ngầm cho tới khi hoàn tất.
+- **Khắc phục:**
+  - **Refactor `downloadYouTubeVideo`:** Đổi kiểu trả về từ `Promise<string>` sang `{ promise: Promise<string>, cancel: () => void }`. Hàm `cancel()` sẽ phát tín hiệu `isCancelled = true`, kích hoạt `subprocess.kill('SIGKILL')` chém đứt tiến trình `yt-dlp` ngay lập tức và tự động xóa file tạm `/tmp/youtube_raw_${taskId}.mp4`.
+  - **Gán `cancelCurrentWorkflow` sớm:** Trong `main.ts`, gán `cancelCurrentWorkflow = ytTask.cancel` ngay trước khi `await ytTask.promise`. Khi người dùng nhấn Hủy tiến trình, nút bấm lập tức ngắt luồng tải YouTube, phản hồi trạng thái `❌ Đã hủy tiến trình` ra UI và dọn dẹp tài nguyên.
+
+### 18.12 Tự động khởi tạo Thư mục xuất & Bấm mở Finder (macOS) / File Explorer (Windows)
+- **Thời gian xử lý:** 23/07/2026 14:20 GMT+7
+- **Chi tiết:**
+  - **Tự động tạo thư mục gốc:** Sử dụng API native Electron `app.getPath('downloads')` để lấy đường dẫn thư mục `Downloads` chính chủ trên mọi máy Client (macOS & Windows). Tự động tạo cây thư mục `eigu/outputs` (`fs.mkdirSync(..., { recursive: true })`) nếu chưa tồn tại.
+  - **Mở Finder / File Explorer 1-Click:** Đã nâng cấp nhãn `Thư mục lưu` trên UI thành một đường dẫn có thể nhấp chuột (`.clickable-path`, hover đổi màu tím + gạch chân). Khi click vào đường dẫn, ứng dụng gọi IPC `open-output-folder`, sử dụng `shell.openPath()` để mở trực tiếp cửa sổ Finder (trên macOS) hoặc File Explorer (trên Windows) đúng thư mục hiện tại.
+
+### 18.13 Nâng cấp Chỉnh sửa nâng cao: Range Sliders, Chèn Logo 9 ô vị trí & Live Preview Thời gian thực
+- **Thời gian xử lý:** 23/07/2026 14:48 GMT+7
+- **Chi tiết:**
+  - **Loại bỏ Input Number mặc định:** Thay thế toàn bộ các thẻ `<input type="number">` với nút tăng/giảm trắng thô ráp bằng các thanh kéo ngang **Custom Range Sliders (`<input type="range">`)** kèm Badge số hiển thị tỉ lệ thực tế (`1.00x`, `15%`, `100%`).
+  - **Tính năng Chèn Logo / Watermark:**
+    - Tải tệp Logo (`.png`, `.jpg`, `.webp`) với giao diện Dropzone hiện đại.
+    - Bộ chọn vị trí 3x3 Grid (9 ô vị trí: ↖ Trên Trái, ⬆ Giữa Trên, ↗ Trên Phải, ⬅ Giữa Trái, ⏺ Chính Giữa, ➔ Giữa Phải, ↙ Dưới Trái, ⬇ Giữa Dưới, ↘ Dưới Phải).
+    - Slider chỉnh kích thước Logo (`5%` - `40%`) và Slider độ trong suốt Logo (`10%` - `100%`).
+    - Tích hợp bộ lọc FFmpeg `movie='logo_path',scale=...,format=rgba,colorchannelmixer=aa=...[logo]; [in][logo]overlay=...` đốt trực tiếp logo lên video khi transcode.
+  - **Live Video Preview Engine:** Tự động áp dụng hiệu ứng CSS Filter (`brightness`, `contrast`, `saturate`, `transform`) và render lớp ảnh Logo trực tiếp trên thẻ xem trước Video (`#video-preview-card`) theo thời gian thực khi người dùng di chuyển các thanh kéo hoặc bấm đổi vị trí Logo.
+  - **Cập nhật Quy chuẩn UI (`AI_CONTEXT.md`):** Đã thêm cờ `No Default Raw Number Inputs & Custom Sliders (CRITICAL UI/UX)` vào tài liệu hướng dẫn dự án.
+
+
+
+
+

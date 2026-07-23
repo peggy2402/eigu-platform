@@ -105,9 +105,32 @@ app.whenReady().then(() => {
   // Lắng nghe sự kiện từ giao diện UI khi người dùng ấn nút Xử lý
   let cancelCurrentWorkflow: (() => void) | null = null;
 
+  ipcMain.handle('get-default-output-folder', async () => {
+    const defaultDir = path.join(app.getPath('downloads'), 'eigu', 'outputs');
+    if (!fs.existsSync(defaultDir)) {
+      fs.mkdirSync(defaultDir, { recursive: true });
+    }
+    return defaultDir;
+  });
+
+  ipcMain.handle('open-output-folder', async (_event, folderPath) => {
+    const { shell } = require('electron');
+    const targetDir = folderPath || path.join(app.getPath('downloads'), 'eigu', 'outputs');
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+    await shell.openPath(targetDir);
+    return true;
+  });
+
   ipcMain.handle('select-output-folder', async () => {
     const { dialog } = require('electron');
+    const defaultDir = path.join(app.getPath('downloads'), 'eigu', 'outputs');
+    if (!fs.existsSync(defaultDir)) {
+      fs.mkdirSync(defaultDir, { recursive: true });
+    }
     const result = await dialog.showOpenDialog(mainWindow!, {
+      defaultPath: defaultDir,
       properties: ['openDirectory'],
       buttonLabel: 'Chọn thư mục'
     });
@@ -131,7 +154,7 @@ app.whenReady().then(() => {
           console.log(`[Main Process] Bắt đầu tải video từ YouTube: ${payload.data}`);
           event.reply('workflow-status', { state: 'processing', message: 'Đang kết nối tới máy chủ YouTube...' });
 
-          finalInputPath = await downloadYouTubeVideo(payload.data, taskId, (statusMsg) => {
+          const ytTask = downloadYouTubeVideo(payload.data, taskId, (statusMsg) => {
             console.log(`[Youtube-DL] ${statusMsg}`);
             event.reply('workflow-status', { state: 'processing', message: statusMsg });
             socket.emit('reportProgress', {
@@ -141,6 +164,10 @@ app.whenReady().then(() => {
               message: statusMsg
             });
           });
+
+          cancelCurrentWorkflow = ytTask.cancel;
+          finalInputPath = await ytTask.promise;
+          cancelCurrentWorkflow = null;
         }
 
         const task: VideoWorkflowRequest = {

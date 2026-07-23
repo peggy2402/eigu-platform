@@ -27,7 +27,11 @@ const appState = {
     voiceMode: 'none',
     voiceSpeaker: '',
     voicePitch: 1.0,
-    voiceSpeed: 1.0
+    voiceSpeed: 1.0,
+    logoPath: '',
+    logoPosition: 'bottom-right',
+    logoSize: 15,
+    logoOpacity: 100
   },
   progress: 0,
   status: 'Đang chờ...',

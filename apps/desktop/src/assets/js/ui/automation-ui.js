@@ -206,11 +206,150 @@ document.getElementById('opt-decimate').addEventListener('change', e => { appSta
 document.getElementById('opt-audio').addEventListener('change', e => { appState.options.audioSpatialPanning = e.target.checked; });
 
 /* Advanced Editing Controls */
-document.getElementById('opt-flip').addEventListener('change', e => { appState.options.flip = e.target.value; });
-document.getElementById('opt-brightness').addEventListener('input', e => { appState.options.brightness = parseFloat(e.target.value) || 1.0; });
-document.getElementById('opt-contrast').addEventListener('input', e => { appState.options.contrast = parseFloat(e.target.value) || 1.0; });
-document.getElementById('opt-saturation').addEventListener('input', e => { appState.options.saturation = parseFloat(e.target.value) || 1.0; });
-document.getElementById('opt-frame-bend').addEventListener('change', e => { appState.options.frameBend = e.target.value; });
+document.getElementById('opt-flip').addEventListener('change', e => {
+  appState.options.flip = e.target.value;
+  updateVideoLivePreview();
+});
+
+document.getElementById('opt-frame-bend').addEventListener('change', e => {
+  appState.options.frameBend = e.target.value;
+  updateVideoLivePreview();
+});
+
+document.getElementById('opt-brightness').addEventListener('input', e => {
+  const val = parseFloat(e.target.value) || 1.0;
+  appState.options.brightness = val;
+  document.getElementById('val-brightness').textContent = val.toFixed(2) + 'x';
+  updateVideoLivePreview();
+});
+
+document.getElementById('opt-contrast').addEventListener('input', e => {
+  const val = parseFloat(e.target.value) || 1.0;
+  appState.options.contrast = val;
+  document.getElementById('val-contrast').textContent = val.toFixed(2) + 'x';
+  updateVideoLivePreview();
+});
+
+document.getElementById('opt-saturation').addEventListener('input', e => {
+  const val = parseFloat(e.target.value) || 1.0;
+  appState.options.saturation = val;
+  document.getElementById('val-saturation').textContent = val.toFixed(2) + 'x';
+  updateVideoLivePreview();
+});
+
+/* Logo Watermark Handlers */
+const logoFileInput = document.getElementById('logo-file-input');
+if (logoFileInput) {
+  logoFileInput.addEventListener('change', e => {
+    if (e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const realPath = window.webUtils ? window.webUtils.getPathForFile(file) : file.path;
+      appState.options.logoPath = realPath;
+      document.getElementById('logo-file-name').textContent = file.name;
+      document.getElementById('logo-remove-btn').classList.remove('hidden');
+      document.getElementById('logo-options-group').classList.remove('hidden');
+      updateVideoLivePreview();
+    }
+  });
+}
+
+function removeLogoFile() {
+  appState.options.logoPath = '';
+  const fileInp = document.getElementById('logo-file-input');
+  if (fileInp) fileInp.value = '';
+  document.getElementById('logo-file-name').textContent = 'Bấm để chọn tệp Logo (.png, .jpg)...';
+  document.getElementById('logo-remove-btn').classList.add('hidden');
+  document.getElementById('logo-options-group').classList.add('hidden');
+  updateVideoLivePreview();
+}
+
+document.querySelectorAll('.logo-grid-selector .grid-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.logo-grid-selector .grid-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    appState.options.logoPosition = btn.dataset.pos;
+    updateVideoLivePreview();
+  });
+});
+
+document.getElementById('opt-logo-size').addEventListener('input', e => {
+  const val = parseInt(e.target.value) || 15;
+  appState.options.logoSize = val;
+  document.getElementById('val-logo-size').textContent = val + '%';
+  updateVideoLivePreview();
+});
+
+document.getElementById('opt-logo-opacity').addEventListener('input', e => {
+  const val = parseInt(e.target.value) || 100;
+  appState.options.logoOpacity = val;
+  document.getElementById('val-logo-opacity').textContent = val + '%';
+  updateVideoLivePreview();
+});
+
+/* Live Video Preview Engine */
+function updateVideoLivePreview() {
+  const previewCard = document.getElementById('video-preview-card');
+  if (!previewCard) return;
+
+  const brightness = appState.options.brightness || 1.0;
+  const contrast = appState.options.contrast || 1.0;
+  const saturation = appState.options.saturation || 1.0;
+  const flip = appState.options.flip || 'none';
+  const frameBend = appState.options.frameBend || 'none';
+
+  let filterStr = `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`;
+  let transformStr = '';
+  if (flip === 'horizontal') transformStr += ' scaleX(-1)';
+  else if (flip === 'vertical') transformStr += ' scaleY(-1)';
+
+  if (frameBend === 'rotate90') transformStr += ' rotate(90deg)';
+  else if (frameBend === 'rotate180') transformStr += ' rotate(180deg)';
+  else if (frameBend === 'vflip') transformStr += ' scaleY(-1)';
+
+  const mediaImg = previewCard.querySelector('img:not(#preview-logo-overlay)');
+  if (mediaImg) {
+    mediaImg.style.filter = filterStr;
+    mediaImg.style.transform = transformStr;
+    mediaImg.style.transition = 'all 0.2s ease-out';
+  }
+
+  let logoOverlay = document.getElementById('preview-logo-overlay');
+  if (appState.options.logoPath) {
+    if (!logoOverlay) {
+      logoOverlay = document.createElement('img');
+      logoOverlay.id = 'preview-logo-overlay';
+      previewCard.style.position = 'relative';
+      previewCard.appendChild(logoOverlay);
+    }
+    logoOverlay.src = `file://${appState.options.logoPath}`;
+    logoOverlay.style.display = 'block';
+    logoOverlay.style.opacity = `${(appState.options.logoOpacity || 100) / 100}`;
+    const sz = appState.options.logoSize || 15;
+    logoOverlay.style.maxWidth = `${sz * 2}%`;
+    logoOverlay.style.maxHeight = `${sz * 2}%`;
+
+    const pos = appState.options.logoPosition || 'bottom-right';
+    logoOverlay.style.top = '';
+    logoOverlay.style.bottom = '';
+    logoOverlay.style.left = '';
+    logoOverlay.style.right = '';
+    logoOverlay.style.transform = '';
+
+    if (pos === 'top-left') { logoOverlay.style.top = '10px'; logoOverlay.style.left = '10px'; }
+    else if (pos === 'top-center') { logoOverlay.style.top = '10px'; logoOverlay.style.left = '50%'; logoOverlay.style.transform = 'translateX(-50%)'; }
+    else if (pos === 'top-right') { logoOverlay.style.top = '10px'; logoOverlay.style.right = '10px'; }
+    else if (pos === 'center-left') { logoOverlay.style.top = '50%'; logoOverlay.style.left = '10px'; logoOverlay.style.transform = 'translateY(-50%)'; }
+    else if (pos === 'center') { logoOverlay.style.top = '50%'; logoOverlay.style.left = '50%'; logoOverlay.style.transform = 'translate(-50%, -50%)'; }
+    else if (pos === 'center-right') { logoOverlay.style.top = '50%'; logoOverlay.style.right = '10px'; logoOverlay.style.transform = 'translateY(-50%)'; }
+    else if (pos === 'bottom-left') { logoOverlay.style.bottom = '10px'; logoOverlay.style.left = '10px'; }
+    else if (pos === 'bottom-center') { logoOverlay.style.bottom = '10px'; logoOverlay.style.left = '50%'; logoOverlay.style.transform = 'translateX(-50%)'; }
+    else if (pos === 'bottom-right') { logoOverlay.style.bottom = '10px'; logoOverlay.style.right = '10px'; }
+  } else if (logoOverlay) {
+    logoOverlay.style.display = 'none';
+  }
+}
+
 document.getElementById('opt-voice').addEventListener('change', e => {
   appState.options.voiceMode = e.target.value;
   const ffmpegConfig = document.getElementById('voice-ffmpeg-config');
@@ -221,8 +360,16 @@ document.getElementById('opt-voice').addEventListener('change', e => {
     fetchVoiceSpeakers(e.target.value);
   }
 });
-document.getElementById('voice-pitch').addEventListener('input', e => { appState.options.voicePitch = parseFloat(e.target.value) || 1.0; });
-document.getElementById('voice-speed').addEventListener('input', e => { appState.options.voiceSpeed = parseFloat(e.target.value) || 1.0; });
+document.getElementById('voice-pitch').addEventListener('input', e => {
+  const val = parseFloat(e.target.value) || 1.0;
+  appState.options.voicePitch = val;
+  document.getElementById('val-voice-pitch').textContent = val.toFixed(2) + 'x';
+});
+document.getElementById('voice-speed').addEventListener('input', e => {
+  const val = parseFloat(e.target.value) || 1.0;
+  appState.options.voiceSpeed = val;
+  document.getElementById('val-voice-speed').textContent = val.toFixed(2) + 'x';
+});
 document.getElementById('voice-speaker').addEventListener('change', e => { appState.options.voiceSpeaker = e.target.value; });
 
 async function fetchVoiceSpeakers(provider) {
@@ -259,7 +406,27 @@ async function fetchVoiceSpeakers(provider) {
   logConsole.appendChild(el); logConsole.scrollTop = logConsole.scrollHeight;
 }
 
+async function openOutputFolder() {
+  const targetPath = appState.outputPath || await ipcRenderer.invoke('get-default-output-folder');
+  await ipcRenderer.invoke('open-output-folder', targetPath);
+}
+
 async function selectOutputFolder() {
   const result = await ipcRenderer.invoke('select-output-folder');
   if (result) { appState.outputPath = result; outputPathDisplay.textContent = result; }
 }
+
+async function initDefaultOutputFolder() {
+  try {
+    const defaultDir = await ipcRenderer.invoke('get-default-output-folder');
+    if (!appState.outputPath) {
+      appState.outputPath = defaultDir;
+    }
+    const displayEl = document.getElementById('output-path');
+    if (displayEl) {
+      displayEl.textContent = appState.outputPath || defaultDir;
+    }
+  } catch (err) {}
+}
+
+setTimeout(initDefaultOutputFolder, 100);
