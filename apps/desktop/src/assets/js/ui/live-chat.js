@@ -38,14 +38,27 @@ const EIGU_SYSTEM_KNOWLEDGE = {
   'feedback': '📌 **Góp ý / Báo lỗi (Feedback)**:\n• Gửi báo cáo lỗi kèm hình ảnh đính kèm tới đội ngũ phát triển qua Discord Webhook.\n• Giới hạn 3 lượt gửi/ngày để tránh lạm dụng.'
 };
 
-// Get or initialize real chat sessions from localStorage
-function getStoredChatSessions() {
+// Get or initialize real chat sessions from localStorage (Isolated per user identity / role)
+function getChatStorageKey(emailOverride) {
+  const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
+  if (isStaffOrAdmin) {
+    return 'eigu_staff_shared_chat_sessions';
+  }
+  const email = emailOverride || getUserEmail();
+  return `eigu_chat_sessions_${email}`;
+}
+
+function getStoredChatSessions(emailOverride) {
   try {
-    const raw = localStorage.getItem('eigu_real_chat_sessions');
+    const key = getChatStorageKey(emailOverride);
+    const raw = localStorage.getItem(key);
     if (raw) return JSON.parse(raw);
   } catch (e) { }
 
-  const initial = {
+  const email = emailOverride || getUserEmail();
+  const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
+
+  const initial = isStaffOrAdmin ? {
     'sample.client@gmail.com': {
       userEmail: 'sample.client@gmail.com',
       username: 'sample_client',
@@ -58,18 +71,75 @@ function getStoredChatSessions() {
         { id: 'm3', sender: 'user', text: 'Tôi đã bấm yêu cầu Staff hỗ trợ, nhờ bạn kiểm tra giúp.', time: '15:22', status: 'seen' }
       ]
     }
+  } : {
+    [email]: {
+      userEmail: email,
+      username: (typeof userProfile !== 'undefined' && userProfile && userProfile.username) ? userProfile.username : 'User',
+      needsStaff: false,
+      unreadForStaff: false,
+      lastActive: new Date().toISOString(),
+      messages: []
+    }
   };
-  localStorage.setItem('eigu_real_chat_sessions', JSON.stringify(initial));
+
+  try {
+    const key = getChatStorageKey(emailOverride);
+    localStorage.setItem(key, JSON.stringify(initial));
+  } catch (e) {}
+
   return initial;
 }
 
-function saveStoredChatSessions(sessions, skipBroadcast = false) {
+function saveStoredChatSessions(sessions, skipBroadcast = false, emailOverride) {
   try {
-    localStorage.setItem('eigu_real_chat_sessions', JSON.stringify(sessions));
+    const key = getChatStorageKey(emailOverride);
+    localStorage.setItem(key, JSON.stringify(sessions));
+
+    // If staff/admin is replying, also sync the target user's session into that user's specific storage key
+    const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
+    if (isStaffOrAdmin) {
+      Object.keys(sessions).forEach(usrEmail => {
+        try {
+          const userKey = `eigu_chat_sessions_${usrEmail}`;
+          const singleUserSession = { [usrEmail]: sessions[usrEmail] };
+          localStorage.setItem(userKey, JSON.stringify(singleUserSession));
+        } catch (err) {}
+      });
+    }
+
     if (!skipBroadcast) {
       window.dispatchEvent(new CustomEvent('eigu_chat_updated'));
     }
   } catch (e) { }
+}
+
+function resetChatState() {
+  isChatOpen = false;
+  chatUnreadCount = 0;
+  activeStaffChatEmail = null;
+  activeUserReplyQuote = null;
+  activeStaffReplyQuote = null;
+
+  const userMessages = document.getElementById('chat-messages');
+  if (userMessages) userMessages.innerHTML = '';
+
+  const staffMessages = document.getElementById('staff-chat-messages');
+  if (staffMessages) staffMessages.innerHTML = '';
+
+  const staffList = document.getElementById('staff-chat-list');
+  if (staffList) staffList.innerHTML = '';
+
+  const box = document.getElementById('live-chat-box');
+  if (box) {
+    box.classList.add('hidden');
+    box.style.display = 'none';
+  }
+
+  const badge = document.getElementById('chat-badge');
+  if (badge) {
+    badge.classList.add('hidden');
+    badge.style.display = 'none';
+  }
 }
 
 function getUserEmail() {
@@ -320,6 +390,14 @@ async function sendChatMessage() {
   if (session.needsStaff && !isAiMention) {
     session.unreadForStaff = true;
     saveStoredChatSessions(sessions);
+    try {
+      const staffSharedKey = 'eigu_staff_shared_chat_sessions';
+      let staffSessions = {};
+      const raw = localStorage.getItem(staffSharedKey);
+      if (raw) staffSessions = JSON.parse(raw);
+      staffSessions[email] = session;
+      localStorage.setItem(staffSharedKey, JSON.stringify(staffSessions));
+    } catch (e) {}
     renderUserChatHistory();
     if (typeof addChatNotificationForStaff === 'function') {
       addChatNotificationForStaff(email, text);
@@ -371,10 +449,20 @@ function requestHumanSupport() {
   sessions[email].messages.push({ id: 'ai_msg_' + Date.now(), sender: 'ai', text: noticeText, time: timeStr, status: 'seen' });
   saveStoredChatSessions(sessions);
 
+  try {
+    const staffSharedKey = 'eigu_staff_shared_chat_sessions';
+    let staffSessions = {};
+    const raw = localStorage.getItem(staffSharedKey);
+    if (raw) staffSessions = JSON.parse(raw);
+    staffSessions[email] = sessions[email];
+    localStorage.setItem(staffSharedKey, JSON.stringify(staffSessions));
+  } catch (e) {}
+
   renderUserChatHistory();
   showToast('Chat Support', 'Đã chuyển cuộc trò chuyện sang cho Nhân viên hỗ trợ!', 'info');
 
-  if (typeof loadStaffChatConsole === 'function') {
+  const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
+  if (isStaffOrAdmin && typeof loadStaffChatConsole === 'function') {
     loadStaffChatConsole();
   }
 }
@@ -572,6 +660,14 @@ Nhiệm vụ: Trả lời ngắn gọn, chuẩn xác, lịch sự và giải đ�
 function loadStaffChatConsole() {
   const listContainer = document.getElementById('staff-chat-list');
   if (!listContainer) return;
+
+  const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
+  if (!isStaffOrAdmin) {
+    listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Bạn không có quyền truy cập Staff Chat Console.</div>';
+    const msgBox = document.getElementById('staff-chat-messages');
+    if (msgBox) msgBox.innerHTML = '';
+    return;
+  }
 
   const sessions = getStoredChatSessions();
   const sessionKeys = Object.keys(sessions);

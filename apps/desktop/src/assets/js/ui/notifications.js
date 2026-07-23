@@ -2,9 +2,15 @@
 
 let notificationsData = [];
 
+function getNotifStorageKey() {
+  const email = (typeof userProfile !== 'undefined' && userProfile && userProfile.email) ? userProfile.email : 'guest';
+  return `eigu_header_bell_notifications_${email}`;
+}
+
 function getStoredHeaderNotifications() {
   try {
-    const raw = localStorage.getItem('eigu_header_bell_notifications');
+    const key = getNotifStorageKey();
+    const raw = localStorage.getItem(key);
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   return [];
@@ -12,7 +18,8 @@ function getStoredHeaderNotifications() {
 
 function saveStoredHeaderNotifications(data) {
   try {
-    localStorage.setItem('eigu_header_bell_notifications', JSON.stringify(data));
+    const key = getNotifStorageKey();
+    localStorage.setItem(key, JSON.stringify(data));
   } catch (e) {}
 }
 
@@ -154,9 +161,13 @@ function addChatNotificationForStaff(userEmail, textPreview) {
     read: false,
     time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
   };
-  notificationsData.unshift(notif);
-  saveStoredHeaderNotifications(notificationsData);
-  renderNotifications();
+  
+  const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
+  if (isStaffOrAdmin) {
+    notificationsData.unshift(notif);
+    saveStoredHeaderNotifications(notificationsData);
+    renderNotifications();
+  }
 }
 
 function addChatNotificationForUser(targetEmail, textPreview) {
@@ -170,9 +181,23 @@ function addChatNotificationForUser(targetEmail, textPreview) {
     read: false,
     time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
   };
-  notificationsData.unshift(notif);
-  saveStoredHeaderNotifications(notificationsData);
-  renderNotifications();
+  
+  // Persist directly to target user's notifications storage key
+  try {
+    const userNotifKey = `eigu_header_bell_notifications_${targetEmail}`;
+    let userNotifs = [];
+    const raw = localStorage.getItem(userNotifKey);
+    if (raw) userNotifs = JSON.parse(raw);
+    userNotifs.unshift(notif);
+    localStorage.setItem(userNotifKey, JSON.stringify(userNotifs));
+  } catch (e) {}
+
+  // Update live UI if target email matches current logged-in user
+  if (typeof userProfile !== 'undefined' && userProfile && userProfile.email === targetEmail) {
+    notificationsData.unshift(notif);
+    saveStoredHeaderNotifications(notificationsData);
+    renderNotifications();
+  }
 }
 
 async function markNotificationAsRead(id) {

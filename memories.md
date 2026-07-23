@@ -479,3 +479,15 @@ Xử lý:
 - **Lỗi 1 (Tự nhận thông báo của mình):** Cách ly thông báo theo vai trò đối tượng (`targetRole: 'staff'` cho Staff/Admin và `targetRole: 'user'` cho Khách hàng). Người vừa gõ gửi tin nhắn đi sẽ không bao giờ tự nhận bell notification của chính mình.
 - **Lỗi 2 (Khay thông báo bị nháy và mất nội dung):** Trong `notifications.js`, cập nhật `loadRealNotifications()` gán `notificationsData = localNotifs` ngay lập tức trước khi gọi API bất đồng bộ, thực hiện cơ chế gộp `Merge without overwrite` không làm mất dữ liệu thông báo chat trong `localStorage`.
 
+### 18.9 Khắc phục triệt để lỗi Rò rỉ Dữ liệu Tin nhắn Cross-User (Conversation Isolation Bug)
+- **Thời gian xử lý:** 23/07/2026 09:14 GMT+7
+- **Nguyên nhân:**
+  - Trong `live-chat.js`, toàn bộ phiên trò chuyện của tất cả người dùng bị ghi đè chung vào 1 key duy nhất `eigu_real_chat_sessions` trong `localStorage`. Khi User 1 đăng xuất và User 2 đăng nhập trên cùng thiết bị, `localStorage` vẫn chứa phiên chat giữa `Staff A ↔ User 1`.
+  - Trong `notifications.js`, thông báo chuông cũng dùng chung key `eigu_header_bell_notifications` không phân biệt tài khoản.
+  - Khi Đăng xuất (`handleLogout()`), hệ thống không xóa trạng thái tin nhắn trong bộ nhớ RAM (`activeStaffChatEmail`, `notificationsData`), dẫn đến rò rỉ dữ liệu phiên làm việc cũ cho tài khoản mới.
+- **Khắc phục:**
+  - **Cách ly Storage Key theo Identity:** Chuyển `getChatStorageKey()` và `getNotifStorageKey()` sang dạng có prefix phân lập theo email/role (`eigu_chat_sessions_${email}` cho User, `eigu_staff_shared_chat_sessions` cho Staff/Admin, và `eigu_header_bell_notifications_${email}`).
+  - **Đồng bộ hai chiều an toàn:** Khi Staff phản hồi, hệ thống đồng thời lưu vào kho chung của Staff và ghi đè an toàn vào đúng storage key `eigu_chat_sessions_${targetEmail}` của User nhận tin.
+  - **Phân quyền Console nghiêm ngặt:** Thêm kiểm tra `userProfile.role === 'admin' || userProfile.role === 'staff'` ngay đầu hàm `loadStaffChatConsole()`, chặn triệt để người dùng role `user` xem danh sách cuộc trò chuyện.
+  - **Dọn dẹp RAM State khi Logout:** Hàm `handleLogout()` trong `auth.service.js` gọi `resetChatState()` dọn dẹp sạch sẽ DOM và các biến RAM (`activeStaffChatEmail`, `notificationsData`, `isChatOpen`), đảm bảo khi tài khoản mới đăng nhập không bị rò rỉ dữ liệu từ tài khoản trước.
+

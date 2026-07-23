@@ -174,6 +174,14 @@ async function handleLogout() {
   document.querySelectorAll('#profile-dropdown .profile-menu-item').forEach(el => el.classList.remove('hidden'));
   document.querySelectorAll('#search-popup-body .search-result').forEach(el => el.classList.remove('hidden'));
 
+  // Reset Trạng thái Chat & Notification RAM state khi Đăng xuất
+  if (typeof resetChatState === 'function') {
+    resetChatState();
+  }
+  if (typeof notificationsData !== 'undefined') {
+    notificationsData = [];
+  }
+
   // Trả view về Hồ sơ
   if (typeof switchView === 'function') switchView('ho-so');
 
