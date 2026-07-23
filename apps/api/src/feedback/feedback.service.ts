@@ -1,7 +1,7 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import axios from 'axios';
-import FormData = require('form-data');
+import FormData from 'form-data';
 
 @Injectable()
 export class FeedbackService {

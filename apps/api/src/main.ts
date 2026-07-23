@@ -15,7 +15,7 @@ async function bootstrap() {
 
   app.enableCors();
 
-  const globalPrefix = 'api';
+  const globalPrefix = process.env.API_PREFIX || 'api';
   app.setGlobalPrefix(globalPrefix);
 
   app.useGlobalPipes(
@@ -38,7 +38,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document, {
+  SwaggerModule.setup(`${globalPrefix}/docs`, app, document, {
     customSiteTitle: 'EIGU API Documentation',
     customfavIcon: 'https://swagger.io/favicon-32x32.png',
   });
@@ -46,7 +46,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3001;
   await app.listen(port);
   Logger.log(`Application running on: http://localhost:${port}/${globalPrefix}`);
-  Logger.log(`Swagger: http://localhost:${port}/api/docs`);
+  Logger.log(`Swagger: http://localhost:${port}/${globalPrefix}/docs`);
 }
 
 bootstrap();

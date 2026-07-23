@@ -24,7 +24,7 @@ async function submitFeedback(event) {
     
     // apiFetch doesn't handle FormData easily if it forces JSON, so we use native fetch
     const token = localStorage.getItem('accessToken');
-    const res = await fetch('http://localhost:3001/api/feedback/report', {
+    const res = await fetch(window.EIGU_CONFIG.getApiUrl('/feedback/report'), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`

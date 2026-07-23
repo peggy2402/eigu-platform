@@ -8,7 +8,7 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { VideoWorkflowStatus } from '@eigu-platform/shared';
+import type { VideoWorkflowStatus } from '@eigu-platform/shared';
 
 @WebSocketGateway({
   cors: { origin: '*' },

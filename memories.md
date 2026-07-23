@@ -526,6 +526,105 @@ Xử lý:
   - **Live Video Preview Engine:** Tự động áp dụng hiệu ứng CSS Filter (`brightness`, `contrast`, `saturate`, `transform`) và render lớp ảnh Logo trực tiếp trên thẻ xem trước Video (`#video-preview-card`) theo thời gian thực khi người dùng di chuyển các thanh kéo hoặc bấm đổi vị trí Logo.
   - **Cập nhật Quy chuẩn UI (`AI_CONTEXT.md`):** Đã thêm cờ `No Default Raw Number Inputs & Custom Sliders (CRITICAL UI/UX)` vào tài liệu hướng dẫn dự án.
 
+### 18.14 Đổ sóng Real-time WebSocket Chat Support & Tự động Xóa Tin nhắn Cũ sau 24 Giờ (Supabase Clean Architecture)
+- **Thời gian xử lý:** 23/07/2026 16:30 GMT+7
+- **Nguyên nhân:** Trước đó tin nhắn giữa User và Staff/Admin chỉ được lưu cục bộ trong `localStorage` / DOM của từng máy, nên tin nhắn gửi từ máy User ("Hello bạn hiền") không được phát đi qua mạng, khiến máy Staff/Admin không nhận được.
+- **Khắc phục:**
+  - **WebSocket Chat Gateway (`/chat` namespace):** Xây dựng `ChatGateway`, `ChatService`, `ChatController` và `ChatModule` trên NestJS API (`apps/api`).
+  - **Đồng bộ Real-time 2 chiều:**
+    - Khi User gửi tin nhắn `chat:send_message`, NestJS API lập tức ghi dữ liệu vào Supabase PostgreSQL (`ChatMessage`), phát trực tiếp `chat:message_received` và `chat:sessions_updated` tới phòng của User và console của Staff.
+    - Khi Staff mở xem tin nhắn, tự động phát `chat:mark_seen` cập nhật trạng thái `✓✓ Đã xem` trên màn hình User tức thì.
+  - **Tự động Dọn dẹp Tin nhắn Cũ hơn 24 Giờ (Auto TTL Cleanup):**
+    - `ChatService` tự động chạy Cron job mỗi 1 giờ (`setInterval`) xóa sạch các tin nhắn có `createdAt < 24 giờ` (`deleteMany`).
+    - Giữ dung lượng bảng `ChatMessage` trên Supabase PostgreSQL luôn gọn nhẹ, tối ưu 100% tài nguyên miễn phí và tốc độ truy vấn vượt trội.
+
+### 18.15 Khởi tạo MODULES_PROJECT.md & Thiết lập Skill Tự động Bổ sung Mô-đun Dự án
+- **Thời gian xử lý:** 23/07/2026 16:42 GMT+7
+- **Chi tiết:**
+  - **Khởi tạo `MODULES_PROJECT.md`:** Đã tạo tài liệu gốc [MODULES_PROJECT.md](file:///Users/peggy2402/Projects/eigu-platform/MODULES_PROJECT.md) thống kê đầy đủ toàn bộ mô-đun trong Nx Workspace (4 Apps, 1 Shared Lib, 8 NestJS Backend API Modules và 25 UI Feature Modules/TabKeys).
+  - **Thiết lập Skill Tự động (`AI_CONTEXT.md`):** Đã gắn cờ quy tắc `Tự Động Cập Nhật Danh Sách Mô-Đun Dự Án (CRITICAL AUTOMATION SKILL)` vào [AI_CONTEXT.md](file:///Users/peggy2402/Projects/eigu-platform/AI_CONTEXT.md). Sau này khi người dùng gõ lệnh `"Bổ sung module 'abcxyz'"`, AI sẽ tự động đọc, phân loại và ghi bổ sung mô-đun mới vào file `MODULES_PROJECT.md`.
+
+### 18.16 Cập nhật Tài liệu Hướng dẫn (EIGU_GUIDE.md) & Đặc tả Kiến trúc (EIGU_ARCHITECTURE_SPEC.md)
+- **Thời gian xử lý:** 23/07/2026 16:47 GMT+7
+- **Chi tiết:**
+  - **Cập nhật [EIGU_GUIDE.md](file:///Users/peggy2402/Projects/eigu-platform/EIGU_GUIDE.md):** Bổ sung hướng dẫn cấu hình Prisma 7 (`prisma.config.ts`), Supabase PostgreSQL, quy trình chạy 4 Apps (NestJS, Electron Desktop, Next.js Web, Flutter Mobile), danh mục đầy đủ 30 REST Endpoints + 2 WebSockets, và tính năng Desktop Engine mới (Range Sliders, 9-Grid Logo Overlay, Auto Output Path Finder/Explorer).
+  - **Cập nhật [EIGU_ARCHITECTURE_SPEC.md](file:///Users/peggy2402/Projects/eigu-platform/EIGU_ARCHITECTURE_SPEC.md):** Đã thống kê danh mục chi tiết **32 Cổng Giao Tiếp Hạ Tầng API** (30 REST Endpoints + 2 WebSockets `/workflow` & `/chat`), cơ chế Auto TTL Cleanup 24h trên Supabase, kỹ thuật FFmpeg Chèn Logo 9 vị trí và kiến trúc định tuyến Proxy Châu Âu chống rò rỉ WebRTC.
+
+### 18.17 Triệt tiêu Lỗi Lặp Tin Nhắn Real-time Chat & Bổ sung Skill Khử Trùng Lặp (`AI_CONTEXT.md`)
+- **Thời gian xử lý:** 23/07/2026 16:51 GMT+7
+- **Nguyên nhân:** Khi gửi tin nhắn qua WebSocket, phía Client tạo ID tạm thời (ví dụ `usr_msg_1784799...`) để render ngay trên UI. Sau khi Server lưu vào DB và phát lại sự kiện `chat:message_received` mang ID mới từ DB, hàm nhận sự kiện chỉ kiểm tra `m.id === msg.id`. Do ID không trùng nhau, Client lầm tưởng đây là tin nhắn mới và đẩy tiếp (`push`) vào mảng, gây ra hiện tượng 1 tin nhắn hiển thị **2 lần** trên màn hình User và Staff.
+- **Khắc phục:**
+  - **Truyền Client ID đồng bộ:** Cập nhật `sendChatMessage` & `sendStaffChatMessage` trong `live-chat.js` truyền mã `id` tạm thời lên server. `ChatService.saveMessage()` trên NestJS API nhận `dto.id` để lưu chính xác vào DB.
+  - **Khử trùng lặp thông minh (Deduplication Engine):** Trong `onWebSocketChatMessage()`, hàm sẽ đối soát theo `m.id === msg.id || (m.sender === msg.sender && m.text === msg.message && timeDelta < 10s)`. Nếu khớp tin nhắn tạm thời thì **cập nhật lại ID & status chuẩn**, triệt tiêu 100% hiện tượng trùng lặp tin nhắn.
+  - **Bổ sung Skill Quy chuẩn (`AI_CONTEXT.md`):** Đã thêm cờ `Real-Time Event Deduplication & Client Temp ID Matching (CRITICAL REALTIME SKILL)` vào tài liệu hướng dẫn [AI_CONTEXT.md](file:///Users/peggy2402/Projects/eigu-platform/AI_CONTEXT.md).
+
+### 18.18 Khởi tạo PROMPT_GUIDE_MODULES.md & Bổ sung Skill Tương thích Đa Hệ Điều Hành (Windows & macOS)
+- **Thời gian xử lý:** 23/07/2026 16:58 GMT+7
+- **Chi tiết:**
+  - **Khởi tạo [PROMPT_GUIDE_MODULES.md](file:///Users/peggy2402/Projects/eigu-platform/PROMPT_GUIDE_MODULES.md):** Biên soạn bộ tài liệu hướng dẫn viết Prompt chuẩn định hướng mô-đun dành cho AI Assistant (mẫu câu lệnh, tra cứu mã TabKey và cấu trúc tệp mã nguồn liên quan).
+  - **Thiết lập Skill Viết Prompt Định Hướng Mô-Đun (`AI_CONTEXT.md`):** Thêm quy tắc `Strict Module Targeting & Prompt Guide Compliance Skill (CRITICAL PROMPT SKILL)` buộc AI phải đối chiếu file `PROMPT_GUIDE_MODULES.md` để lập trình chính xác vào đúng mô-đun được yêu cầu.
+  - **Thiết lập Skill Tương Thích 100% Đa Hệ Điều Hành Windows & macOS (`AI_CONTEXT.md`):** Thêm cờ `Cross-Platform Dual OS Compatibility Skill (Windows & macOS) (CRITICAL CROSS-PLATFORM SKILL)`. Yêu cầu AI loại bỏ hoàn toàn hardcode đường dẫn `tmp` hay `/` / `\`, tự động chuẩn hóa bằng `path.join()`, `app.getPath('downloads')`, tự động chuyển đổi Encoders FFmpeg (`hevc_videotoolbox` / `h264_videotoolbox` trên macOS vs `libx264` / `nvenc` / `amf` trên Windows) và mở cửa sổ native File Explorer (Windows) / Finder (macOS) mượt mà cho bản Production.
+
+### 18.19 Sửa Lỗi TypeScript Compiler `Option 'bundler' can only be used when 'module' is set to...`
+- **Thời gian xử lý:** 23/07/2026 17:00 GMT+7
+- **Nguyên nhân:** File `apps/desktop/tsconfig.app.json` ghi đè `"module": "commonjs"`, trong khi file `tsconfig.base.json` kế thừa cấu hình `"moduleResolution": "bundler"`. TypeScript compiler quy định cờ `bundler` chỉ chấp nhận với các giá trị module từ `es2015`/`esnext`/`preserve` trở lên.
+- **Khắc phục:**
+  - Bổ sung `"moduleResolution": "node"` và `"ignoreDeprecations": "6.0"` vào `compilerOptions` của file [apps/desktop/tsconfig.app.json](file:///Users/peggy2402/Projects/eigu-platform/apps/desktop/tsconfig.app.json).
+  - Biên dịch thành công 100% không còn lỗi (`npx tsc --noEmit`).
+
+### 18.20 Chuẩn hóa Đồng bộ TypeScript ESNext & Bundler Module Resolution (`apps/api` & `apps/desktop`)
+- **Thời gian xử lý:** 23/07/2026 17:11 GMT+7
+- **Nguyên nhân:** File `apps/api/tsconfig.app.json` và `apps/desktop/tsconfig.app.json` thiết lập `"module": "commonjs"` kết hợp với `"moduleResolution": "bundler"`. Trong TypeScript 6.0+, sự kết hợp này gây lỗi xung đột `Option 'bundler' can only be used when 'module' is set to 'preserve' or to 'es2015' or later` và cảnh báo TS5107 deprecation với Node10.
+- **Khắc phục:**
+  - Đồng bộ `"module": "esnext"` và `"moduleResolution": "bundler"` trong `compilerOptions` của cả [apps/api/tsconfig.app.json](file:///Users/peggy2402/Projects/eigu-platform/apps/api/tsconfig.app.json) và [apps/desktop/tsconfig.app.json](file:///Users/peggy2402/Projects/eigu-platform/apps/desktop/tsconfig.app.json).
+  - Cập nhật các câu lệnh `import FormData = require('form-data');` thành chuẩn ES module `import FormData from 'form-data';` trong [feedback.service.ts](file:///Users/peggy2402/Projects/eigu-platform/apps/api/src/feedback/feedback.service.ts) và [voice.service.ts](file:///Users/peggy2402/Projects/eigu-platform/apps/api/src/voice/voice.service.ts).
+  - Chạy `npx nx run-many --target=build --projects=api,desktop` thành công 100% (Zero Errors).
+
+### 18.21 Xử lý Cảnh báo Type-Only Import Tránh Webpack Warning (`apps/api`)
+- **Thời gian xử lý:** 23/07/2026 17:15 GMT+7
+- **Nguyên nhân:** Webpack phát cảnh báo `export '...' was not found` khi import interface/type TypeScript thông qua `import { ... }` thông thường vì các type/interface bị xóa ở giai đoạn transpilation.
+- **Khắc phục:**
+  - Chuyển thành cú pháp Type-Only import: `import { ChatService, type CreateChatMessageDto }` trong [chat.gateway.ts](file:///Users/peggy2402/Projects/eigu-platform/apps/api/src/chat/chat.gateway.ts) và `import type { VideoWorkflowStatus }` trong [workflow.gateway.ts](file:///Users/peggy2402/Projects/eigu-platform/apps/api/src/app/workflow.gateway.ts).
+  - Lệnh `npx nx build api` hoàn tất 100% sạch bóng cảnh báo (0 Warnings, 0 Errors).
+
+### 18.22 Chuẩn hóa Quản lý Cấu hình Tập trung Centralized `baseUrl` & `API_ENDPOINTS` (`packages/shared` & Desktop UI)
+- **Thời gian xử lý:** 23/07/2026 17:24 GMT+7
+- **Nguyên nhân:** Địa chỉ URL gốc (`http://localhost:3001/api`, `http://localhost:3001`) trước đây bị lặp lại ở nhiều file JS/TS riêng lẻ (`settings.js`, `live-chat.js`, `api.ts`...).
+- **Khắc phục:**
+  - **Tập trung hóa trong `@eigu-platform/shared`:** Tạo file [constants.ts](file:///Users/peggy2402/Projects/eigu-platform/packages/shared/src/lib/constants.ts) định nghĩa các hàm `getApiBaseUrl()`, `getWebSocketUrl()` và object `API_ENDPOINTS` tra cứu tập trung.
+  - **Tập trung hóa cho Desktop Assets UI:** Tạo file [config.js](file:///Users/peggy2402/Projects/eigu-platform/apps/desktop/src/assets/js/config.js) định nghĩa `window.EIGU_CONFIG`, `window.getApiBaseUrl()`, `window.getWebSocketUrl()`, tự động đọc từ `localStorage` hoặc mặc định.
+  - **Cập nhật các tệp giao diện:** Nạp `js/config.js` đầu tiên trong `index.html` và chuyển toàn bộ lời gọi `fetch` / `io` trong `settings.js`, `live-chat.js`, `api.ts` sang sử dụng hàm tập trung.
+
+### 18.23 Khởi tạo `apps/web/.env` & Bổ sung Biến Môi Trường Thiếu Cho `apps/api/.env`
+- **Thời gian xử lý:** 23/07/2026 17:29 GMT+7
+- **Chi tiết:**
+  - **Tạo mới `apps/web/.env`:** Tạo file biến môi trường [apps/web/.env](file:///Users/peggy2402/Projects/eigu-platform/apps/web/.env) với cấu hình `PORT=3000`, `NEXT_PUBLIC_API_URL` và `NEXT_PUBLIC_WS_URL`.
+  - **Bổ sung `apps/api/.env`:** Cập nhật file [apps/api/.env](file:///Users/peggy2402/Projects/eigu-platform/apps/api/.env) bổ sung các biến bị thiếu (`PORT=3001`, `JWT_REFRESH_SECRET`, `NEXT_PUBLIC_WS_URL=http://localhost:3001`), chuẩn hóa `NEXT_PUBLIC_API_URL=http://localhost:3001/api`.
+
+### 18.24 Khởi tạo URL_GUIDE.md Hướng Dẫn Thay Đổi Địa Chỉ URL Sản Phẩm (Production Ready)
+- **Thời gian xử lý:** 23/07/2026 21:28 GMT+7
+- **Chi tiết:**
+  - **Tạo mới [URL_GUIDE.md](file:///Users/peggy2402/Projects/eigu-platform/URL_GUIDE.md):** Tổng hợp danh mục tra cứu 4 vị trí thay đổi URL tập trung duy nhất cho 4 ứng dụng (Desktop App `js/config.js`, Backend API `.env`, Web Dashboard `.env`, Shared Lib `constants.ts`).
+
+### 18.25 Cấu hình Động Custom Obfuscated API Prefix & Chống Dò Quét API Route (`apps/api`)
+- **Thời gian xử lý:** 23/07/2026 21:44 GMT+7
+- **Chi tiết:**
+  - **Tích hợp `process.env.API_PREFIX` trong NestJS:** Cập nhật [apps/api/src/main.ts](file:///Users/peggy2402/Projects/eigu-platform/apps/api/src/main.ts) nhận diện linh hoạt cờ `API_PREFIX` từ file `.env` (ví dụ `api/v1` hoặc `api/eigu-v1-x98f21a`).
+  - **Obfuscation & Swagger Docs**: Swagger Docs tự động chuyển sang `${globalPrefix}/docs`. Hacker nếu thử scan URL mặc định `/api/auth/login` sẽ bị chặn và phản hồi `404 Not Found`.
+  - **Cập nhật tài liệu [URL_GUIDE.md](file:///Users/peggy2402/Projects/eigu-platform/URL_GUIDE.md)**: Hướng dẫn kỹ thuật thiết lập Custom API Prefix bảo mật nâng cao.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

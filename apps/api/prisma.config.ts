@@ -1,12 +1,12 @@
-import "dotenv/config";
-import { defineConfig } from "prisma/config";
+import { defineConfig } from '@prisma/config';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
-  migrations: {
-    path: "prisma/migrations",
-  },
+  schema: './prisma/schema.prisma',
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/eigu?schema=public',
   },
 });

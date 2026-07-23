@@ -1,4 +1,6 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { getApiBaseUrl, API_ENDPOINTS } from '@eigu-platform/shared';
+
+const API_BASE = getApiBaseUrl();
 
 async function request(path: string, options: RequestInit = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -16,24 +18,24 @@ async function request(path: string, options: RequestInit = {}) {
 
 export const authApi = {
   register: (username: string, email: string, password: string) =>
-    request('/auth/register', { method: 'POST', body: JSON.stringify({ username, email, password }) }),
+    request(API_ENDPOINTS.AUTH.REGISTER, { method: 'POST', body: JSON.stringify({ username, email, password }) }),
 
   verifyEmail: (email: string, otp: string) =>
-    request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ email, otp }) }),
+    request(API_ENDPOINTS.AUTH.VERIFY_EMAIL, { method: 'POST', body: JSON.stringify({ email, otp }) }),
 
   login: (identifier: string, password: string) =>
-    request('/auth/login', { method: 'POST', body: JSON.stringify({ identifier, password }) }),
+    request(API_ENDPOINTS.AUTH.LOGIN, { method: 'POST', body: JSON.stringify({ identifier, password }) }),
 
   forgotPassword: (email: string) =>
-    request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+    request(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, { method: 'POST', body: JSON.stringify({ email }) }),
 
   resetPassword: (email: string, otp: string, newPassword: string) =>
-    request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ email, otp, newPassword }) }),
+    request(API_ENDPOINTS.AUTH.RESET_PASSWORD, { method: 'POST', body: JSON.stringify({ email, otp, newPassword }) }),
 
   refresh: (refreshToken: string) =>
-    request('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
+    request(API_ENDPOINTS.AUTH.REFRESH, { method: 'POST', body: JSON.stringify({ refreshToken }) }),
 
-  getMe: () => request('/auth/me'),
+  getMe: () => request(API_ENDPOINTS.AUTH.ME),
 
-  logout: () => request('/auth/logout', { method: 'POST' }),
+  logout: () => request(API_ENDPOINTS.AUTH.LOGOUT, { method: 'POST' }),
 };

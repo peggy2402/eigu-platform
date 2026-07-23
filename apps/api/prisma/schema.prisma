@@ -105,9 +105,17 @@ model Notification {
 }
 
 model ChatMessage {
-  id        String   @id @default(uuid())
-  sender    String   // user, ai, staff
-  message   String
-  userId    String?
-  createdAt DateTime @default(now())
+  id            String    @id @default(uuid())
+  userEmail     String    @default("guest@eigu.vn")
+  username      String?
+  sender        String    // user, ai, staff
+  senderEmail   String?
+  message       String
+  status        String    @default("sent") // sent, seen
+  parentMsgId   String?
+  parentMsgText String?
+  createdAt     DateTime  @default(now())
+
+  @@index([userEmail])
+  @@index([createdAt])
 }

@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawn } from 'child_process';
 import * as os from 'os';
-import FormData = require('form-data');
+import FormData from 'form-data';
 
 interface MulterFile {
   fieldname: string;

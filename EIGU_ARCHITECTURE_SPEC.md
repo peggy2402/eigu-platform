@@ -1,7 +1,7 @@
 # Đặc Tả Kiến Trúc Hệ Thống: EIGU Platform
-**Chủ đề:** Tự Động Hóa MMO Định Tuyến TikTok Châu Âu
+**Chủ đề:** Tự Động Hóa MMO Định Tuyến TikTok Châu Âu & Hạ Tầng Đa Nền Tảng (Nx Monorepo)
 
-> **LƯU Ý DÀNH CHO AI ASSISTANT:** Đây là tài liệu thiết kế hệ thống chuyên sâu (System Architecture Specification) của nền tảng EIGU. Hãy tham chiếu tài liệu này để hiểu rõ về các quyết định kiến trúc, luồng dữ liệu, và các rào cản kỹ thuật trước khi đề xuất bất kỳ giải pháp lập trình nào.
+> **LƯU Ý DÀNH CHO AI ASSISTANT:** Đây là tài liệu thiết kế hệ thống chuyên sâu (System Architecture Specification) của nền tảng EIGU. Hãy tham chiếu tài liệu này để hiểu rõ về các quyết định kiến trúc, luồng dữ liệu, danh mục API và các rào cản kỹ thuật trước khi đề xuất bất kỳ giải pháp lập trình nào.
 
 ---
 
@@ -23,75 +23,103 @@ Dự án được hợp nhất dưới sự quản lý của **Nx Workspace** th
 ### Cấu Trúc Phân Bổ:
 | Tên Ứng Dụng / Gói | Công Nghệ Nền Tảng | Vai Trò Và Chức Năng Cốt Lõi |
 | :--- | :--- | :--- |
-| `apps/api` | NestJS (TypeScript) | Lõi máy chủ trung tâm. Quản lý REST API, điều phối WebSocket/WebRTC, xử lý JWT, lập lịch Cron Jobs. |
-| `apps/web` | Next.js (TypeScript) | Dashboard đám mây. Cung cấp giao diện React Flow để thiết kế workflow, theo dõi log, quản lý cấu hình. |
-| `apps/desktop` | Electron (TypeScript)| Máy khách cục bộ thực thi tác vụ nặng. Chạy Chromium Anti-detect, FFmpeg, thiết lập luồng proxy SOCKS5 chặn WebRTC. |
+| `apps/api` | NestJS (TypeScript) | Lõi máy chủ trung tâm (Cổng 3001). Quản lý 30 REST API, 2 WebSocket Gateways, xử lý JWT, lập lịch Cron Jobs & Prisma 7 Supabase. |
+| `apps/web` | Next.js (TypeScript) | Dashboard đám mây (Cổng 3000). Cung cấp giao diện React Flow để thiết kế workflow, theo dõi log, quản lý cấu hình. |
+| `apps/desktop` | Electron (TypeScript)| Máy khách cục bộ thực thi tác vụ nặng. Chạy Chromium Anti-detect, FFmpeg song song SSD, yt-dlp anti-bot, chèn Logo 9 vị trí. |
 | `apps/mobile` | Flutter (Dart/C++) | Ứng dụng iOS/Android theo dõi tiến trình từ xa, nhận Push Notifications khi workflow hoàn tất hoặc lỗi. |
 | `packages/shared`| TypeScript / C++ | Thư viện dùng chung chứa Interfaces, DTOs, JSON Schema của workflow, đảm bảo tính nhất quán. |
 
 ---
 
-## 3. Hệ Thống Giao Tiếp Thời Gian Thực
-Khác với Web truyền thống dùng REST API, EIGU là hệ thống phân tán yêu cầu giao tiếp **Full-duplex**.
-- **WebSocket (Socket.IO):** NestJS API (`@WebSocketGateway()`) đóng vai trò trung tâm. Desktop phát các sự kiện tiến trình xử lý (upload %, extract log), API broadcast ngay lập tức đến Web và Mobile.
-- **WebRTC:** Dùng cho giám sát màn hình Headless Browser độ trễ cực thấp (P2P). NestJS chỉ làm Signaling Server (trao đổi SDP/ICE candidates), luồng video truyền trực tiếp từ Desktop lên Web, giảm gánh nặng băng thông.
+## 3. Danh Mục Hạ Tầng Giao Tiếp (30 REST API Endpoints & 2 WebSocket Namespaces)
+
+Hệ thống cung cấp **30 REST API Endpoints** chuẩn Swagger (tại `/api/docs`) và **2 Kênh WebSocket Full-duplex**:
+
+### 🔐 1. Module Auth (`/api/auth`) - 9 Endpoints
+- `POST /api/auth/register`: Đăng ký tài khoản (Cấp OTP 6 số).
+- `POST /api/auth/verify-email`: Xác thực tài khoản với OTP.
+- `POST /api/auth/resend-otp`: Gửi lại mã OTP.
+- `POST /api/auth/login`: Đăng nhập bằng Email/Password (Trả JWT Access & Refresh Token).
+- `POST /api/auth/forgot-password`: Yêu cầu OTP quên mật khẩu.
+- `POST /api/auth/reset-password`: Đặt lại mật khẩu mới.
+- `POST /api/auth/refresh`: Làm mới JWT Access Token.
+- `POST /api/auth/logout`: Đăng xuất và vô hiệu hóa token.
+- `GET /api/auth/me`: Lấy profile tài khoản hiện tại.
+
+### 👥 2. Module Users & Phân Quyền (`/api/users`) - 7 Endpoints
+- `GET /api/users`: Truy vấn danh sách người dùng (Search, Filter Role, Pagination).
+- `PATCH /api/users/:id/role`: Cập nhật quyền (Admin, Staff, User).
+- `PATCH /api/users/:id/ban`: Khóa/Mở khóa tài khoản (Ban vĩnh viễn / tạm thời + lý do).
+- `GET /api/users/:id/tab-permissions`: Lấy quyền hiển thị các Tab.
+- `PATCH /api/users/:id/tab-permissions`: Phân quyền ẩn/hiện từng Tab.
+- `GET /api/users/:id/tabs`: Lấy chuỗi Allowed Tabs.
+- `PATCH /api/users/:id/tabs`: Cập nhật chuỗi Allowed Tabs.
+
+### 💬 3. Module Support Chat (`/api/chat` & `/chat`) - 3 Endpoints + 1 WebSocket
+- `GET /api/chat/history`: Lấy lịch sử cuộc trò chuyện theo Email.
+- `GET /api/chat/sessions`: Lấy danh sách các phiên chat cho Staff Console.
+- `DELETE /api/chat/cleanup`: Tự động xóa tin nhắn cũ hơn 24h (Auto TTL Cleanup).
+- `WebSocket /chat`: Kênh WebSocket giao tiếp thời gian thực 2 chiều (`chat:join`, `chat:send_message`, `chat:mark_seen`, `chat:message_received`, `chat:status_updated`, `chat:sessions_updated`).
+
+### 🔔 4. Module Notifications (`/api/notifications`) - 5 Endpoints
+- `GET /api/notifications`: Lấy danh sách thông báo hệ thống.
+- `POST /api/notifications`: Tạo thông báo mới (Admin).
+- `PUT /api/notifications/:id`: Cập nhật nội dung thông báo.
+- `DELETE /api/notifications/:id`: Xóa thông báo.
+- `PATCH /api/notifications/read-all`: Đánh dấu đã đọc tất cả thông báo.
+
+### 💬 5. Module Feedback (`/api/feedback`) - 3 Endpoints
+- `POST /api/feedback/report`: Gửi báo lỗi/góp ý kèm ảnh đính kèm tới Discord Webhook (Giới hạn 3 lượt/ngày).
+- `GET /api/feedback`: Lấy danh sách phản hồi cho Admin/Staff.
+- `DELETE /api/feedback/:id`: Xóa phản hồi.
+
+### 🎙️ 6. Module Voice AI (`/api/voice`) - 2 Endpoints
+- `GET /api/voice/speakers`: Lấy danh sách giọng đọc AI (ElevenLabs, OmniVoice, Self-hosted).
+- `POST /api/voice/convert`: Chuyển đổi giọng đọc từ file audio.
+
+### ⚙️ 7. System & Workflow Gateway - 1 Endpoint + 1 WebSocket
+- `GET /api`: Health Check Endpoint kiểm tra hệ thống.
+- `WebSocket /workflow`: Cổng điều phối luồng xử lý tự động hóa (YouTube Download, FFmpeg Progress %, Status updates).
 
 ---
 
-## 4. Trí Tuệ Nhân Tạo (AI) Trong Phân Tích Và Trích Xuất Video
-Thay thế quy trình cắt ghép thủ công bằng luồng Machine Learning:
-1. **Thu thập & Trích xuất:** Lấy video YouTube độ phân giải cao, trích xuất âm thanh và đẩy vào mô hình ASR (Whisper) để lấy văn bản kèm timestamp chuẩn mili-giây.
-2. **LLM Analysis:** Gửi văn bản cho LLM (GPT-4) phân tích cốt truyện, xác định điểm ngắt tự nhiên để chia thành các đoạn 1-3 phút.
-3. **Auto-Metadata:** LLM tự động tạo Title giật tít, Description, Hashtags tối ưu cho thị trường Châu Âu.
-4. **Binge-watching hook:** AI tự chèn nhãn `[Phần 1/3]`, `[Phần 2/3]` vào Title và Text trên video để kích thích xem tiếp.
+## 4. Hệ Thống Giao Tiếp Thời Gian Thực (Real-Time Architecture)
+Hệ thống kết hợp **WebSocket (Socket.IO)** và **WebRTC**:
+- **WebSocket (Socket.IO):** NestJS API (`@WebSocketGateway()`) điều phối 2 cổng `/workflow` (tiến trình cắt ghép video) và `/chat` (tin nhắn hỗ trợ 2 chiều User ↔ Staff ↔ AI).
+- **WebRTC:** Dùng cho giám sát màn hình Headless Browser độ trễ cực thấp (P2P). NestJS làm Signaling Server (trao đổi SDP/ICE candidates), luồng video truyền trực tiếp từ Desktop lên Web.
 
 ---
 
-## 5. Phá Hủy Dấu Vân Tay Kỹ Thuật Số Bằng FFmpeg
-Cắt bằng CapCut không làm thay đổi Pixel Array và File Hash, dễ bị đánh cờ "Unoriginal Content". EIGU dùng bộ lọc FFmpeg phức tạp để tạo ra thực thể nhị phân mới hoàn toàn:
+## 5. Phá Hủy Dấu Vân Tay Kỹ Thuật Số Bằng FFmpeg & Logo Overlay
+EIGU dùng bộ lọc FFmpeg phức tạp để tạo ra thực thể nhị phân mới hoàn toàn:
 
-| Kỹ Thuật Biến Đổi | Tham Số / Bộ Lọc (Ví dụ) | Cơ Chế Đánh Lừa TikTok |
+| Kỹ Thuật Biến Đổi | Tham Số / Bộ Lọc | Cơ Chế Đánh Lừa TikTok |
 | :--- | :--- | :--- |
+| **Chèn Logo / Watermark 9 Vị Trí** | `movie='logo.png',scale=iw*ratio:-1,format=rgba,colorchannelmixer=aa=opacity[logo]; [in][logo]overlay=x:y` | Ghi đè nhãn thương hiệu độc quyền lên 9 vị trí (Top-Left ➔ Bottom-Right), chống reup trái phép. |
+| **Vi Chỉnh Màu Sắc (EQ Sliders)** | `-vf "eq=brightness=...:contrast=...:saturation=..."` | Thay đổi giá trị Hex của hàng triệu Pixel, phá hủy bộ lọc Perceptual Hash trùng lặp. |
 | **Loại Bỏ Khung Hình Trùng Lặp (Decimation)** | `-vf mpdecimate,setpts=N/FRAME_RATE/TB` | Xóa khung hình tĩnh, tái cấu trúc timestamps. Phá hủy chữ ký Perceptual Hash. |
 | **Chuyển Đổi Không Gian Âm Thanh (Spatial Panning)** | `-af "pan=stereo\|c0<c0+0*c1"` | Đảo kênh, trộn âm thanh không gian để vượt qua quét phổ âm (audio fingerprint). |
-| **Tiêm Nhiễu Hình Ảnh (Noise Injection)** | `-filter_complex "noise=alls=1:allf=t, eq=contrast=1.01..."` | Thêm nhiễu hạt nhẹ, vi chỉnh tương phản để thay đổi giá trị hex của hàng triệu pixel. |
 | **Xóa Bỏ Dấu Vết Siêu Dữ Liệu (Metadata Stripping)** | `-map_metadata -1 -metadata title="" ...` | Dọn sạch thẻ ID3, EXIF, phần mềm biên tập, tạo tệp MP4 "sạch" tuyệt đối. |
 
 ---
 
 ## 6. Trình Duyệt Chống Phát Hiện & Quản Lý Hồ Sơ (Anti-Detect Browser)
-Sử dụng Headless Chrome tiêu chuẩn + Puppeteer Stealth là không đủ trước TLS/HTTP2 checks của Cloudflare/TikTok.
 - **Engine-Level Spoofing:** EIGU phân phối bản Fork Chromium tùy chỉnh (C++). Mọi lệnh gọi API định tuyến Canvas, WebGL, Audio, GPU, Fonts, HardwareConcurrency đều trả về giá trị giả mạo cấp lõi (Coherence Matching).
-- **Profile Isolation:** Quản lý `user-data-dir` cục bộ cho mỗi tài khoản. Nạp lại nguyên vẹn Cookies, Cache, IndexedDB. Không chia sẻ dữ liệu nhận dạng giữa các phiên.
+- **Profile Isolation:** Quản lý `user-data-dir` cục bộ cho mỗi tài khoản. Nạp lại nguyên vẹn Cookies, Cache, IndexedDB.
 
 ---
 
 ## 7. Đảm Bảo Định Tuyến Mạng & Chống Rò Rỉ WebRTC Tuyệt Đối
-Proxy SOCKS5/Residential IP Châu Âu có nguy cơ lộ IP gốc qua UDP (STUN servers của WebRTC).
 - **Khóa WebRTC (WebRTC IP Handling Policy):** Chromium tùy chỉnh bật cờ `media.peerconnection.ice.default_address_only` và buộc chính sách định tuyến `Disable non-proxied UDP`. UDP bị ép qua Proxy, chặn rò rỉ 100%.
-- **Local Helper Proxy (Cầu Nối Nội Bộ):** Chromium không hỗ trợ SOCKS5 có User/Pass trực tiếp qua Command Line. Desktop App tích hợp một máy chủ trung gian (127.0.0.1:9050). Puppeteer kết nối không mật khẩu, Helper Proxy sẽ gắn xác thực, mã hóa và điều hướng gói tin Layer 5 (SOCKS5) ra mạng Châu Âu.
+- **Local Helper Proxy (Cầu Nối Nội Bộ):** Desktop App tích hợp máy chủ trung gian (127.0.0.1:9050). Puppeteer kết nối không mật khẩu, Helper Proxy sẽ gắn xác thực, mã hóa và điều hướng gói tin SOCKS5 ra mạng Châu Âu.
 
 ---
 
-## 8. Động Cơ Tự Động Hóa Luồng Công Việc (Visual Workflow Engine)
-Xây dựng qua Next.js + React Flow (kéo thả node):
-- **Nodes:** Lấy URL -> Tải xuống -> AI Xử lý -> FFmpeg -> Nạp Hồ Sơ -> Tải lên TikTok.
-- Dữ liệu xuất ra `JSON Schema` chuẩn hóa, đồng bộ xuống Desktop qua WebSocket.
-- **Properties (Cấu hình tĩnh), Variables (Biến động)** (VD: `{{generated_title}}` điền tự động vào input), và **Logs** (Theo dõi lỗi thời gian thực).
-- **Auto-Extensions:** Tự động giải nén và nạp Chrome Extensions (chặn QC, dịch thuật) qua `--disable-extensions-except`.
+## 8. Quản Lý Dữ Liệu & Tự Động Xóa Cũ (Supabase TTL Auto-Cleanup)
+- **Prisma 7 + Supabase PostgreSQL**: Quản lý schema tập trung tại `schema.prisma` và `prisma.config.ts`.
+- **Tự Động Xóa Tin Nhắn Cũ 24h (TTL Cleanup)**: `ChatService` tự động chạy Cron job mỗi 1 giờ xóa các bản ghi tin nhắn chat có `createdAt < 24h`, giữ cho dung lượng cơ sở dữ liệu Supabase luôn ở mức tối thiểu và tốc độ truy vấn luôn nhanh nhất.
 
 ---
 
-## 9. Xử Lý Tương Tác Cấp Thấp & Vượt Qua Cloudflare
-- **Mô phỏng chuột người thật:** Di chuyển chuột theo đường cong toán học Bézier (Bézier curves), thay đổi gia tốc ngẫu nhiên, dừng trước khi click tạo Heatmap tự nhiên.
-- **Chờ phần tử thông minh:** Đợi siêu dữ liệu tải xong (`wait.until` + `aria-disabled="false"`) thay vì dính lỗi `ElementNotInteractableException`.
-- **Cloudflare Turnstile Bypass:** Nếu gặp "Just a moment...", Puppeteer ẩn đặc tính tự động hóa tại lớp Blink, chờ qua vòng captcha và trích xuất cookies `cf_clearance` để tái sử dụng.
-
----
-
-## 10. Kết Luận
-Nền tảng EIGU tái cấu trúc toàn diện quy trình MMO TikTok. Sự kết hợp giữa Nx Monorepo, AI LLM/ASR, biến đổi FFmpeg hạ tầng nhị phân, và C++ Custom Chromium tạo ra một danh tính số Châu Âu 100% nguyên bản, qua mặt mọi thuật toán kiểm duyệt và hệ thống bảo mật, mang lại lợi thế mở rộng không giới hạn.
-
----
-### Nguồn tham khảo (Works cited)
-*(Được tổng hợp từ các thảo luận Reddit MMO, thư viện mã nguồn mở Chromium/Puppeteer, tài liệu API Nx, NestJS, và kỹ thuật chống rò rỉ WebRTC)*.
+## 9. Kết Luận
+Nền tảng EIGU tái cấu trúc toàn diện quy trình MMO TikTok. Sự kết hợp giữa Nx Monorepo, 32 Cổng giao tiếp API/WebSocket, AI LLM/ASR, biến đổi FFmpeg hạ tầng nhị phân và C++ Custom Chromium tạo ra một danh tính số Châu Âu 100% nguyên bản, mang lại lợi thế mở rộng không giới hạn.

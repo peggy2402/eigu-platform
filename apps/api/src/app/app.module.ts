@@ -9,9 +9,10 @@ import { FeedbackModule } from '../feedback/feedback.module';
 import { VoiceModule } from '../voice/voice.module';
 import { UsersModule } from '../users/users.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { ChatModule } from '../chat/chat.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, FeedbackModule, VoiceModule, UsersModule, NotificationsModule],
+  imports: [PrismaModule, AuthModule, FeedbackModule, VoiceModule, UsersModule, NotificationsModule, ChatModule],
   controllers: [AppController],
   providers: [
     AppService,

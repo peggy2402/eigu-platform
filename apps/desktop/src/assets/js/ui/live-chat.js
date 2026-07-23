@@ -6,10 +6,168 @@ let activeStaffChatEmail = null;
 
 let activeUserReplyQuote = null;
 let activeStaffReplyQuote = null;
+let chatSocket = null;
 
 const AVATAR_CUSTOMER = 'https://cdn2.fptshop.com.vn/unsafe/800x0/avatar_anime_nam_cute_14_60037b48e5.jpg';
 const AVATAR_STAFF = 'img/logo.png';
 const AVATAR_AI = 'img/logo.png';
+
+function initChatWebSocket() {
+  const ioFunc = window.io || (typeof require === 'function' ? require('socket.io-client') : null);
+  if (!ioFunc) return;
+
+  if (!chatSocket) {
+    try {
+      const wsUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getWsUrl('/chat') : 'http://localhost:3001/chat';
+      chatSocket = ioFunc(wsUrl, {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+      });
+
+      chatSocket.on('connect', () => {
+        console.log('✅ Chat WebSocket Connected:', chatSocket.id);
+        const email = getUserEmail();
+        const role = typeof userProfile !== 'undefined' && userProfile ? userProfile.role : 'user';
+        chatSocket.emit('chat:join', { userEmail: email, role });
+      });
+
+      chatSocket.on('chat:message_received', (msg) => {
+        onWebSocketChatMessage(msg);
+      });
+
+      chatSocket.on('chat:sessions_updated', (sessions) => {
+        onWebSocketSessionsUpdated(sessions);
+      });
+
+      chatSocket.on('chat:status_updated', (data) => {
+        onWebSocketStatusUpdated(data);
+      });
+    } catch (err) {
+      console.error('[ChatWS] connection error:', err);
+    }
+  } else if (chatSocket.connected) {
+    const email = getUserEmail();
+    const role = typeof userProfile !== 'undefined' && userProfile ? userProfile.role : 'user';
+    chatSocket.emit('chat:join', { userEmail: email, role });
+  }
+}
+
+async function loadChatHistoryFromApi() {
+  const email = getUserEmail();
+  if (!email) return;
+
+  try {
+    const apiUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getApiUrl(`/chat/history?userEmail=${encodeURIComponent(email)}`) : `http://localhost:3001/api/chat/history?userEmail=${encodeURIComponent(email)}`;
+    const res = await fetch(apiUrl);
+    if (!res.ok) return;
+    const msgs = await res.json();
+
+    if (Array.isArray(msgs) && msgs.length > 0) {
+      const sessions = getStoredChatSessions();
+      sessions[email] = {
+        userEmail: email,
+        username: (typeof userProfile !== 'undefined' && userProfile && userProfile.username) ? userProfile.username : email.split('@')[0],
+        needsStaff: msgs.some(m => m.message.includes('@Staff') || m.message.includes('yêu cầu Staff')),
+        unreadForStaff: false,
+        lastActive: new Date().toISOString(),
+        messages: msgs.map(m => ({
+          id: m.id,
+          sender: m.sender,
+          text: m.message,
+          time: new Date(m.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+          status: m.status,
+          parentMsg: m.parentMsgText ? { id: m.parentMsgId, text: m.parentMsgText } : null
+        }))
+      };
+      saveStoredChatSessions(sessions, true);
+      if (isChatOpen) {
+        renderUserChatHistory();
+      }
+    }
+  } catch (err) {
+    console.error('[ChatHistory API] fetch error:', err);
+  }
+}
+
+function onWebSocketChatMessage(msg) {
+  if (!msg || !msg.userEmail) return;
+
+  const targetEmail = msg.userEmail.toLowerCase();
+  const myEmail = getUserEmail().toLowerCase();
+  const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
+
+  const sessions = getStoredChatSessions(targetEmail);
+  if (!sessions[targetEmail]) {
+    sessions[targetEmail] = {
+      userEmail: targetEmail,
+      username: msg.username || targetEmail.split('@')[0],
+      needsStaff: false,
+      unreadForStaff: false,
+      lastActive: new Date().toISOString(),
+      messages: []
+    };
+  }
+
+  const sess = sessions[targetEmail];
+  const formattedMsg = {
+    id: msg.id,
+    sender: msg.sender,
+    text: msg.message,
+    time: new Date(msg.createdAt || Date.now()).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+    status: msg.status || 'sent',
+    parentMsg: msg.parentMsgText ? { id: msg.parentMsgId, text: msg.parentMsgText } : null
+  };
+
+  const existingIdx = sess.messages.findIndex(m =>
+    m.id === msg.id ||
+    (m.sender === msg.sender && m.text === msg.message && Math.abs(Date.now() - new Date(msg.createdAt || Date.now()).getTime()) < 10000)
+  );
+
+  if (existingIdx !== -1) {
+    sess.messages[existingIdx] = formattedMsg;
+  } else {
+    sess.messages.push(formattedMsg);
+  }
+
+  sess.lastActive = new Date().toISOString();
+  saveStoredChatSessions(sessions, false, targetEmail);
+
+  if (myEmail === targetEmail && !isStaffOrAdmin) {
+    renderUserChatHistory();
+    if (msg.sender !== 'user') {
+      notifyUnreadUserChatMessage();
+    }
+  }
+
+  if (isStaffOrAdmin) {
+    if (activeStaffChatEmail && activeStaffChatEmail.toLowerCase() === targetEmail) {
+      renderStaffChatConsoleMessages(targetEmail);
+    }
+    loadStaffChatConsole();
+  }
+}
+
+function onWebSocketSessionsUpdated(serverSessions) {
+  const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
+  if (isStaffOrAdmin) {
+    loadStaffChatConsole();
+  }
+}
+
+function onWebSocketStatusUpdated(data) {
+  if (!data || !data.userEmail) return;
+  const targetEmail = data.userEmail.toLowerCase();
+  const sessions = getStoredChatSessions(targetEmail);
+  if (sessions[targetEmail] && Array.isArray(sessions[targetEmail].messages)) {
+    sessions[targetEmail].messages.forEach(m => {
+      if (m.sender === 'user') m.status = 'seen';
+    });
+    saveStoredChatSessions(sessions, true, targetEmail);
+  }
+  if (getUserEmail().toLowerCase() === targetEmail) {
+    renderUserChatHistory();
+  }
+}
 
 // Complete Knowledge Base for all 25 TabKeys & Features
 const EIGU_SYSTEM_KNOWLEDGE = {
@@ -361,6 +519,22 @@ async function sendChatMessage() {
 
   session.messages.push(newMsg);
   session.lastActive = new Date().toISOString();
+  saveStoredChatSessions(sessions);
+  renderUserChatHistory();
+
+  // Phát WebSocket Real-time tới API Server
+  initChatWebSocket();
+  if (chatSocket && chatSocket.connected) {
+    chatSocket.emit('chat:send_message', {
+      id: msgId,
+      userEmail: email,
+      username: username,
+      sender: 'user',
+      message: text,
+      parentMsgId: activeUserReplyQuote ? activeUserReplyQuote.id : null,
+      parentMsgText: activeUserReplyQuote ? activeUserReplyQuote.text : null
+    });
+  }
 
   // Check Slash Commands & Mentions
   const isAiMention = /@Eigu AI/i.test(text) || text.startsWith('/ai');
@@ -734,6 +908,12 @@ function selectStaffChatSession(email) {
 
   saveStoredChatSessions(sessions, false);
 
+  // Phát WebSocket mark_seen
+  initChatWebSocket();
+  if (chatSocket && chatSocket.connected) {
+    chatSocket.emit('chat:mark_seen', { userEmail: email });
+  }
+
   // Update Header
   const nameEl = document.getElementById('staff-chat-target-name');
   const emailEl = document.getElementById('staff-chat-target-email');
@@ -828,6 +1008,20 @@ function sendStaffChatMessage(e) {
   session.messages.push(newMsg);
   session.lastActive = new Date().toISOString();
   saveStoredChatSessions(sessions);
+
+  // Phát WebSocket Real-time tới API Server
+  initChatWebSocket();
+  if (chatSocket && chatSocket.connected) {
+    chatSocket.emit('chat:send_message', {
+      id: msgId,
+      userEmail: activeStaffChatEmail,
+      username: 'Staff / Admin',
+      sender: 'staff',
+      message: text,
+      parentMsgId: activeStaffReplyQuote ? activeStaffReplyQuote.id : null,
+      parentMsgText: activeStaffReplyQuote ? activeStaffReplyQuote.text : null
+    });
+  }
 
   // Render to Staff Chat Box
   selectStaffChatSession(activeStaffChatEmail);
