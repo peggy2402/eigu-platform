@@ -1,3 +1,10 @@
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load environment variables from apps/api/.env and workspace root .env
+config({ path: resolve(process.cwd(), 'apps/api/.env') });
+config({ path: resolve(process.cwd(), '.env') });
+
 import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import * as path from 'path';
 import { io, Socket } from 'socket.io-client';
@@ -86,14 +93,34 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+async function syncApiPrefixFromGateway() {
+  try {
+    const port = process.env.PORT || 3001;
+    const res = await fetch(`http://localhost:${port}/api/bootstrap`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.apiPrefix) {
+        process.env.API_PREFIX = data.apiPrefix;
+      }
+    }
+  } catch (e) {
+    // Gateway offline or starting up — will use default 'api' prefix
+  }
+}
+
+app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
   if (process.platform === 'darwin') {
     app.dock.setIcon(path.resolve(process.cwd(), 'apps/desktop/src/assets/img/logo.png'));
   }
-  createWindow();
 
   console.log('🚀 Khởi động EIGU Desktop Engine...');
+
+  // Sync API Prefix from Gateway BEFORE creating the window
+  // so the renderer gets the correct obfuscation URL from the first IPC call
+  await syncApiPrefixFromGateway();
+
+  createWindow();
 
   // Kết nối đến NestJS API
   const socket = io('http://localhost:3001/workflow');
@@ -104,6 +131,53 @@ app.whenReady().then(() => {
 
   // Lắng nghe sự kiện từ giao diện UI khi người dùng ấn nút Xử lý
   let cancelCurrentWorkflow: (() => void) | null = null;
+
+  // Moved syncApiPrefixFromGateway BEFORE app.whenReady block for early access
+  // (defined as hoisted function at module level)
+
+  function resolveApiUrl() {
+    const port = process.env.PORT || 3001;
+    const rawPrefix = (process.env.API_PREFIX || '').trim().replace(/^\//, '').replace(/\/$/, '');
+    let prefix = 'api';
+    if (rawPrefix && rawPrefix !== 'api') {
+      prefix = rawPrefix.startsWith('api/') ? rawPrefix : `api/${rawPrefix}`;
+    }
+
+    let rawUrl = process.env.NEXT_PUBLIC_API_URL || process.env.EIGU_API_URL || `http://localhost:${port}`;
+    rawUrl = rawUrl.replace(/\/$/, '');
+
+    let baseHost = rawUrl.replace(/\/api\/.*$/, '').replace(/\/api$/, '');
+    if (!baseHost) baseHost = `http://localhost:${port}`;
+
+    return `${baseHost}/${prefix}`;
+  }
+
+  ipcMain.on('get-api-config-sync', (event) => {
+    const port = process.env.PORT || 3001;
+    const apiPrefix = process.env.API_PREFIX || 'api';
+    const apiUrl = resolveApiUrl();
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `http://localhost:${port}`;
+    event.returnValue = { apiUrl, wsUrl, apiPrefix, port };
+  });
+
+  ipcMain.handle('get-api-config', async () => {
+    await syncApiPrefixFromGateway();
+    const port = process.env.PORT || 3001;
+    const apiPrefix = process.env.API_PREFIX || 'api';
+    const apiUrl = resolveApiUrl();
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `http://localhost:${port}`;
+    return { apiUrl, wsUrl, apiPrefix, port };
+  });
+
+  ipcMain.handle('save-api-config', async (_event, newConfig) => {
+    if (newConfig && newConfig.apiPrefix) {
+      process.env.API_PREFIX = newConfig.apiPrefix;
+    }
+    if (newConfig && newConfig.apiUrl) {
+      process.env.NEXT_PUBLIC_API_URL = newConfig.apiUrl;
+    }
+    return true;
+  });
 
   ipcMain.handle('get-default-output-folder', async () => {
     const defaultDir = path.join(app.getPath('downloads'), 'eigu', 'outputs');

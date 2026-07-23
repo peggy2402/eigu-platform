@@ -13,9 +13,19 @@ export const DEFAULT_WEBSOCKET_URL = 'http://localhost:3001';
 export function getApiBaseUrl(): string {
   if (typeof process !== 'undefined' && process && process.env) {
     const env = process.env;
-    if (env['NEXT_PUBLIC_API_URL']) return env['NEXT_PUBLIC_API_URL'];
-    if (env['EIGU_API_URL']) return env['EIGU_API_URL'];
-    if (env['API_URL']) return env['API_URL'];
+    const rawPrefix = (env['API_PREFIX'] || '').trim().replace(/^\//, '').replace(/\/$/, '');
+    let prefix = 'api';
+    if (rawPrefix && rawPrefix !== 'api') {
+      prefix = rawPrefix.startsWith('api/') ? rawPrefix : `api/${rawPrefix}`;
+    }
+
+    let rawUrl = env['NEXT_PUBLIC_API_URL'] || env['EIGU_API_URL'] || env['API_URL'] || 'http://localhost:3001';
+    rawUrl = rawUrl.replace(/\/$/, '');
+
+    let baseHost = rawUrl.replace(/\/api\/.*$/, '').replace(/\/api$/, '');
+    if (!baseHost) baseHost = 'http://localhost:3001';
+
+    return `${baseHost}/${prefix}`;
   }
   if (typeof window !== 'undefined' && window && (window as any).EIGU_CONFIG && (window as any).EIGU_CONFIG.API_BASE_URL) {
     return (window as any).EIGU_CONFIG.API_BASE_URL;

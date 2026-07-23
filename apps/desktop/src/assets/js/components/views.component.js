@@ -420,41 +420,65 @@ const ViewsComponent = `
 </div>
 
 <!-- Guide View -->
-<div id="view-guide" class="view">
-  <div class="guide-section">
-    <h3 class="guide-heading">1. Dashboard</h3>
-    <p>Trang tổng quan hiển thị số liệu video đã xử lý, đã upload TikTok, đang chờ và số tài khoản TikTok đang quản lý. Theo dõi hoạt động gần đây ở phía dưới.</p>
-  </div>
-  <div class="guide-section">
-    <h3 class="guide-heading">2. Tự động hóa video</h3>
-    <p><strong>Đầu vào:</strong> Kéo thả file .mp4 hoặc dán link YouTube để tải video về tự động.</p>
-    <p><strong>Chế độ cắt:</strong> Chọn độ dài mỗi video (1-20 phút) hoặc tùy chỉnh thời gian cụ thể.</p>
-    <p><strong>Tỉ lệ khung hình:</strong> 9:16 (TikTok/Shorts), 16:9 (YouTube), 1:1 (Instagram) hoặc giữ nguyên.</p>
-    <p><strong>Anti-Detect:</strong> Xóa metadata, thêm nhiễu hạt, xóa khung hình tĩnh, đảo âm thanh 3D để tránh phát hiện nội dung không nguyên bản.</p>
-    <p><strong>Đầu ra:</strong> Video đã xử lý được lưu vào thư mục đầu ra (mặc định hoặc tùy chỉnh).</p>
-  </div>
-  <div class="guide-section">
-    <h3 class="guide-heading">3. Workflow</h3>
-    <p>Thiết kế luồng xử lý tự động bằng cách kéo thả các node. Các node có sẵn: Lấy URL → Tải xuống → AI Xử lý (ASR + LLM) → FFmpeg → Nạp Hồ sơ → Tải lên TikTok. Kết nối các node bằng đường kéo để tạo pipeline hoàn chỉnh.</p>
-  </div>
-  <div class="guide-section">
-    <h3 class="guide-heading">4. Quản lý hồ sơ</h3>
-    <p>Xem thông tin tài khoản: Email, vai trò, trạng thái xác thực, ngày tạo. Mỗi tài khoản là một Browser Profile riêng biệt với Cookies và Proxy riêng.</p>
-  </div>
-  <div class="guide-section">
-    <h3 class="guide-heading">5. Proxy & Mạng</h3>
-    <p>Cấu hình SOCKS5/Residential Proxy cho từng Browser Profile. Tính năng khóa WebRTC ngăn rò rỉ địa chỉ IP thật qua UDP/STUN. Máy chủ trung gian nội bộ (127.0.0.1:9050) tự động xác thực proxy cho Chromium.</p>
-  </div>
-  <div class="guide-section">
-    <h3 class="guide-heading">6. Cài đặt</h3>
-    <p>Chọn giao diện Sáng/Tối/Hệ thống. Quản lý cache, cấu hình workflow mặc định, thiết lập proxy và trình duyệt.</p>
+<div id="view-guide" class="view" style="width: 100%; box-sizing: border-box;">
+  <div class="guide-container">
+    <div class="guide-section">
+      <div class="guide-heading">
+        <span>📊 1. Dashboard</span>
+        <span class="guide-badge">Tổng quan</span>
+      </div>
+      <p>Trang tổng quan hiển thị số liệu video đã xử lý, đã upload TikTok, đang chờ và số tài khoản TikTok đang quản lý. Theo dõi hoạt động hệ thống thời gian thực.</p>
+    </div>
+    
+    <div class="guide-section">
+      <div class="guide-heading">
+        <span>🎬 2. Tự động hóa Video</span>
+        <span class="guide-badge">Cắt ghép AI</span>
+      </div>
+      <p><strong>Đầu vào:</strong> Kéo thả file .mp4 hoặc dán link YouTube để tải video tự động.</p>
+      <p><strong>Chế độ cắt:</strong> Chọn độ dài mỗi video (1-20 phút) hoặc tùy chỉnh chi tiết.</p>
+      <p><strong>Tỉ lệ khung hình:</strong> 9:16 (TikTok/Shorts), 16:9 (YouTube), 1:1 (Instagram).</p>
+      <p><strong>Anti-Detect:</strong> Xóa metadata, thêm nhiễu hạt, lật khung hình, đảo âm thanh 3D chống bản quyền.</p>
+    </div>
+    
+    <div class="guide-section">
+      <div class="guide-heading">
+        <span>🔄 3. Visual Workflow Builder</span>
+        <span class="guide-badge">Luồng tự động</span>
+      </div>
+      <p>Thiết kế luồng xử lý tự động bằng cách kéo thả các Node: Lấy URL ➔ Tải xuống ➔ AI Xử lý (ASR + LLM) ➔ FFmpeg ➔ Nạp Hồ sơ Browser ➔ Tải lên TikTok.</p>
+    </div>
+    
+    <div class="guide-section">
+      <div class="guide-heading">
+        <span>🌐 4. Quản lý Hồ sơ & Proxy</span>
+        <span class="guide-badge">Anti-Detect</span>
+      </div>
+      <p>Mỗi tài khoản là một Browser Profile riêng biệt với Cookies, Proxy SOCKS5/Residential riêng. Khóa WebRTC ngăn rò rỉ địa chỉ IP thật qua UDP/STUN.</p>
+    </div>
+    
+    <div class="guide-section">
+      <div class="guide-heading">
+        <span>👥 5. Phân Quyền & Đội Nhóm</span>
+        <span class="guide-badge">RBAC System</span>
+      </div>
+      <p>Hệ thống phân quyền 3 cấp độ (Admin, Staff, User). Admin có quyền bật/tắt hiển thị từng Tab chức năng riêng biệt cho từng tài khoản nhân viên.</p>
+    </div>
+    
+    <div class="guide-section">
+      <div class="guide-heading">
+        <span>🛠️ 6. Cấu Hình & Giám Sát Lỗi</span>
+        <span class="guide-badge">Telemetry</span>
+      </div>
+      <p>Tự động ghi nhận 100% Stack Trace, Mã lỗi HTTP, Session Replay Action Trail giúp đội ngũ phát triển phát hiện và xử lý sự cố tức thì.</p>
+    </div>
   </div>
 </div>
 
 <!-- Settings View -->
-<div id="view-settings" class="view">
+<div id="view-settings" class="view" style="width: 100%; box-sizing: border-box;">
   <div class="settings-card-section">
-    <h3 style="margin-bottom:16px;">Giao diện</h3>
+    <h3 style="margin-bottom:16px;">Giao diện ứng dụng</h3>
     <div class="theme-options">
       <div class="theme-option" data-theme="light"><span data-icon="sun"></span> Sáng</div>
       <div class="theme-option" data-theme="dark"><span data-icon="moon"></span> Tối</div>
@@ -462,20 +486,56 @@ const ViewsComponent = `
     </div>
   </div>
 
-  <div id="secure-api-settings-section" class="settings-card-section" style="margin-top:16px; display: none;">
+  <!-- Cấu hình Tiền tố API Server & Obfuscation Code (Admin Obfuscation Key Management) -->
+  <div id="admin-api-prefix-settings-section" class="settings-card-section" style="margin-top:20px; display: none;">
+    <h3 style="margin-bottom:8px;">🔒 Cấu Hình Mã Tiền Tố Động (Admin Custom Obfuscation Prefix)</h3>
+    <p class="settings-hint">Điều chỉnh chuỗi mã hóa bảo mật (<code>obf_code</code> / <code>API_PREFIX</code>) để bảo vệ các endpoints hệ thống khỏi các công cụ tự động quét route (Scan Bot / Hacker).</p>
+    
+    <div style="display:flex; gap:12px; margin-top: 14px; align-items: center; flex-wrap: wrap;">
+      <label style="font-weight: 600; font-size: 13px; min-width: 140px; color: var(--text-secondary);">Mã Mã Hóa (<code>obf_code</code>):</label>
+      <input type="text" id="admin-custom-api-prefix" placeholder="v2-sec-2026" style="flex:1; min-width: 240px; padding: 10px 14px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-family: monospace; font-size: 13px;" oninput="updateApiRoutePreview()" />
+      <button class="btn-primary" onclick="saveAdminApiConfig()" style="padding: 10px 24px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; min-width: 130px; margin: 0;">Lưu Mã Tiền Tố</button>
+    </div>
+
+    <!-- Hiển thị xem trước Đường dẫn Server URL Hoàn Chỉnh -->
+    <div style="margin-top: 12px; padding: 10px 14px; background: var(--bg-primary); border-radius: 8px; border: 1px dashed var(--border-color); font-size: 12px;">
+      <span style="color: var(--text-muted);">Đường dẫn Server xem trước:</span>
+      <code id="admin-api-url-preview" style="color: var(--accent); font-weight: 700; font-family: monospace; margin-left: 6px;">http://localhost:3001/api/v2-sec-2026</code>
+    </div>
+
+    <p id="admin-api-url-status" class="settings-hint" style="margin-top: 8px; color: var(--accent); display: none;"></p>
+  </div>
+
+  <!-- Dashboard Theo Dõi Bug, Stack Trace & Performance Telemetry (CHỈ ADMIN MỚI ĐƯỢC XEM) -->
+  <div id="system-telemetry-section" class="settings-card-section" style="margin-top:20px; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); display: none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap: wrap; gap: 8px;">
+      <h3 style="color: #ef4444; margin:0; display:inline-flex; align-items:center; gap:6px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3 3 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6z"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg> Theo Dõi Bug, Stack Trace & Performance Dashboard</h3>
+      <button class="btn-outline" onclick="if(window.EIGU_TELEMETRY) window.EIGU_TELEMETRY.clearLogs();" style="padding:4px 12px; font-size:12px; border-color:#ef4444; color:#ef4444; border-radius: 6px;">Xóa Logs</button>
+    </div>
+    <p class="settings-hint">Tự động ghi nhận 100% Stack Trace, Mã lỗi HTTP, Session Replay Action Trail và độ trễ mạng theo thời gian thực.</p>
+    
+    <div id="telemetry-logs-list" style="margin-top: 14px; max-height: 320px; overflow-y: auto;">
+      <div style="text-align:center; padding: 20px; color: var(--text-muted);">✅ Chưa ghi nhận lỗi hệ thống nào.</div>
+    </div>
+  </div>
+
+  <div id="secure-api-settings-section" class="settings-card-section" style="margin-top:20px; display: none;">
     <h3 style="margin-bottom:8px;">Bể chứa API Keys (Tự động xoay vòng)</h3>
     <p class="settings-hint">Các key sẽ được mã hóa an toàn bằng chip bảo mật của máy tính (Keychain/DPAPI) trước khi lưu xuống ổ đĩa, đảm bảo 100% không bị rò rỉ.</p>
     
     <!-- Form thêm Key -->
-    <div style="display:flex; gap:8px; margin-bottom: 12px; margin-top: 12px;">
-      <select id="new-key-type" style="width: 120px; padding: 8px; border-radius: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);">
+    <div style="display:flex; gap:10px; margin-bottom: 14px; margin-top: 14px; flex-wrap: wrap;">
+      <select id="new-key-type" style="width: 140px; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px;">
         <option value="GEMINI_API_KEY">Gemini API</option>
         <option value="FAL_KEY">Fal.ai API</option>
         <option value="OPENAI_API_KEY">OpenAI API</option>
       </select>
-      <input type="password" id="new-key-value" placeholder="Dán API Key vào đây..." style="flex:1; padding: 8px; border-radius: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);" />
-      <input type="text" id="new-key-note" placeholder="Ghi chú (Ví dụ: Acc 1)" style="width: 120px; padding: 8px; border-radius: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);" />
-      <button class="btn-primary" onclick="addNewApiKey()" style="padding: 8px 16px; border-radius: 6px;">Thêm</button>
+      <div style="flex:1; min-width: 220px; position: relative; display: flex; align-items: center;">
+        <input type="password" id="new-key-value" placeholder="Dán API Key vào đây..." style="width: 100%; padding: 10px 36px 10px 12px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px;" />
+        <button type="button" onclick="toggleInputEye('new-key-value', this)" title="Hiện Key" style="position: absolute; right: 10px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 2px; display: inline-flex; align-items: center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+      <input type="text" id="new-key-note" placeholder="Ghi chú" style="width: 140px; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px;" />
+      <button class="btn-primary" onclick="addNewApiKey()" style="padding: 10px 20px; border-radius: 8px; margin: 0; white-space: nowrap;">Thêm Key</button>
     </div>
 
     <!-- Danh sách Key hiện tại -->
@@ -483,10 +543,10 @@ const ViewsComponent = `
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
         <thead>
           <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-card);">
-            <th style="padding: 10px;">Loại</th>
-            <th style="padding: 10px;">Key (Ẩn)</th>
-            <th style="padding: 10px;">Ghi chú</th>
-            <th style="padding: 10px; width: 60px; text-align:center;">Hành động</th>
+            <th style="padding: 12px;">Loại</th>
+            <th style="padding: 12px;">Key (Ẩn)</th>
+            <th style="padding: 12px;">Ghi chú</th>
+            <th style="padding: 12px; width: 80px; text-align:center;">Hành động</th>
           </tr>
         </thead>
         <tbody id="api-keys-list-body">
@@ -496,24 +556,19 @@ const ViewsComponent = `
     </div>
   </div>
 
-  <div class="settings-card-section" style="margin-top:16px;">
-    <h3 style="margin-bottom:8px;">Cache & Dữ liệu</h3>
-    <p class="settings-hint">Quản lý bộ nhớ đệm, xoá dữ liệu workflow, cấu hình đầu ra mặc định.</p>
+  <div class="settings-card-section" style="margin-top:20px;">
+    <h3 style="margin-bottom:8px;">Cache & Dữ liệu bộ nhớ đệm</h3>
+    <p class="settings-hint">Quản lý bộ nhớ đệm, xoá dữ liệu workflow tạm thời, cấu hình thư mục đầu ra mặc định.</p>
   </div>
 
-  <div class="settings-card-section" style="margin-top:16px;">
-    <h3 style="margin-bottom:8px;">Proxy & Mạng</h3>
-    <p class="settings-hint">Cấu hình SOCKS5 / Residential proxy cho Anti-Detect Browser, chặn rò rỉ WebRTC.</p>
+  <div class="settings-card-section" style="margin-top:20px;">
+    <h3 style="margin-bottom:8px;">Proxy & Bảo Mật Mạng</h3>
+    <p class="settings-hint">Cấu hình SOCKS5 / Residential proxy cho Anti-Detect Browser, chặn rò rỉ WebRTC UDP/STUN.</p>
   </div>
 
-  <div class="settings-card-section" style="margin-top:16px;">
-    <h3 style="margin-bottom:8px;">Workflow Mặc định</h3>
-    <p class="settings-hint">Cài đặt mặc định cho cắt ghép, tỉ lệ khung hình, xử lý Anti-Detect, metadata.</p>
-  </div>
-
-  <div class="settings-card-section" style="margin-top:16px;">
-    <h3 style="margin-bottom:8px;">Trình duyệt & Hồ sơ</h3>
-    <p class="settings-hint">Quản lý Chrome Profile isolation, Chromium data-dir, tự tự động nạp extensions.</p>
+  <div class="settings-card-section" style="margin-top:20px;">
+    <h3 style="margin-bottom:8px;">Workflow & Anti-Detect Mặc Định</h3>
+    <p class="settings-hint">Cài đặt mặc định cho xử lý video, tỉ lệ khung hình, lật ảnh, dải tần âm thanh và xóa metadata.</p>
   </div>
 </div>
 

@@ -103,6 +103,7 @@ export class ApiKeyStore {
         id: item.id,
         type: item.type,
         maskedValue: masked,
+        fullValue: decrypted,
         note: item.note,
         isReadOnly: false
       });
@@ -123,6 +124,7 @@ export class ApiKeyStore {
           id: `env_${type}_${index}`,
           type: type,
           maskedValue: masked,
+          fullValue: key,
           note: 'Hệ thống (.env)',
           isReadOnly: true
         });

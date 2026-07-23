@@ -11,7 +11,7 @@ function formatFriendlyErrorMessage(raw) {
     return 'Tên đăng nhập / Email hoặc mật khẩu không chính xác.';
   }
   if (lower.includes('failed to fetch') || lower.includes('networkerror') || lower.includes('network request failed')) {
-    return 'Không thể kết nối tới máy chủ API. Vui lòng kiểm tra lại đường truyền kết nối.';
+    return 'Không thể kết nối tới máy chủ. Vui lòng thử lại sau!';
   }
   if (lower.includes('email not verified')) {
     return 'Tài khoản chưa được xác thực email. Vui lòng kiểm tra hộp thư OTP.';
@@ -35,19 +35,28 @@ function formatFriendlyErrorMessage(raw) {
 async function apiFetch(path, options = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
-  
+
+  const baseUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : (localStorage.getItem('eigu_api_url') || 'http://localhost:3001/api');
+  const fullUrl = `${baseUrl}${path}`;
+
   try {
-    const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+    const res = await fetch(fullUrl, { ...options, headers });
     const data = await res.json();
     if (!res.ok) {
       const rawMsg = typeof data.message === 'string' ? data.message : (Array.isArray(data.message) ? data.message.join(', ') : 'Có lỗi xảy ra');
       const friendlyMsg = formatFriendlyErrorMessage(rawMsg);
       const err = new Error(friendlyMsg);
       err.data = data;
+      if (window.EIGU_TELEMETRY) {
+        window.EIGU_TELEMETRY.captureError(err, `HTTP_${res.status}`, { url: fullUrl, method: options.method || 'GET', status: res.status, rawResponse: data });
+      }
       throw err;
     }
     return data;
   } catch (err) {
+    if (window.EIGU_TELEMETRY && !err.data) {
+      window.EIGU_TELEMETRY.captureError(err, 'NETWORK_ERROR', { url: fullUrl, method: options.method || 'GET' });
+    }
     if (err.data) throw err;
     const friendlyMsg = formatFriendlyErrorMessage(err.message);
     const friendlyErr = new Error(friendlyMsg);

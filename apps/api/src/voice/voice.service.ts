@@ -80,7 +80,7 @@ export class VoiceService {
       return { speakers };
     } catch (err: any) {
       this.logger.error(`ElevenLabs API error: ${err.message}`);
-      throw new HttpException('Không thể kết nối ElevenLabs API.', HttpStatus.BAD_GATEWAY);
+      throw new HttpException('Không thể kết nối tới máy chủ. Vui lòng thử lại sau!', HttpStatus.BAD_GATEWAY);
     }
   }
 

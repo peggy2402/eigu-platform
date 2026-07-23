@@ -119,3 +119,76 @@ model ChatMessage {
   @@index([userEmail])
   @@index([createdAt])
 }
+
+model SystemConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
+enum RotationStrategy {
+  MANUAL
+  DAILY
+  WEEKLY
+  MONTHLY
+  CRON
+}
+
+enum HistoryStatus {
+  ACTIVE
+  GRACE_PERIOD
+  EXPIRED
+  ROLLED_BACK
+  DISABLED
+}
+
+model SecuritySetting {
+  id                      String           @id @default(uuid())
+  module                  String           @unique // e.g. "AUTH", "USERS", "PAYMENT", "AI", "NOTIFICATION"
+  activeCode              String           @unique
+  previousCode            String?
+  gracePeriodExpiresAt    DateTime?
+  emergencyDisabled       Boolean          @default(false)
+  rotationStrategy        RotationStrategy @default(MANUAL)
+  autoRotateIntervalDays  Int              @default(7)
+  nextRotationAt          DateTime?
+  updatedById             String?
+  updatedAt               DateTime         @updatedAt
+  createdAt               DateTime         @default(now())
+
+  @@index([module])
+  @@index([activeCode])
+}
+
+model ObfuscationHistory {
+  id          String        @id @default(uuid())
+  module      String
+  code        String
+  status      HistoryStatus @default(ACTIVE)
+  createdById String?
+  reason      String?
+  expiredAt   DateTime?
+  createdAt   DateTime      @default(now())
+
+  @@index([module, status])
+  @@index([code])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String?
+  action     String   // e.g. "ROTATE_CODE", "EMERGENCY_DISABLE", "ROLLBACK"
+  module     String
+  ipAddress  String?
+  userAgent  String?
+  payload    String?
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
+}
+

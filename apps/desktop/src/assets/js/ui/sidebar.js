@@ -49,6 +49,7 @@ function switchView(view, navEl, sub, e) {
     'chat-support': ['Chat Support', 'Hỗ trợ khách hàng thời gian thực'],
     'user-management': ['Quản lý User/Staff', 'Phân quyền tài khoản hệ thống'],
     'create-notification': ['Tạo thông báo', 'Phát thông báo tới hệ thống máy trạm'],
+    'feedback': ['Góp ý / Báo lỗi', 'Gửi báo cáo lỗi kèm hình ảnh đính kèm tới đội ngũ phát triển'],
     'feedback-management': ['Quản lý Feedback', 'Theo dõi và xử lý các báo cáo góp ý từ người dùng'],
   };
   const [t, s] = titles[view] || ['', ''];

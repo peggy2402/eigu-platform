@@ -1,34 +1,121 @@
+/* EIGU Platform - Profile, Settings & Guide Modern Responsive Styling */
+
 .profile-card, .settings-card-section {
-  background: var(--bg-card); border: 1px solid var(--border-color);
-  border-radius: var(--radius); padding: 24px; max-width: 520px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 20px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.profile-field { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+
+.profile-card:hover, .settings-card-section:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.profile-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-color);
+}
 .profile-field:last-child { border: none; }
-.profile-field .field-label { color: var(--text-secondary); font-size: 13px; }
-.profile-field .field-value { font-weight: 500; font-size: 14px; }
+.profile-field .field-label { color: var(--text-secondary); font-size: 13px; font-weight: 500; }
+.profile-field .field-value { font-weight: 600; font-size: 14px; color: var(--text-primary); }
 
 .theme-options {
-  display: flex; gap: 8px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
 }
 .theme-option {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 12px 16px; border-radius: var(--radius-sm); cursor: pointer;
-  background: var(--bg-primary); border: 1.5px solid var(--border-color);
-  color: var(--text-secondary); font-size: 13px; font-weight: 500;
-  transition: all 0.15s; user-select: none;
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
 }
-.theme-option:hover { border-color: var(--border-light); color: var(--text-primary); }
-.theme-option.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+.theme-option:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+.theme-option.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
 
-.settings-hint { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+.settings-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Guide Container & Responsive Multi-column Grid */
+.guide-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
 
 .guide-section {
-  background: var(--bg-card); border: 1px solid var(--border-color);
-  border-radius: var(--radius); padding: 20px 24px; max-width: 640px; margin-bottom: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
 }
-.guide-section p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 8px; }
+.guide-section:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+.guide-section p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
 .guide-section p:last-child { margin-bottom: 0; }
 .guide-heading {
-  font-size: 16px; font-weight: 600; color: var(--text-primary);
-  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.guide-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid rgba(99, 102, 241, 0.3);
 }

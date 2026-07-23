@@ -21,14 +21,9 @@ function updateProfile() {
       roleBadge.style.color = cfg.color;
     }
 
-    // Phân quyền cho phần Cài đặt API
-    const apiSettingsSection = document.getElementById('secure-api-settings-section');
-    if (apiSettingsSection) {
-      if (userProfile.role === 'admin' || userProfile.role === 'staff') {
-        apiSettingsSection.style.display = 'block';
-      } else {
-        apiSettingsSection.style.display = 'none';
-      }
+    // Phân quyền cho phần Cài đặt API & Telemetry (Chỉ Admin)
+    if (typeof loadAdminApiConfig === 'function') {
+      loadAdminApiConfig();
     }
 
     // Phân quyền hiển thị Sidebar Tabs cho Admin & Staff
