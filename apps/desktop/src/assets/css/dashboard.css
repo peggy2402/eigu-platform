@@ -372,6 +372,23 @@
   background: var(--bg-primary);
 }
 
+/* Ẩn scroll dọc cho Cửa sổ Chat tương tác bên phải (Windows & Cross-platform) */
+#staff-chat-messages,
+.chat-messages,
+.chat-input-editable,
+.mention-dropdown-menu {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+#staff-chat-messages::-webkit-scrollbar,
+.chat-messages::-webkit-scrollbar,
+.chat-input-editable::-webkit-scrollbar,
+.mention-dropdown-menu::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 /* Modern Messaging Layout (Discord/Telegram/Messenger/Slack Style) */
 .msg-wrapper {
   display: flex;
