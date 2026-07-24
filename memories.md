@@ -813,3 +813,11 @@ Xử lý:
      - **Báo Lỗi & Phản Hồi Khách Hàng**: Xem danh sách các góp ý/báo lỗi kèm hình ảnh đính kèm từ người dùng.
   2. Cập nhật [Sidebar.tsx](file:///Users/peggy2402/Projects/eigu-platform/apps/web/src/components/layout/Sidebar.tsx) & [page.tsx](file:///Users/peggy2402/Projects/eigu-platform/apps/web/src/app/page.tsx): Thêm nút điều hướng nổi bật **"Trung tâm Vận hành"** (`ShieldCheck` icon).
   3. Cập nhật [MODULES_PROJECT.md](file:///Users/peggy2402/Projects/eigu-platform/MODULES_PROJECT.md): Bổ sung mô-đun `27. backoffice-mgmt` theo quy chuẩn Rule 46.
+
+### 18.68 Nâng Cấp UI/UX Premium, Loại Bỏ Emoji & Sửa Lỗi Responsive Thu Nhỏ Cửa Sổ
+- **Thời gian xử lý:** 24/07/2026 15:38 GMT+7
+- **Tối Ưu Thẩm Mỹ & Khắc Phục Lỗi Co Giãn Giao Diện:**
+  - **Loại bỏ 100% Emoji Icon**: Xóa bỏ toàn bộ icon emoji thô ráp, thay thế bằng nhãn Soft Badge cao cấp và SVG Icons chuẩn doanh nghiệp tuân thủ quy tắc thiết kế trong `AI_CONTEXT.md`.
+  - **Sửa Lỗi Phóng To / Thu Nhỏ Cửa Sổ (Window Resizing Fix)**: Cập nhật `#view-user-activity-logs` sang cấu trúc Responsive Flex Height (`height: 100%; display: flex; flex-direction: column; overflow: hidden;`), khung chứa bảng có `overflow-y: auto; overflow-x: auto; min-width: 850px;`, đồng thời tự động chuyển đổi linh hoạt sang dạng **Responsive Card Grid Layout** khi thu nhỏ cửa sổ ứng dụng, giúp nội dung lịch sử hiển thị đầy đủ, không bao giờ bị cắt xén hay ẩn mất.
+  - **Chuẩn Hóa Tên Thao Tác (Friendly Action Labels)**: Chuẩn hóa tên hành động thô (`LOGIN` ➔ `Đăng nhập hệ thống`, `CUT_VIDEO` ➔ `Tự động cắt video`, `UPDATE_SETTINGS` ➔ `Cập nhật Cài đặt`).
+  - **Phân Quyền Lọc Role (RBAC)**: Tự động ẩn thanh chọn Role đối với tài khoản User, ẩn lựa chọn Admin đối với Staff, chỉ hiển thị đầy đủ đối với Admin.

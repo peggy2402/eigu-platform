@@ -14,39 +14,44 @@ const SidebarComponent = `
     <span class="nav-icon toggle-icon" data-icon="chevronLeft" style="font-size: 20px; color: var(--text-secondary); transition: transform 0.3s; position: absolute; right: 16px;" title="Ctrl/Cmd + /"></span>
   </div>
   <nav class="sidebar-nav">
+    <!-- Tab Dashboard Admin dành riêng cho Admin (NẰM TRÊN HỒ SƠ) -->
+    <div class="nav-item admin-only hidden" data-view="admin-dashboard" onclick="switchView('admin-dashboard', this, null, event)">
+      <span class="nav-icon" data-icon="dashboard"></span>
+      <span class="nav-label" data-i18n="admin_dashboard">Dashboard Admin</span>
+    </div>
     <div class="nav-item active" data-view="ho-so" onclick="switchView('ho-so', this, null, event)">
       <span class="nav-icon" data-icon="user"></span>
-      <span class="nav-label">Hồ sơ</span>
+      <span class="nav-label" data-i18n="profile">Hồ sơ</span>
     </div>
     <div class="nav-item-wrapper">
       <div class="nav-item" data-view="cong-cu" onclick="toggleDropdown(this, event)">
         <span class="nav-icon" data-icon="zap"></span>
-        <span class="nav-label">Công cụ</span>
+        <span class="nav-label" data-i18n="tools">Công cụ</span>
         <span class="dropdown-arrow" data-icon="chevronRight"></span>
       </div>
       <div class="nav-sub">
-        <div class="nav-sub-item cong-cu" data-sub="cut" onclick="switchView('cut', document.querySelector('[data-view=cong-cu]'), 'cut', event)"><span data-icon="scissors" style="vertical-align:middle;margin-right:4px;"></span> Tự động cắt</div>
-        <div class="nav-sub-item cong-cu" data-sub="ai-video" onclick="switchView('ai-video', document.querySelector('[data-view=cong-cu]'), 'ai-video', event)"><span data-icon="zap" style="vertical-align:middle;margin-right:4px;"></span> Tạo video AI</div>
-        <div class="nav-sub-item cong-cu" data-sub="reup" onclick="switchView('reup', document.querySelector('[data-view=cong-cu]'), 'reup', event)"><span data-icon="upload" style="vertical-align:middle;margin-right:4px;"></span> Tạo video Reup</div>
-        <div class="nav-sub-item cong-cu" data-sub="hot-niche" onclick="switchView('hot-niche', document.querySelector('[data-view=cong-cu]'), 'hot-niche', event)"><span data-icon="trendingUp" style="vertical-align:middle;margin-right:4px;"></span> Tìm ngách hot</div>
-        <div class="nav-sub-item cong-cu" data-sub="bulk-download" onclick="switchView('bulk-download', document.querySelector('[data-view=cong-cu]'), 'bulk-download', event)"><span data-icon="downloadCloud" style="vertical-align:middle;margin-right:4px;"></span> Tải video hàng loạt</div>
+        <div class="nav-sub-item cong-cu" data-sub="cut" onclick="switchView('cut', document.querySelector('[data-view=cong-cu]'), 'cut', event)"><span data-icon="scissors" style="vertical-align:middle;margin-right:4px;"></span> <span data-i18n="sub_cut">Tự động cắt</span></div>
+        <div class="nav-sub-item cong-cu" data-sub="ai-video" onclick="switchView('ai-video', document.querySelector('[data-view=cong-cu]'), 'ai-video', event)"><span data-icon="zap" style="vertical-align:middle;margin-right:4px;"></span> <span data-i18n="sub_ai_video">Tạo video AI</span></div>
+        <div class="nav-sub-item cong-cu" data-sub="reup" onclick="switchView('reup', document.querySelector('[data-view=cong-cu]'), 'reup', event)"><span data-icon="upload" style="vertical-align:middle;margin-right:4px;"></span> <span data-i18n="sub_reup">Tạo video Reup</span></div>
+        <div class="nav-sub-item cong-cu" data-sub="hot-niche" onclick="switchView('hot-niche', document.querySelector('[data-view=cong-cu]'), 'hot-niche', event)"><span data-icon="trendingUp" style="vertical-align:middle;margin-right:4px;"></span> <span data-i18n="sub_hot_niche">Tìm ngách hot</span></div>
+        <div class="nav-sub-item cong-cu" data-sub="bulk-download" onclick="switchView('bulk-download', document.querySelector('[data-view=cong-cu]'), 'bulk-download', event)"><span data-icon="downloadCloud" style="vertical-align:middle;margin-right:4px;"></span> <span data-i18n="sub_bulk_download">Tải video hàng loạt</span></div>
       </div>
     </div>
     <div class="nav-item-wrapper">
       <div class="nav-item" data-view="tu-dong-hoa" onclick="toggleDropdown(this, event)">
         <span class="nav-icon" data-icon="refreshCw"></span>
-        <span class="nav-label">Tự động hóa</span>
+        <span class="nav-label" data-i18n="automation">Tự động hóa</span>
         <span class="dropdown-arrow" data-icon="chevronRight"></span>
       </div>
       <div class="nav-sub">
-        <div class="nav-sub-item tu-dong-hoa" data-sub="workflow" onclick="switchView('workflow', document.querySelector('[data-view=tu-dong-hoa]'), 'workflow', event)"><span data-icon="refreshCw" style="vertical-align:middle;margin-right:4px;"></span> Tạo workflow</div>
-        <div class="nav-sub-item tu-dong-hoa" data-sub="record" onclick="switchView('record', document.querySelector('[data-view=tu-dong-hoa]'), 'record', event)"><span data-icon="mic" style="vertical-align:middle;margin-right:4px;"></span> Ghi thao tác</div>
+        <div class="nav-sub-item tu-dong-hoa" data-sub="workflow" onclick="switchView('workflow', document.querySelector('[data-view=tu-dong-hoa]'), 'workflow', event)"><span data-icon="refreshCw" style="vertical-align:middle;margin-right:4px;"></span> <span data-i18n="sub_workflow">Tạo workflow</span></div>
+        <div class="nav-sub-item tu-dong-hoa" data-sub="record" onclick="switchView('record', document.querySelector('[data-view=tu-dong-hoa]'), 'record', event)"><span data-icon="mic" style="vertical-align:middle;margin-right:4px;"></span> <span data-i18n="sub_record">Ghi thao tác</span></div>
       </div>
     </div>
     <div class="nav-item-wrapper">
       <div class="nav-item" data-view="tai-khoan" onclick="toggleDropdown(this, event)">
         <span class="nav-icon" data-icon="users"></span>
-        <span class="nav-label">Tài khoản</span>
+        <span class="nav-label" data-i18n="accounts">Tài khoản</span>
         <span class="dropdown-arrow" data-icon="chevronRight"></span>
       </div>
       <div class="nav-sub">
@@ -62,38 +67,47 @@ const SidebarComponent = `
     <!-- Tab Chat Support dành cho Staff & Admin -->
     <div class="nav-item staff-only hidden" data-view="chat-support" onclick="switchView('chat-support', this, null, event)">
       <span class="nav-icon" data-icon="messageSquare"></span>
-      <span class="nav-label">Chat Support</span>
+      <span class="nav-label" data-i18n="chat_support">Chat Support</span>
     </div>
 
     <!-- Tab Quản lý dành cho Admin -->
     <div class="nav-item admin-only hidden" data-view="user-management" onclick="switchView('user-management', this, null, event)">
       <span class="nav-icon" data-icon="userCheck"></span>
-      <span class="nav-label">Quản lý User/Staff</span>
+      <span class="nav-label" data-i18n="user_management">Quản lý User/Staff</span>
     </div>
     <div class="nav-item admin-only hidden" data-view="create-notification" onclick="switchView('create-notification', this, null, event)">
       <span class="nav-icon" data-icon="bell"></span>
-      <span class="nav-label">Tạo thông báo</span>
+      <span class="nav-label" data-i18n="create_notification">Tạo thông báo</span>
     </div>
     <div class="nav-item admin-only hidden" data-view="feedback-management" onclick="switchView('feedback-management', this, null, event)">
       <span class="nav-icon" data-icon="helpCircle"></span>
-      <span class="nav-label">Quản lý Feedback</span>
+      <span class="nav-label" data-i18n="feedback_management">Quản lý Feedback</span>
     </div>
 
     <div class="nav-item" data-view="tiep-thi" onclick="switchView('tiep-thi', this, null, event)">
       <span class="nav-icon" data-icon="link"></span>
-      <span class="nav-label">Tiếp thị liên kết</span>
+      <span class="nav-label" data-i18n="affiliate">Tiếp thị liên kết</span>
     </div>
     <div class="nav-item" data-view="doi-nhom" onclick="switchView('doi-nhom', this, null, event)">
       <span class="nav-icon" data-icon="users"></span>
-      <span class="nav-label">Đội nhóm</span>
+      <span class="nav-label" data-i18n="team">Đội nhóm</span>
     </div>
     <div class="nav-item" data-view="tien-ich" onclick="switchView('tien-ich', this, null, event)">
       <span class="nav-icon" data-icon="grid"></span>
-      <span class="nav-label">Tiện ích</span>
+      <span class="nav-label" data-i18n="utilities">Tiện ích</span>
+    </div>
+    <!-- Tab Báo cáo Thống kê dành riêng cho Admin (NẰM DƯỚI TIỆN ÍCH) -->
+    <div class="nav-item admin-only hidden" data-view="analytics-reports" onclick="switchView('analytics-reports', this, null, event)">
+      <span class="nav-icon" data-icon="trendingUp"></span>
+      <span class="nav-label" data-i18n="analytics_reports">Báo cáo Thống kê</span>
     </div>
     <div class="nav-item" data-view="guide" onclick="switchView('guide', this, null, event)">
       <span class="nav-icon" data-icon="book"></span>
-      <span class="nav-label">Hướng dẫn sử dụng</span>
+      <span class="nav-label" data-i18n="user_guide">Hướng dẫn sử dụng</span>
+    </div>
+    <div class="nav-item" data-view="user-activity-logs" onclick="switchView('user-activity-logs', this, null, event)">
+      <span class="nav-icon" data-icon="fileText"></span>
+      <span class="nav-label" data-i18n="activity_logs">Nhật ký hoạt động</span>
     </div>
   </nav>
 </aside>

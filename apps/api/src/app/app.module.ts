@@ -14,6 +14,7 @@ import { SystemConfigModule } from '../system-config/system-config.module';
 import { ObfuscationModule } from '../common/obfuscation/obfuscation.module';
 import { ObfuscationPrefixMiddleware } from '../common/obfuscation/obfuscation-prefix.middleware';
 import { SecurityCenterModule } from '../security-center/security-center.module';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { SecurityCenterModule } from '../security-center/security-center.module'
     SystemConfigModule,
     ObfuscationModule,
     SecurityCenterModule,
+    AuditLogsModule,
   ],
   controllers: [AppController],
   providers: [

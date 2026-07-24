@@ -7,7 +7,7 @@ const HeaderComponent = `
   <div class="main-header-right">
     <div class="search-mini" onclick="openSearchPopup()">
       <span data-icon="search"></span>
-      <input type="text" id="global-search-input" placeholder="Tìm công cụ..." readonly />
+      <input type="text" id="global-search-input" data-i18n-placeholder="search_placeholder" placeholder="Tìm công cụ..." readonly />
       <kbd>Ctrl+K</kbd>
     </div>
     <div class="notif-wrapper" style="position: relative;">
@@ -17,8 +17,8 @@ const HeaderComponent = `
       </button>
       <div id="notif-drawer" class="notif-drawer hidden" onclick="event.stopPropagation()">
         <div class="notif-drawer-header">
-          <h4>Thông báo hệ thống</h4>
-          <button class="notif-mark-read-btn" onclick="markAllNotificationsRead()">Đã đọc tất cả</button>
+          <h4 data-i18n="notif_drawer_title">Thông báo hệ thống</h4>
+          <button class="notif-mark-read-btn" onclick="markAllNotificationsRead()" data-i18n="mark_read_all">Đã đọc tất cả</button>
         </div>
         <div id="notif-drawer-list" class="notif-drawer-list">
           <!-- Notification items render here -->
@@ -35,14 +35,14 @@ const HeaderComponent = `
       </div>
       <div class="profile-menu-dropdown" id="profile-dropdown">
         <div class="profile-menu-item" onclick="switchView('settings', null, null, event)">
-          <span data-icon="settings"></span> Cài đặt
+          <span data-icon="settings"></span> <span data-i18n="settings">Cài đặt</span>
         </div>
         <div class="profile-menu-item" onclick="switchView('feedback', null, null, event)">
-          <span data-icon="bug"></span> Góp ý / Báo lỗi
+          <span data-icon="bug"></span> <span data-i18n="feedback">Góp ý / Báo lỗi</span>
         </div>
         <div class="profile-menu-divider"></div>
         <div class="profile-menu-item danger" onclick="handleLogout()">
-          <span data-icon="logout"></span> Đăng xuất
+          <span data-icon="logout"></span> <span data-i18n="logout">Đăng xuất</span>
         </div>
       </div>
     </div>

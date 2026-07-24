@@ -63,6 +63,9 @@ Du an duoc quan ly trong mot **Nx Workspace** (`npx nx ...`) bao gom 4 ung dung 
    - **Production & Client Readiness First Mindset Skill (CRITICAL PRODUCTION DEPLOYMENT SKILL):**
      1. **HƯỚNG TỚI PRODUCTION & CLIENT TRONG MỌI DÒNG CODE (Production & Client First):** Mọi tính năng, kiến trúc, cấu hình biến môi trường, đường dẫn API, WebSocket và logic xử lý PHẢI BẢO ĐẢM TƯƠNG THÍCH 100% KHI DEPLOY THỰC TẾ LÊN PRODUCTION CLOUD VÀ PHÁT HÀNH ỨNG DỤNG CLIENT (Desktop Electron, Web Next.js, Mobile App).
      2. **Triển Khai Trơn Tru Không Cần Sửa Đổi Code (Zero-Code-Change Deployment):** Thiết lập cấu hình động qua `.env` và IPC, tuyệt đối không hardcode địa chỉ dev/localhost hay dùng các giải pháp chữa cháy tạm bợ. Việc đóng gói sản phẩm (Build/Packaging/Release) phải diễn ra tức thì, chuyên nghiệp và sẵn sàng bàn giao cho người dùng cuối.
+   - **Mandatory UI Text Internationalization with `data-i18n` (CRITICAL I18N SKILL):**
+     1. **BẮT BUỘC SỬ DỤNG `data-i18n` CHO 100% CHUỖI VĂN BẢN GIAO DIỆN (Mandatory i18n Data Attributes):** Mỗi lần bắt đầu viết code UI (HTML, JS Component, View Header, Subtitle, Card Label, Button, Form Label, Modal, Notification, Toast Title), TẤT CẢ các dòng chuỗi văn bản hiển thị cho người dùng BẮT BUỘC PHẢI gắn thuộc tính `data-i18n="<key_name>"` (Ví dụ `<h3 data-i18n="admin_dashboard_title">...</h3>`).
+     2. **Đồng bộ Từ điển Đa ngôn ngữ (VI / EN):** Khai báo tương ứng tất cả các `<key_name>` trong bộ từ điển `I18N_DICTIONARY` (`settings.js`), bảo đảm khi người dùng chuyển đổi giữa Tiếng Việt và English, 100% nội dung bên trong các Tab, Tiêu đề, Thẻ chỉ số và Nút bấm lập tức thay đổi sang ngôn ngữ tương ứng mà không sót bất kỳ chuỗi văn bản nào.
 
 3. **Moi truong Development / Production:**
    - **Backend (`apps/api`):**

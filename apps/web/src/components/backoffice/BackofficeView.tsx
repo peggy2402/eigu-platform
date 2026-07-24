@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import {
   ShieldCheck, Users, MessageSquare, Wrench, Bug, MessageCircle,
-  RefreshCw, Search, Lock, UserCheck, UserX, AlertTriangle, ShieldAlert
+  RefreshCw, Search, Lock, UserCheck, UserX, AlertTriangle, ShieldAlert, FileText
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getApiBaseUrl } from '@eigu-platform/shared';
 
 export default function BackofficeView() {
   const { token, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'users' | 'support' | 'maintenance' | 'telemetry' | 'feedback'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'support' | 'maintenance' | 'telemetry' | 'feedback' | 'activity-logs'>('users');
   
   // Users Management State
   const [users, setUsers] = useState<any[]>([]);
@@ -25,12 +25,50 @@ export default function BackofficeView() {
   const [savingConfig, setSavingConfig] = useState(false);
   const [configMessage, setConfigMessage] = useState('');
 
-  // Telemetry & Feedback State
+  // Telemetry & Feedback & Activity Logs State
   const [feedbackList, setFeedbackList] = useState<any[]>([]);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [loadingAuditLogs, setLoadingAuditLogs] = useState(false);
+  const [auditSearch, setAuditSearch] = useState('');
+  const [auditRoleFilter, setAuditRoleFilter] = useState('all');
 
   const isAdmin = user?.role === 'admin';
   const isStaff = user?.role === 'staff';
+
+  const formatWebPayload = (rawPayload: any) => {
+    if (!rawPayload || rawPayload === '-' || rawPayload === '{}') return '-';
+    try {
+      let parsed = rawPayload;
+      if (typeof rawPayload === 'string' && (rawPayload.startsWith('{') || rawPayload.startsWith('['))) {
+        parsed = JSON.parse(rawPayload);
+      }
+      if (typeof parsed === 'object' && parsed !== null) {
+        const keyMap: Record<string, string> = {
+          os: 'Hệ điều hành',
+          device: 'Thiết bị',
+          loginTime: 'Thời gian đăng nhập',
+          logintime: 'Thời gian đăng nhập',
+          updatedRole: 'Vai trò mới',
+          targetEmail: 'Email áp dụng',
+          reason: 'Lý do',
+        };
+        return Object.entries(parsed).map(([k, v]) => {
+          const keyLabel = keyMap[k] || k;
+          let valStr = String(v);
+          if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(valStr)) {
+            const d = new Date(valStr);
+            if (!isNaN(d.getTime())) valStr = d.toLocaleString('vi-VN');
+          }
+          return `${keyLabel}: ${valStr}`;
+        }).join(' · ');
+      }
+    } catch (e) {}
+    return String(rawPayload).replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g, m => {
+      const d = new Date(m);
+      return !isNaN(d.getTime()) ? d.toLocaleString('vi-VN') : m;
+    });
+  };
 
   // Load Real Users Data
   const loadUsers = async () => {
@@ -95,10 +133,36 @@ export default function BackofficeView() {
     }
   };
 
+  // Load Real Audit Logs
+  const loadAuditLogs = async () => {
+    if (!token) return;
+    setLoadingAuditLogs(true);
+    try {
+      const baseUrl = getApiBaseUrl();
+      const query = new URLSearchParams();
+      if (auditSearch) query.append('search', auditSearch);
+      if (auditRoleFilter !== 'all') query.append('role', auditRoleFilter);
+      query.append('limit', '50');
+
+      const res = await fetch(`${baseUrl}/audit-logs?${query.toString()}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAuditLogs(Array.isArray(data) ? data : data.data || []);
+      }
+    } catch (e) {
+      console.warn('Lỗi tải Audit Logs Backoffice:', e);
+    } finally {
+      setLoadingAuditLogs(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'users') loadUsers();
     if (activeTab === 'maintenance') loadSystemConfig();
     if (activeTab === 'feedback') loadFeedback();
+    if (activeTab === 'activity-logs') loadAuditLogs();
   }, [activeTab]);
 
   // Save Maintenance Config
@@ -277,6 +341,26 @@ export default function BackofficeView() {
         >
           <MessageCircle size={16} /> Báo Lỗi & Phản Hồi ({feedbackList.length})
         </button>
+
+        <button
+          onClick={() => setActiveTab('activity-logs')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '8px 8px 0 0',
+            border: 'none',
+            background: activeTab === 'activity-logs' ? 'var(--bg-card)' : 'transparent',
+            color: activeTab === 'activity-logs' ? 'var(--accent)' : 'var(--text-secondary)',
+            fontWeight: activeTab === 'activity-logs' ? 700 : 500,
+            fontSize: 14,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            borderBottom: activeTab === 'activity-logs' ? '2px solid var(--accent)' : 'none'
+          }}
+        >
+          <FileText size={16} /> Nhật Ký Hoạt Động
+        </button>
       </div>
 
       {/* Tab 1: User Management Backoffice */}
@@ -315,7 +399,7 @@ export default function BackofficeView() {
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textLeft: 'left' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-primary)' }}>
                   <th style={{ padding: 12 }}>User / Email</th>
@@ -493,6 +577,92 @@ export default function BackofficeView() {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 4: Activity Logs Backoffice */}
+      {activeTab === 'activity-logs' && (
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FileText size={18} style={{ color: 'var(--accent)' }} /> Nhật Ký Hoạt Động Hệ Thống (Audit Logs Real DB)
+            </h3>
+            <button className="btn-primary" onClick={loadAuditLogs} style={{ padding: '8px 16px', borderRadius: 6, fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <RefreshCw size={14} /> Tải lại
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', background: 'var(--bg-primary)', padding: 12, borderRadius: 8 }}>
+            <input
+              type="text"
+              placeholder="Tìm theo Email, Action hoặc Details..."
+              value={auditSearch}
+              onChange={e => setAuditSearch(e.target.value)}
+              onKeyUp={e => e.key === 'Enter' && loadAuditLogs()}
+              style={{ flex: 1, minWidth: 240, padding: '8px 12px', borderRadius: 6, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 13 }}
+            />
+            <select
+              value={auditRoleFilter}
+              onChange={e => { setAuditRoleFilter(e.target.value); setTimeout(loadAuditLogs, 50); }}
+              style={{ padding: '8px 12px', borderRadius: 6, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 13 }}
+            >
+              <option value="all">Tất cả Vai trò</option>
+              <option value="admin">Admin</option>
+              <option value="staff">Staff</option>
+              <option value="user">User</option>
+            </select>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-primary)' }}>
+                  <th style={{ padding: 10, whiteSpace: 'nowrap' }}>Thời gian</th>
+                  <th style={{ padding: 10, whiteSpace: 'nowrap' }}>Tài khoản / Role</th>
+                  <th style={{ padding: 10, whiteSpace: 'nowrap' }}>Hành động (Action)</th>
+                  <th style={{ padding: 10, whiteSpace: 'nowrap' }}>Phân hệ</th>
+                  <th style={{ padding: 10 }}>Chi tiết</th>
+                  <th style={{ padding: 10, whiteSpace: 'nowrap' }}>IP & Thiết bị</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingAuditLogs ? (
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: 20, color: 'var(--text-muted)' }}>Đang kết nối Supabase DB để tải Audit Logs...</td></tr>
+                ) : auditLogs.length === 0 ? (
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: 20, color: 'var(--text-muted)' }}>Chưa có dữ liệu nhật ký hoạt động nào.</td></tr>
+                ) : (
+                  auditLogs.map((log: any) => (
+                    <tr key={log.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: 10, whiteSpace: 'nowrap', fontSize: 12, color: 'var(--text-muted)' }}>
+                        {new Date(log.createdAt || Date.now()).toLocaleString('vi-VN')}
+                      </td>
+                      <td style={{ padding: 10 }}>
+                        <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{log.userEmail || 'System'}</div>
+                        <div style={{ fontSize: 11, color: log.userRole === 'admin' ? '#ef4444' : (log.userRole === 'staff' ? '#22c55e' : 'var(--accent)') }}>
+                          {log.userRole?.toUpperCase() || 'USER'}
+                        </div>
+                      </td>
+                      <td style={{ padding: 10, whiteSpace: 'nowrap' }}>
+                        <span style={{ padding: '3px 8px', borderRadius: 4, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', fontFamily: 'monospace', fontWeight: 700, color: 'var(--accent)' }}>
+                          {log.action}
+                        </span>
+                      </td>
+                      <td style={{ padding: 10, whiteSpace: 'nowrap', fontSize: 12, color: 'var(--text-secondary)' }}>
+                        {log.module}
+                      </td>
+                      <td style={{ padding: 10, fontSize: 12, maxWidth: 300, wordBreak: 'break-word' }}>
+                        {formatWebPayload(log.payload)}
+                      </td>
+                      <td style={{ padding: 10, whiteSpace: 'nowrap', fontSize: 11, color: 'var(--text-muted)' }}>
+                        <div>{log.ipAddress || '127.0.0.1'}</div>
+                        <div>{log.device || 'Web Client'}</div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

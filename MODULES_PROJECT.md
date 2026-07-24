@@ -236,6 +236,32 @@ Hệ thống giao diện EIGU Desktop bao gồm **25+ Mô-đun Chức Năng** đ
   - Điều khiển trạng thái Bảo trì hệ thống (`MAINTENANCE_MODE`) và cập nhật phiên bản App tối thiểu (`MIN_APP_VERSION`).
   - Theo dõi danh sách phản hồi, góp ý và báo lỗi kèm ảnh đính kèm từ người dùng.
 
+#### 28. 📜 `user-activity-logs` (Nhật Ký Hoạt Động Người Dùng - User / Staff / Admin Activity Trail)
+- **Tính năng**: 
+  - Phân hệ nhật ký hoạt động cá nhân hóa nâng cao theo dõi lịch sử thao tác của từng tài khoản (**User, Staff, Admin**) trên toàn bộ hệ thống EIGU Platform.
+  - Tự động ghi vết sự kiện Đăng nhập/Đăng xuất (`LOGIN`/`LOGOUT`), Cắt video (`CUT_VIDEO`), Thay đổi Cài đặt (`UPDATE_SETTINGS`), Đổi vai trò user (`CHANGE_ROLE`), Bật/tắt bảo trì (`TOGGLE_MAINTENANCE`), Gửi báo lỗi (`SEND_FEEDBACK`), v.v.
+  - Hiển thị đầy đủ thông tin: Timestamp, Email, Username, Role badge, Tên hành động, Phân hệ tác động, Chi tiết payload, Địa chỉ IP thực tế và Thiết bị sử dụng.
+  - Nút truy cập nhanh được đặt ngay bên dưới mục **"Cài đặt"** (Sidebar & Profile Menu) và tích hợp sẵn Sub-section tra cứu trực tiếp bên trong trang Cài đặt (Settings).
+  - Tích hợp thêm Tab **"Nhật ký hoạt động"** trên Trung tâm Vận hành Web Backoffice cho Đội ngũ Operations.
+
+#### 29. 📊 `admin-dashboard` (Dashboard Admin - Bảng Điều Khiển Giám Sát Hệ Thống Dành Riêng Cho Admin)
+- **Tính năng**:
+  - Bảng điều khiển quản trị dành riêng cho tài khoản có vai trò **Admin** (`admin-only`).
+  - Giám sát các chỉ số KPI thời gian thực: Tổng số lượng tài khoản, Đội ngũ Staff đang hoạt động, Luồng tự động hóa active, và Trạng thái phản hồi của API Gateway.
+  - Cung cấp hàng phím tắt thao tác nhanh tới các chức năng quản trị cốt lõi (Phân quyền, Báo cáo thống kê, Nhật ký hoạt động, Cấu hình bảo mật Obfuscation).
+
+#### 30. 📈 `analytics-reports` (Báo Cáo Thống Kê System Analytics & Performance Reports - Admin Only)
+- **Tính năng**:
+  - Phân hệ phân tích dữ liệu chuyên sâu dành riêng cho **Admin** (`admin-only`).
+  - Trực quan hóa dữ liệu bằng các đồ thị thống kê: Tăng trưởng tài khoản người dùng theo ngày, Khối lượng xử lý tác vụ FFmpeg & AI video, Tần suất request API Gateway.
+  - Hỗ trợ lọc khoảng thời gian (`7 Ngày qua`, `30 Ngày qua`, `Tháng này`) và công cụ xuất file báo cáo tổng hợp dạng `.CSV`.
+
+#### 31. 🌍 `language-settings` (Phân Hệ Ngôn Ngữ Ứng Dụng trong Cài Đặt - Multi-language VI / EN)
+- **Tính năng**:
+  - Sub-section cấu hình Ngôn ngữ nằm trực tiếp bên trong trang **Cài đặt (Settings)**.
+  - Cho phép người dùng dễ dàng chuyển đổi ngôn ngữ hiển thị giao diện mặc định giữa **Tiếng Việt (`VI`)** và **English (`EN`)**.
+  - Lưu trạng thái lựa chọn vào `localStorage` và tự động áp dụng ngôn ngữ mỗi khi khởi động lại ứng dụng Client.
+
 ---
 
 ## 4. 🔒 Cơ Chế Bảo Mật & Phân Quyền Hệ Thống (Security & Authorization)

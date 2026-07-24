@@ -5,7 +5,9 @@ function updateProfile() {
     document.getElementById('profile-verified').textContent = userProfile.isVerified ? 'Da xac thuc' : 'Chua xac thuc';
     document.getElementById('profile-created').textContent = userProfile.createdAt ? new Date(userProfile.createdAt).toLocaleDateString('vi-VN') : '—';
     const name = userProfile.username || userProfile.email.split('@')[0];
-    document.getElementById('greeting-text').textContent = 'Xin chào, ' + name;
+    const currentLang = localStorage.getItem('eigu_language') || 'vi';
+    const greetingPrefix = currentLang === 'en' ? 'Hi, ' : 'Xin chào, ';
+    document.getElementById('greeting-text').textContent = greetingPrefix + name;
 
     // Role badge
     const roleBadge = document.getElementById('role-badge');
@@ -244,7 +246,12 @@ function showBannedScreen(banInfo) {
 }
 
 async function checkAuth() {
-  if (accessToken) {
+  if (typeof syncObfuscationConfig === 'function') {
+    await syncObfuscationConfig();
+  }
+
+  const token = typeof accessToken !== 'undefined' && accessToken ? accessToken : localStorage.getItem('accessToken');
+  if (token) {
     try {
       userProfile = await apiFetch('/auth/me');
       enterApp(false); // Không bắn Toast khi F5 / Cmd+R / reload trang
@@ -253,6 +260,17 @@ async function checkAuth() {
       if (e.data && e.data.isBanned) {
         showBannedScreen(e.data);
         return;
+      }
+      // Thử Silent Refresh nếu AccessToken hết hạn lúc khởi động
+      if (typeof silentRefreshSession === 'function') {
+        const refreshed = await silentRefreshSession();
+        if (refreshed) {
+          try {
+            userProfile = await apiFetch('/auth/me');
+            enterApp(false);
+            return;
+          } catch (e2) {}
+        }
       }
     }
   }

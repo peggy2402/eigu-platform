@@ -180,14 +180,23 @@ model ObfuscationHistory {
 model AuditLog {
   id         String   @id @default(uuid())
   adminId    String?
-  action     String   // e.g. "ROTATE_CODE", "EMERGENCY_DISABLE", "ROLLBACK"
+  userId     String?
+  userEmail  String?
+  username   String?
+  userRole   String?
+  action     String   // e.g. "LOGIN", "LOGOUT", "ROTATE_CODE", "CUT_VIDEO", "CHANGE_ROLE", "UPDATE_SETTINGS"
   module     String
   ipAddress  String?
   userAgent  String?
+  device     String?
   payload    String?
   createdAt  DateTime @default(now())
 
   @@index([adminId])
+  @@index([userId])
+  @@index([userEmail])
+  @@index([userRole])
+  @@index([module])
   @@index([action])
   @@index([createdAt])
 }

@@ -244,9 +244,10 @@
 }
 .main-content::-webkit-scrollbar { width: 6px; }
 .main-content::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
-.view { display: none; }
-.view.active { display: block; }
-#view-chat-support.view.active { display: flex !important; flex-direction: column !important; }
+.view { display: none !important; }
+.view.active { display: block !important; }
+#view-chat-support.view.active,
+#view-user-activity-logs.view.active { display: flex !important; flex-direction: column !important; height: 100% !important; }
 .stats-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px; margin-bottom: 24px;

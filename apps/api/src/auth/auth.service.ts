@@ -183,6 +183,26 @@ export class AuthService {
       },
     });
 
+    // Tự động ghi nhận Nhật ký hoạt động (AuditLog) cho Đăng nhập
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          userEmail: user.email,
+          username: user.username,
+          userRole: user.role,
+          action: 'LOGIN',
+          module: 'auth',
+          ipAddress: clientIp || '127.0.0.1',
+          userAgent: userAgent || 'Unknown Agent',
+          device: device,
+          payload: JSON.stringify({ os: os || process.platform, device, loginTime: new Date().toISOString() }),
+        },
+      });
+    } catch (e) {
+      // Non-blocking catch for audit log
+    }
+
     return this.generateTokens(user.id, user.email, user.role, user.username);
   }
 
