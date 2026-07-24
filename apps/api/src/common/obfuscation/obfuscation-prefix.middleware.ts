@@ -12,13 +12,14 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
     const rawUrl = req.originalUrl || req.url;
     const isDev = process.env.NODE_ENV !== 'production';
 
-    // 1. Bypass Static / Docs / Health / Root API / System Config
+    // 1. Bypass Static / Docs / Health / Root API / System Config Bootstrap / Security
     if (
       rawUrl === '/api' ||
       rawUrl === '/api/' ||
       rawUrl.startsWith('/api/docs') ||
       rawUrl === '/api/bootstrap' ||
       rawUrl.startsWith('/api/bootstrap') ||
+      rawUrl.startsWith('/api/system-config') ||
       rawUrl.startsWith('/api/security')
     ) {
       return next();

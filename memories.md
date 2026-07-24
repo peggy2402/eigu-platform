@@ -780,38 +780,28 @@ Xử lý:
   - Controllers hoàn toàn giữ nguyên, hoàn toàn không cần biết mã obfuscation.
   - Hệ thống Security Center & Obfuscation Gateway chính thức đi vào hoạt động ổn định ở quy mô sản phẩm doanh nghiệp!
 
-### 18.54 Bổ Sung Mắt Xem API Key & Sửa Lỗi Kiểm Tra `ipcRenderer`
-- **Thời gian xử lý:** 24/07/2026 02:14 GMT+7
-- **Phân Tích Nguyên Nhân & Khắc Phục:**
-  1. **Lỗi `window.ipcRenderer` Undefined**: Do thiếu khai báo gán `window.ipcRenderer = ipcRenderer;` trong tệp [config.js](file:///Users/peggy2402/Projects/eigu-platform/apps/desktop/src/assets/js/config.js), dẫn tới việc khi bấm nút "Thêm Key" UI hiển thị thông báo lỗi *"Tính năng chỉ hoạt động trên Electron!"*.
-  2. **Giải Pháp Fix**: Gán `window.ipcRenderer = ipcRenderer;` trong `config.js`, đồng thời cập nhật fallback an toàn `const ipc = window.ipcRenderer || (typeof require !== 'undefined' ? require('electron').ipcRenderer : null);` trong [settings.js](file:///Users/peggy2402/Projects/eigu-platform/apps/desktop/src/assets/js/ui/settings.js).
-  3. **Bổ Sung Mắt Bấm Xem Key (Eye Toggle 👁️ / 🙈)**:
-     - Thêm nút biểu tượng mắt `👁️` tại ô nhập liệu API Key mới (`#new-key-value`) trong [views.component.js](file:///Users/peggy2402/Projects/eigu-platform/apps/desktop/src/assets/js/components/views.component.js).
-     - Thêm nút biểu tượng mắt `👁️` cạnh từng dòng Key trong Bảng danh sách Key để chuyển đổi qua lại giữa giá trị Ẩn (`maskedValue`) và Giá trị Thật (`fullValue`).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### 18.55 Sửa Lỗi Next.js Turbopack ESM Module Mismatch & Độc Lập Hoàn Toàn Khỏi `.env` API_PREFIX
+- **Thời gian xử lý:** 24/07/2026 08:13 GMT+7
+- **Phân Tích Nguyên Nhân Lỗi `npx nx dev web` (Next.js 16 Turbopack):**
+  - Do [package.json](file:///Users/peggy2402/Projects/eigu-platform/packages/shared/package.json) đặt `"type": "commonjs"` và [tsconfig.json](file:///Users/peggy2402/Projects/eigu-platform/packages/shared/tsconfig.json) đặt `"module": "commonjs"`, trong khi mã nguồn TypeScript sử dụng cú pháp ES Modules (`export * from ...`).
+  - Khi Next.js Turbopack biên dịch `apps/web`, nó phát hiện xung đột định dạng mô-đun giữa `"commonjs"` trong `package.json` và mã nguồn ESM, gây ra lỗi HTTP 500 `Specified module format (CommonJs) is not matching the module format of the source code`.
+- **Khắc Phục:**
+  1. Cập nhật [package.json](file:///Users/peggy2402/Projects/eigu-platform/packages/shared/package.json): Chuyển `"type": "commonjs"` ➔ `"type": "module"` và `"main": "./src/index.ts"`.
+  2. Cập nhật [tsconfig.json](file:///Users/peggy2402/Projects/eigu-platform/packages/shared/tsconfig.json): Chuyển `"module": "commonjs"` ➔ `"module": "esnext"`.
+  3. Cập nhật [next.config.js](file:///Users/peggy2402/Projects/eigu-platform/apps/web/next.config.js): Bổ sung `transpilePackages: ['@eigu-platform/shared']`.
+  4. Sửa các lỗi TypeScript trong `apps/web`: Bổ sung `'bulk-download'` vào `ViewType` trong [Sidebar.tsx](file:///Users/peggy2402/Projects/eigu-platform/apps/web/src/components/layout/Sidebar.tsx) và [page.tsx](file:///Users/peggy2402/Projects/eigu-platform/apps/web/src/app/page.tsx), ép kiểu sự kiện trong [FeedbackView.tsx](file:///Users/peggy2402/Projects/eigu-platform/apps/web/src/components/feedback/FeedbackView.tsx).
+### 18.56 Đồng Bộ Tự Động Obfuscation Prefix Trực Tiếp Trên Web Client (Next.js) & Tự Động Thử Lại Khi Đổi Mã
+- **Thời gian xử lý:** 24/07/2026 08:17 GMT+7
+- **Phân Tích Nguyên Nhân Web Client Nhấn "Đăng nhập" Bị 404:**
+  - Trong [api.ts](file:///Users/peggy2402/Projects/eigu-platform/apps/web/src/lib/api.ts), biến `API_BASE` được tính toán 1 lần duy nhất tại mốc import file (`const API_BASE = getApiBaseUrl()`). Khi `API_PREFIX` không có trong `.env`, `getApiBaseUrl()` trả về `http://localhost:3001/api`.
+  - Khi người dùng bấm nút Đăng nhập, Web Client gửi `POST http://localhost:3001/api/auth/login`. Gateway bắt request, tách candidateCode `'auth'`, kiểm tra thấy không phải mã active (`v2-sec-2026`) ➔ Báo lỗi `Valid: false` và trả về **404 Not Found**.
+- **Khắc Phục Hoàn Hảo:**
+  1. Cập nhật [constants.ts](file:///Users/peggy2402/Projects/eigu-platform/packages/shared/src/lib/constants.ts): Ưu tiên đọc biến `(window as any).__EIGU_ACTIVE_API_URL__` trên trình duyệt.
+  2. Cập nhật [api.ts](file:///Users/peggy2402/Projects/eigu-platform/apps/web/src/lib/api.ts): 
+     - Bổ sung hàm `syncApiPrefixFromBootstrap()` tự động gọi `GET /api/bootstrap` để lấy mốc Prefix active (`v2-sec-2026`) lưu vào `__EIGU_ACTIVE_API_URL__`.
+     - Chuyển `getApiBaseUrl()` vào bên trong hàm `request(...)` để đọc URL động cho từng request.
+     - **Cơ Chế Auto-Retry Khi Đổi Mã Bảo Mật**: Nếu bất kỳ request nào gặp lỗi HTTP 404 (do Server vừa xoay vòng mã Obfuscation), Web Client sẽ tự động phát hiện, gọi lại `/api/bootstrap` để lấy mốc mã mới nhất và thực hiện `retry` request 1 lần hoàn toàn trong suốt với người dùng!
+  3. Loại bỏ thuộc tính `"type"` trong [package.json](file:///Users/peggy2402/Projects/eigu-platform/packages/shared/package.json) giúp lệnh build Nx không còn xuất hiện thông báo CJS/ESM warning.
 
 
 

@@ -1,8 +1,47 @@
 import { getApiBaseUrl, API_ENDPOINTS } from '@eigu-platform/shared';
 
-const API_BASE = getApiBaseUrl();
+let syncPromise: Promise<string> | null = null;
 
-async function request(path: string, options: RequestInit = {}) {
+export async function syncApiPrefixFromBootstrap(): Promise<string> {
+  if (typeof window === 'undefined') return getApiBaseUrl();
+
+  if (syncPromise) return syncPromise;
+
+  syncPromise = (async () => {
+    try {
+      const port = process.env.NEXT_PUBLIC_API_PORT || '3001';
+      const host = typeof window !== 'undefined'
+        ? window.location.origin.replace(/:3000$/, `:${port}`).replace(/:3001$/, `:${port}`)
+        : `http://localhost:${port}`;
+      const baseUrl = host.includes('localhost') || host.includes('127.0.0.1') ? `http://localhost:${port}` : host;
+
+      const res = await fetch(`${baseUrl}/api/bootstrap`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.apiPrefix) {
+          const cleanPrefix = data.apiPrefix.replace(/^\//, '').replace(/\/$/, '');
+          const fullUrl = `${baseUrl}/${cleanPrefix}`;
+          (window as any).__EIGU_ACTIVE_API_URL__ = fullUrl;
+          return fullUrl;
+        }
+      }
+    } catch (e) {
+      console.warn('[Web API] Bootstrap fetch failed, using fallback URL:', e);
+    } finally {
+      syncPromise = null;
+    }
+    return getApiBaseUrl();
+  })();
+
+  return syncPromise;
+}
+
+async function request(path: string, options: RequestInit = {}, isRetry = false): Promise<any> {
+  if (typeof window !== 'undefined' && !(window as any).__EIGU_ACTIVE_API_URL__) {
+    await syncApiPrefixFromBootstrap();
+  }
+
+  const baseUrl = getApiBaseUrl();
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -10,9 +49,21 @@ async function request(path: string, options: RequestInit = {}) {
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const fullUrl = `${baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+
+  const res = await fetch(fullUrl, { ...options, headers });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || JSON.stringify(data));
+
+  if (!res.ok) {
+    // If request failed with 404 (possibly outdated obfuscation prefix), resync & retry once
+    if (res.status === 404 && !isRetry && typeof window !== 'undefined') {
+      console.warn('[Web API] 404 encountered, resyncing API prefix from Gateway...');
+      await syncApiPrefixFromBootstrap();
+      return request(path, options, true);
+    }
+    throw new Error(data.message || JSON.stringify(data));
+  }
+
   return data;
 }
 
