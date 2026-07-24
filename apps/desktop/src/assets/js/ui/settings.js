@@ -243,6 +243,78 @@ async function loadAdminApiConfig() {
     input.value = match ? match[1] : 'v1';
     updateApiRoutePreview();
   }
+  loadAdminMaintenanceConfig();
+}
+
+function updateMaintenanceBadgePreview() {
+  const toggle = document.getElementById('admin-maintenance-toggle');
+  const badge = document.getElementById('maintenance-status-badge');
+  if (!badge) return;
+
+  if (toggle && toggle.checked) {
+    badge.style.background = 'rgba(239,68,68,0.2)';
+    badge.style.color = '#ef4444';
+    badge.textContent = '🔴 Đang Bảo Trì (Maintenance Active)';
+  } else {
+    badge.style.background = 'rgba(34,197,94,0.2)';
+    badge.style.color = '#22c55e';
+    badge.textContent = '🟢 Đang Hoạt Động (Normal)';
+  }
+}
+
+async function loadAdminMaintenanceConfig() {
+  const section = document.getElementById('admin-maintenance-settings-section');
+  const toggle = document.getElementById('admin-maintenance-toggle');
+  const versionInput = document.getElementById('admin-min-version-input');
+
+  const role = (typeof userProfile !== 'undefined' && userProfile && userProfile.role)
+    ? String(userProfile.role).toLowerCase()
+    : 'user';
+
+  const isAdmin = role === 'admin';
+  if (section) section.style.display = isAdmin ? 'block' : 'none';
+  if (!isAdmin) return;
+
+  try {
+    const res = await apiFetch('/system-config/bootstrap');
+    if (res) {
+      if (toggle) toggle.checked = !!res.maintenanceMode;
+      if (versionInput) versionInput.value = res.minAppVersion || '1.0.0';
+      updateMaintenanceBadgePreview();
+    }
+  } catch (e) {
+    console.warn('Lỗi tải cấu hình Maintenance DB:', e.message);
+  }
+}
+
+async function saveAdminMaintenanceConfig() {
+  const toggle = document.getElementById('admin-maintenance-toggle');
+  const versionInput = document.getElementById('admin-min-version-input');
+
+  const isMaintenance = toggle ? toggle.checked : false;
+  const minVersion = versionInput ? versionInput.value.trim() || '1.0.0' : '1.0.0';
+
+  try {
+    await apiFetch('/system-config', {
+      method: 'PATCH',
+      body: JSON.stringify({ key: 'MAINTENANCE_MODE', value: String(isMaintenance), description: 'Trạng thái bảo trì hệ thống' })
+    });
+    await apiFetch('/system-config', {
+      method: 'PATCH',
+      body: JSON.stringify({ key: 'MIN_APP_VERSION', value: minVersion, description: 'Phiên bản ứng dụng tối thiểu' })
+    });
+
+    updateMaintenanceBadgePreview();
+    showToast(
+      'Thành công',
+      isMaintenance
+        ? '🔴 Đã BẬT chế độ Bảo trì hệ thống!'
+        : '🟢 Đã TẮT chế độ Bảo trì, hệ thống hoạt động bình thường.',
+      isMaintenance ? 'warning' : 'success'
+    );
+  } catch (e) {
+    showToast('Lỗi', e.message || 'Không thể lưu cấu hình bảo trì', 'error');
+  }
 }
 
 async function saveAdminApiConfig() {

@@ -407,6 +407,8 @@ function notifyUnreadUserChatMessage() {
   }
 }
 
+// toggleUserResolveStatus removed - User only needs to chat, status is managed automatically
+
 function renderUserChatHistory() {
   const container = document.getElementById('chat-messages');
   if (!container) return;
@@ -421,7 +423,7 @@ function renderUserChatHistory() {
         <div class="msg-main-row">
           <img src="${AVATAR_AI}" class="msg-avatar" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; border: 1px solid var(--border-color);" alt="AI" />
           <div class="msg-content-box">
-            <div class="msg-bubble" style="min-width:24px;">Xin chào! Tôi là AI Assistant của EIGU Platform. Gõ <span style="font-weight:600; color:#fde047; background:rgba(253,224,71,0.18); border:1px solid rgba(253,224,71,0.3); padding:1px 6px; border-radius:6px; display:inline-block; margin:0 2px;">@Eigu AI &lt;câu hỏi&gt;</span> để hỏi AI hoặc gõ @ để xem menu tag.</div>
+            <div class="msg-bubble" style="min-width:24px;">Xin chào! Tôi là AI Assistant của EIGU Platform. Bạn cần hỗ trợ gì hôm nay?</div>
             <div class="msg-meta">Vừa xong</div>
           </div>
         </div>
@@ -434,6 +436,26 @@ function renderUserChatHistory() {
   container.innerHTML = '';
   session.messages.forEach((msg, idx) => {
     if (!msg.id) msg.id = 'usr_msg_' + idx + '_' + Date.now();
+
+    // Detect system notice messages (status changes, resolve/reopen)
+    const isSystemNotice = msg.sender === 'system' || msg.id.startsWith('sys_');
+
+    if (isSystemNotice) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg-wrapper system-notice';
+      wrapper.id = `chat_item_${msg.id}`;
+      wrapper.innerHTML = `
+        <div class="msg-main-row">
+          <div class="msg-content-box">
+            <div class="msg-bubble">${escapeHtml(msg.text)}</div>
+            <div class="msg-meta">${msg.time || ''}</div>
+          </div>
+        </div>
+      `;
+      container.appendChild(wrapper);
+      return;
+    }
+
     const isUser = msg.sender === 'user';
     const avatarUrl = isUser ? AVATAR_CUSTOMER : (msg.sender === 'staff' ? AVATAR_STAFF : AVATAR_AI);
 
@@ -513,6 +535,12 @@ async function sendChatMessage() {
     status: 'sent',
     parentMsg: activeUserReplyQuote ? { ...activeUserReplyQuote } : null
   };
+
+  // If user sends any message, auto-reopen session if it was resolved
+  if (session.isResolved) {
+    session.isResolved = false;
+  }
+  session.needsStaff = true;
 
   cancelUserReplyQuote();
   hideUserMentionDropdown();
@@ -620,7 +648,7 @@ function requestHumanSupport() {
   }
 
   const noticeText = 'Đã gửi yêu cầu hỗ trợ tới đội ngũ Staff / Admin! Một nhân viên sẽ phản hồi cuộc trò chuyện này trong ít phút.';
-  sessions[email].messages.push({ id: 'ai_msg_' + Date.now(), sender: 'ai', text: noticeText, time: timeStr, status: 'seen' });
+  sessions[email].messages.push({ id: 'sys_' + Date.now(), sender: 'system', text: noticeText, time: timeStr, status: 'seen' });
   saveStoredChatSessions(sessions);
 
   try {
@@ -831,7 +859,78 @@ Nhiệm vụ: Trả lời ngắn gọn, chuẩn xác, lịch sự và giải đ�
 // STAFF / ADMIN CONSOLE SIDE: Real Data Management View
 // -----------------------------------------------------------
 
+let currentStaffChatFilter = 'all';
+let currentStaffChatSearch = '';
+let isChatResizerInitialized = false;
+
+function setStaffChatFilter(filterType, btn) {
+  currentStaffChatFilter = filterType;
+  const container = document.getElementById('staff-chat-filter-pills');
+  if (container) {
+    const pills = container.querySelectorAll('.chat-filter-pill');
+    pills.forEach(p => p.classList.remove('active'));
+  }
+  if (btn) btn.classList.add('active');
+  loadStaffChatConsole();
+}
+
+function onStaffChatSearchInput(val) {
+  currentStaffChatSearch = (val || '').toLowerCase().trim();
+  loadStaffChatConsole();
+}
+
+function initChatSidebarResizer() {
+  if (isChatResizerInitialized) return;
+
+  const resizer = document.getElementById('chat-sidebar-resizer');
+  const sidebar = document.querySelector('.chat-support-sidebar');
+  if (!resizer || !sidebar) return;
+
+  isChatResizerInitialized = true;
+
+  // Restore saved width from localStorage
+  const savedWidth = localStorage.getItem('eigu_chat_sidebar_width');
+  if (savedWidth) {
+    const parsedWidth = parseInt(savedWidth, 10);
+    if (!isNaN(parsedWidth) && parsedWidth >= 220 && parsedWidth <= 600) {
+      sidebar.style.width = parsedWidth + 'px';
+    }
+  }
+
+  let isResizing = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startX = e.clientX;
+    startWidth = sidebar.getBoundingClientRect().width;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const dx = e.clientX - startX;
+    let newWidth = startWidth + dx;
+    if (newWidth < 220) newWidth = 220;
+    if (newWidth > 600) newWidth = 600;
+    sidebar.style.width = newWidth + 'px';
+    localStorage.setItem('eigu_chat_sidebar_width', newWidth);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
+}
+
 function loadStaffChatConsole() {
+  initChatSidebarResizer();
+
   const listContainer = document.getElementById('staff-chat-list');
   if (!listContainer) return;
 
@@ -844,16 +943,41 @@ function loadStaffChatConsole() {
   }
 
   const sessions = getStoredChatSessions();
-  const sessionKeys = Object.keys(sessions);
+  let sessionKeys = Object.keys(sessions);
 
   if (sessionKeys.length === 0) {
     listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Chưa có cuộc trò chuyện nào.</div>';
     return;
   }
 
-  listContainer.innerHTML = '';
-
   sessionKeys.sort((a, b) => new Date(sessions[b].lastActive || 0) - new Date(sessions[a].lastActive || 0));
+
+  // Filter 1: Messenger Pill Filter (Tất cả, Cần hỗ trợ, Đang hỗ trợ, Đã xong)
+  if (currentStaffChatFilter === 'needs_staff') {
+    sessionKeys = sessionKeys.filter(email => sessions[email].needsStaff && !sessions[email].isResolved);
+  } else if (currentStaffChatFilter === 'in_progress') {
+    sessionKeys = sessionKeys.filter(email => !sessions[email].needsStaff && !sessions[email].isResolved);
+  } else if (currentStaffChatFilter === 'resolved') {
+    sessionKeys = sessionKeys.filter(email => !!sessions[email].isResolved);
+  }
+
+  // Filter 2: Search Query Input (Tên, Email, Nội dung tin nhắn)
+  if (currentStaffChatSearch) {
+    sessionKeys = sessionKeys.filter(email => {
+      const s = sessions[email];
+      const emailMatch = (s.userEmail || '').toLowerCase().includes(currentStaffChatSearch);
+      const nameMatch = (s.username || '').toLowerCase().includes(currentStaffChatSearch);
+      const msgMatch = (s.messages || []).some(m => (m.text || '').toLowerCase().includes(currentStaffChatSearch));
+      return emailMatch || nameMatch || msgMatch;
+    });
+  }
+
+  if (sessionKeys.length === 0) {
+    listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Không tìm thấy kết quả phù hợp.</div>';
+    return;
+  }
+
+  listContainer.innerHTML = '';
 
   sessionKeys.forEach(email => {
     const s = sessions[email];
@@ -864,11 +988,13 @@ function loadStaffChatConsole() {
     item.style.cssText = `padding: 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; ${isActive ? 'background: var(--bg-card); border: 2px solid var(--accent); box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);' : 'background: var(--bg-primary); border: 1px solid var(--border-color);'}`;
 
     const lastMsg = s.messages && s.messages.length > 0 ? s.messages[s.messages.length - 1].text : 'Chưa có tin nhắn';
-    const shortMsg = lastMsg.length > 35 ? lastMsg.slice(0, 35) + '...' : lastMsg;
+    const shortMsg = lastMsg.length > 40 ? lastMsg.slice(0, 40) + '...' : lastMsg;
 
     let statusTag = `<span style="color: #22c55e; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><span style="width:6px; height:6px; border-radius:50%; background:#22c55e; display:inline-block;"></span> Đang hỗ trợ</span>`;
     if (s.needsStaff) {
       statusTag = `<span style="color: #ef4444; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><span style="width:6px; height:6px; border-radius:50%; background:#ef4444; display:inline-block;"></span> CẦN STAFF HỖ TRỢ</span>`;
+    } else if (s.isResolved) {
+      statusTag = `<span style="color: var(--text-muted); font-weight: 600; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">✓ Đã xong</span>`;
     }
 
     item.innerHTML = `
@@ -914,11 +1040,24 @@ function selectStaffChatSession(email) {
     chatSocket.emit('chat:mark_seen', { userEmail: email });
   }
 
-  // Update Header
+  // Update Header & Resolve Button
   const nameEl = document.getElementById('staff-chat-target-name');
   const emailEl = document.getElementById('staff-chat-target-email');
   if (nameEl) nameEl.innerText = `Đang chat với: ${s.username || 'Khách hàng'}`;
   if (emailEl) emailEl.innerText = `Tài khoản Email: ${s.userEmail}`;
+
+  const resolveBtn = document.getElementById('staff-resolve-btn');
+  if (resolveBtn) {
+    if (s.isResolved) {
+      resolveBtn.textContent = '🔄 Mở lại Hỗ trợ';
+      resolveBtn.style.borderColor = 'var(--accent)';
+      resolveBtn.style.color = 'var(--accent)';
+    } else {
+      resolveBtn.textContent = '✓ Hoàn tất Hỗ trợ';
+      resolveBtn.style.borderColor = 'var(--border-color)';
+      resolveBtn.style.color = 'var(--text-primary)';
+    }
+  }
 
   // Render Messages
   const messagesBox = document.getElementById('staff-chat-messages');
@@ -932,6 +1071,26 @@ function selectStaffChatSession(email) {
 
   s.messages.forEach((msg, idx) => {
     if (!msg.id) msg.id = 'stf_msg_' + idx + '_' + Date.now();
+
+    // Detect system notice messages (status changes, resolve/reopen) - render centered
+    const isSystemNotice = msg.sender === 'system' || msg.id.startsWith('sys_');
+
+    if (isSystemNotice) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg-wrapper system-notice';
+      wrapper.id = `chat_item_${msg.id}`;
+      wrapper.innerHTML = `
+        <div class="msg-main-row">
+          <div class="msg-content-box">
+            <div class="msg-bubble">${escapeHtml(msg.text)}</div>
+            <div class="msg-meta">${msg.time || ''}</div>
+          </div>
+        </div>
+      `;
+      messagesBox.appendChild(wrapper);
+      return;
+    }
+
     const isStaff = msg.sender === 'staff';
     const isUser = msg.sender === 'user';
     const avatarUrl = isUser ? AVATAR_CUSTOMER : (isStaff ? AVATAR_STAFF : AVATAR_AI);
@@ -1002,6 +1161,12 @@ function sendStaffChatMessage(e) {
     parentMsg: activeStaffReplyQuote ? { ...activeStaffReplyQuote } : null
   };
 
+  // Staff reply transitions session from 'needsStaff' to 'in_progress'
+  session.needsStaff = false;
+  if (session.isResolved) {
+    session.isResolved = false;
+  }
+
   cancelStaffReplyQuote();
   hideStaffMentionDropdown();
 
@@ -1024,6 +1189,7 @@ function sendStaffChatMessage(e) {
   }
 
   // Render to Staff Chat Box
+  loadStaffChatConsole();
   selectStaffChatSession(activeStaffChatEmail);
 
   // Trigger User Side Bell Notification & Unread Badge Wiggle
@@ -1036,8 +1202,6 @@ function sendStaffChatMessage(e) {
   if (getUserEmail() === activeStaffChatEmail) {
     renderUserChatHistory();
   }
-
-  // showToast('Thành công', `Đã gửi tin nhắn tới ${activeStaffChatEmail}`, 'success');
 }
 
 function resolveCurrentStaffChat() {
@@ -1047,18 +1211,26 @@ function resolveCurrentStaffChat() {
   const session = sessions[activeStaffChatEmail];
   if (!session) return;
 
-  const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  const wasResolved = !!session.isResolved;
+  session.isResolved = !wasResolved;
   session.needsStaff = false;
-  session.messages.push({ id: 'ai_msg_' + Date.now(), sender: 'ai', text: 'Nhân viên đã đánh dấu hoàn tất hỗ trợ phiên trò chuyện này.', time: timeStr, status: 'seen' });
-  saveStoredChatSessions(sessions);
 
+  const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  if (session.isResolved) {
+    session.messages.push({ id: 'sys_' + Date.now(), sender: 'system', text: '✅ Nhân viên đã đánh dấu hoàn tất hỗ trợ phiên trò chuyện này.', time: timeStr, status: 'seen' });
+    if (typeof showToast === 'function') showToast('Thành công', `Đã hoàn tất hỗ trợ cho ${activeStaffChatEmail}!`, 'success');
+  } else {
+    session.messages.push({ id: 'sys_' + Date.now(), sender: 'system', text: '🔄 Nhân viên đã mở lại phiên hỗ trợ này.', time: timeStr, status: 'seen' });
+    if (typeof showToast === 'function') showToast('Thông báo', `Đã mở lại hỗ trợ cho ${activeStaffChatEmail}!`, 'info');
+  }
+
+  saveStoredChatSessions(sessions);
+  loadStaffChatConsole();
   selectStaffChatSession(activeStaffChatEmail);
 
   if (getUserEmail() === activeStaffChatEmail) {
     renderUserChatHistory();
   }
-
-  showToast('Thành công', `Đã hoàn tất hỗ trợ cho ${activeStaffChatEmail}!`, 'success');
 }
 
 // Staff Mention & Quote Helpers

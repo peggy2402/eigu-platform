@@ -61,7 +61,8 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
       await syncApiPrefixFromBootstrap();
       return request(path, options, true);
     }
-    throw new Error(data.message || JSON.stringify(data));
+    const msg = Array.isArray(data.message) ? data.message.join(', ') : (data.message || JSON.stringify(data));
+    throw new Error(msg);
   }
 
   return data;
@@ -75,7 +76,15 @@ export const authApi = {
     request(API_ENDPOINTS.AUTH.VERIFY_EMAIL, { method: 'POST', body: JSON.stringify({ email, otp }) }),
 
   login: (identifier: string, password: string) =>
-    request(API_ENDPOINTS.AUTH.LOGIN, { method: 'POST', body: JSON.stringify({ identifier, password }) }),
+    request(API_ENDPOINTS.AUTH.LOGIN, {
+      method: 'POST',
+      body: JSON.stringify({
+        identifier,
+        password,
+        os: typeof window !== 'undefined' ? (navigator.platform || 'Web Browser') : 'Web Browser',
+        device: 'Next.js Web Client'
+      })
+    }),
 
   forgotPassword: (email: string) =>
     request(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, { method: 'POST', body: JSON.stringify({ email }) }),

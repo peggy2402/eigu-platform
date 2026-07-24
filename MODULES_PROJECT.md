@@ -223,6 +223,19 @@ Hệ thống giao diện EIGU Desktop bao gồm **25+ Mô-đun Chức Năng** đ
 #### 25. 📜 `activity-logs` (Console Nhật Ký Hoạt Động Hệ Thống)
 - **Tính năng**: Hiển thị dữ liệu log thời gian thực của FFmpeg, Yt-dlp và Node.js process.
 
+#### 26. 🛠️ `maintenance-mgmt` (Quản Lý Bật / Tắt Bảo Trì System - Admin Only)
+- **Tính năng**: 
+  - Admin chủ động Bật/Tắt chế độ Bảo trì hệ thống thời gian thực (Real-time Maintenance Mode) và quản lý phiên bản ứng dụng tối thiểu (`MIN_APP_VERSION`).
+  - Khi Bật bảo trì, toàn bộ máy khách (Client Apps - Role User) sẽ tự động hiển thị màn hình thông báo nâng cấp bảo trì hệ thống, chặn các thao tác truy cập tới server.
+  - Cho phép Admin và Staff tiếp tục truy cập kiểm thử tính năng bình thường.
+
+#### 27. 🛡️ `backoffice-mgmt` (Trung Tâm Vận Hành & Operations Console Dành Riêng Cho Đội Vận Hành - Admin & Staff)
+- **Tính năng**: 
+  - Phân hệ Backoffice doanh nghiệp chuyên biệt trên Web Dashboard dành cho Đội ngũ Vận hành & Quản trị viên (Role: Admin / Staff).
+  - Quản lý danh sách người dùng thực từ Supabase DB, phân quyền vai trò (Role), phân quyền hiển thị từng Tab chức năng riêng biệt cho nhân viên, thực hiện Ban / Unban tài khoản kèm lý do.
+  - Điều khiển trạng thái Bảo trì hệ thống (`MAINTENANCE_MODE`) và cập nhật phiên bản App tối thiểu (`MIN_APP_VERSION`).
+  - Theo dõi danh sách phản hồi, góp ý và báo lỗi kèm ảnh đính kèm từ người dùng.
+
 ---
 
 ## 4. 🔒 Cơ Chế Bảo Mật & Phân Quyền Hệ Thống (Security & Authorization)

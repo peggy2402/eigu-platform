@@ -2,10 +2,10 @@
 
 import {
   User, Zap, Scissors, Sparkles, TrendingUp, RefreshCw, Mic,
-  Users, Link, Grid, BookOpen, Settings, LogOut, ChevronRight, DownloadCloud
+  Users, Link, Grid, BookOpen, Settings, LogOut, ChevronRight, DownloadCloud, ShieldCheck
 } from 'lucide-react';
 
-export type ViewType = 'ho-so' | 'cut' | 'ai-video' | 'hot-niche' | 'bulk-download' | 'workflow' | 'record' | 'tai-khoan' | 'tiep-thi' | 'doi-nhom' | 'tien-ich' | 'guide' | 'settings' | 'feedback';
+export type ViewType = 'ho-so' | 'cut' | 'ai-video' | 'hot-niche' | 'bulk-download' | 'workflow' | 'record' | 'tai-khoan' | 'tiep-thi' | 'doi-nhom' | 'tien-ich' | 'guide' | 'settings' | 'feedback' | 'backoffice';
 
 interface SidebarProps {
   activeView: ViewType;
@@ -35,6 +35,13 @@ export default function Sidebar({
         <div className="sidebar-toggle" onClick={onToggle}><ChevronRight size={12} /></div>
       </div>
       <nav className="sidebar-nav">
+        <div className={`nav-item ${isActive('backoffice') ? 'active' : ''}`}
+             style={{ background: isActive('backoffice') ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.3)', marginBottom: 8 }}
+             onClick={() => { onViewChange('backoffice'); }}>
+          <span className="nav-icon" style={{ color: 'var(--accent)' }}><ShieldCheck size={iconSize} /></span>
+          <span className="nav-label" style={{ fontWeight: 700, color: 'var(--accent)' }}>Trung tâm Vận hành</span>
+        </div>
+
         <div className={`nav-item ${isActive('ho-so') ? 'active' : ''}`}
              onClick={() => { onViewChange('ho-so'); }}>
           <span className="nav-icon"><User size={iconSize} /></span>

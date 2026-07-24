@@ -13,9 +13,11 @@ import ProfileView from '../components/profile/ProfileView';
 import SettingsView from '../components/settings/SettingsView';
 import FeedbackView from '../components/feedback/FeedbackView';
 import GuideView from '../components/guide/GuideView';
+import BackofficeView from '../components/backoffice/BackofficeView';
 import SearchPopup from '../components/search/SearchPopup';
 
 const viewTitles: Record<ViewType, [string, string]> = {
+  'backoffice': ['Trung tâm Vận hành', 'Quản lý người dùng, bảo trì và hỗ trợ vận hành hệ thống'],
   'ho-so': ['Hồ sơ', 'Thông tin cá nhân'],
   'cut': ['Tự động cắt', 'Cắt và xử lý video tự động'],
   'ai-video': ['Tạo video AI', 'Sinh video bằng trí tuệ nhân tạo'],
@@ -185,6 +187,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="main-content">
+          {activeView === 'backoffice' && <BackofficeView />}
           {activeView === 'ho-so' && user && <ProfileView user={user} />}
           {activeView === 'cut' && <AutomationView />}
           {activeView === 'ai-video' && <PlaceholderView icon={<Sparkles size={48} />} title="Tạo video AI" />}

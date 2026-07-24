@@ -733,7 +733,6 @@ Xử lý:
 - **Phân Tích Nguyên Nhân Gốc Gây Ra Sự Bất Đồng Giữa Server DB Và Desktop Client:**
   - Chuỗi `'eigu-v1-t24v02c03'` trước đây bị gán cứng làm giá trị fallback mặc định ở 6 file khác nhau (`main.ts`, `constants.ts`, `settings.js`, `views.component.js`, `system-config.service.ts`).
   - Khi người dùng xóa `API_PREFIX` khỏi `.env`, Desktop Client tự động lùi về chuỗi gán cứng `'eigu-v1-t24v02c03'` ➔ Khiến Desktop Client gửi request tới `/api/eigu-v1-t24v02c03/auth/login` trong khi Server NestJS đang lắng nghe đúng theo Database (`/api/v2-test-2026`) ➔ Sinh lỗi 404!
-- **Khắc Phục:**
 ### 18.48 Sửa Lỗi Logic Ghép Chuỗi Tạo Thành `/api/api` Trùng Lặp Trong Client (`resolveApiUrl`)
 - **Thời gian xử lý:** 24/07/2026 01:29 GMT+7
 - **Phân Tích Nguyên Nhân Gốc Gây Ra Lỗi "Cannot POST /api/api/auth/login":**
@@ -803,10 +802,14 @@ Xử lý:
      - **Cơ Chế Auto-Retry Khi Đổi Mã Bảo Mật**: Nếu bất kỳ request nào gặp lỗi HTTP 404 (do Server vừa xoay vòng mã Obfuscation), Web Client sẽ tự động phát hiện, gọi lại `/api/bootstrap` để lấy mốc mã mới nhất và thực hiện `retry` request 1 lần hoàn toàn trong suốt với người dùng!
   3. Loại bỏ thuộc tính `"type"` trong [package.json](file:///Users/peggy2402/Projects/eigu-platform/packages/shared/package.json) giúp lệnh build Nx không còn xuất hiện thông báo CJS/ESM warning.
 
-
-
-
-
-
-
-
+### 18.63 Xây Dựng Phân Hệ Trung Tâm Vận Hành (Operations Backoffice Console) Cho Đội Ngũ Vận Hành
+- **Thời gian xử lý:** 24/07/2026 11:00 GMT+7
+- **Yêu Cầu & Triển Khai Backoffice Dành Riêng Cho Đội Vận Hành (Admin & Staff):**
+  - Xây dựng trung tâm điều hành chuyên biệt trên Web Dashboard (`apps/web`) và Desktop dành riêng cho Đội ngũ Vận hành & Quản trị viên hệ thống.
+- **Chi Tiết Triển Khai:**
+  1. Tạo component mới [BackofficeView.tsx](file:///Users/peggy2402/Projects/eigu-platform/apps/web/src/components/backoffice/BackofficeView.tsx):
+     - **Quản lý Người Dùng & Phân Quyền Tab**: Hiển thị danh sách tài khoản thực từ Supabase DB, chuyển đổi Role (`admin`, `staff`, `user`), Ban / Unban tài khoản kèm lý do.
+     - **Quản lý Bảo Trì System**: Điều khiển công tắc Bật/Tắt chế độ Bảo trì (`MAINTENANCE_MODE`) và điều chỉnh phiên bản ứng dụng tối thiểu (`MIN_APP_VERSION`).
+     - **Báo Lỗi & Phản Hồi Khách Hàng**: Xem danh sách các góp ý/báo lỗi kèm hình ảnh đính kèm từ người dùng.
+  2. Cập nhật [Sidebar.tsx](file:///Users/peggy2402/Projects/eigu-platform/apps/web/src/components/layout/Sidebar.tsx) & [page.tsx](file:///Users/peggy2402/Projects/eigu-platform/apps/web/src/app/page.tsx): Thêm nút điều hướng nổi bật **"Trung tâm Vận hành"** (`ShieldCheck` icon).
+  3. Cập nhật [MODULES_PROJECT.md](file:///Users/peggy2402/Projects/eigu-platform/MODULES_PROJECT.md): Bổ sung mô-đun `27. backoffice-mgmt` theo quy chuẩn Rule 46.

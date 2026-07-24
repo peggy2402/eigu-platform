@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
@@ -11,10 +11,12 @@ export class LoginDto {
   password: string;
 
   @ApiProperty({ example: 'macOS 15.2', required: false })
+  @IsOptional()
   @IsString()
   os?: string;
 
   @ApiProperty({ example: 'EIGU Desktop v1.0.0', required: false })
+  @IsOptional()
   @IsString()
   device?: string;
 }

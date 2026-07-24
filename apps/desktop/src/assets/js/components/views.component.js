@@ -518,6 +518,32 @@ const ViewsComponent = `
     <p id="admin-api-url-status" class="settings-hint" style="margin-top: 8px; color: var(--accent); display: none;"></p>
   </div>
 
+  <!-- Quản Lý Bật / Tắt Bảo Trì System & Version (CHỈ ADMIN MỚI ĐƯỢC XEM) -->
+  <div id="admin-maintenance-settings-section" class="settings-card-section" style="margin-top:20px; border: 1px solid rgba(234, 179, 8, 0.4); background: rgba(234, 179, 8, 0.05); display: none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap: wrap; gap: 8px;">
+      <h3 style="color: #eab308; margin:0; display:inline-flex; align-items:center; gap:6px;">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Quản Lý Bật / Tắt Bảo Trì System
+      </h3>
+      <span id="maintenance-status-badge" style="background: rgba(34,197,94,0.2); color: #22c55e; padding: 4px 10px; border-radius: 6px; font-weight:700; font-size:12px;">Đang Hoạt Động (🟢 Normal)</span>
+    </div>
+    <p class="settings-hint">Admin chủ động Bật/Tắt chế độ Bảo trì hệ thống thời gian thực. Khi bật Bảo trì, tất cả ứng dụng Client (Role User) sẽ dừng truy cập cho tới khi Bảo trì hoàn tất.</p>
+
+    <div style="display:flex; gap:16px; margin-top: 14px; align-items: center; flex-wrap: wrap;">
+      <div style="display:flex; align-items:center; gap:10px; background:var(--bg-primary); padding:10px 16px; border-radius:8px; border:1px solid var(--border-color);">
+        <label for="admin-maintenance-toggle" style="font-weight: 600; font-size: 13px; color: var(--text-primary); cursor:pointer;">Chế Độ Bảo Trì (Maintenance Mode):</label>
+        <input type="checkbox" id="admin-maintenance-toggle" style="width:20px; height:20px; cursor:pointer;" onchange="updateMaintenanceBadgePreview()" />
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--bg-primary); padding:10px 16px; border-radius:8px; border:1px solid var(--border-color); flex:1; min-width:220px;">
+        <label style="font-weight: 600; font-size: 13px; color: var(--text-secondary); white-space:nowrap;">Phiên Bản App Tối Thiểu:</label>
+        <input type="text" id="admin-min-version-input" placeholder="1.0.0" style="flex:1; padding: 6px 10px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-family: monospace; font-size: 13px;" />
+      </div>
+
+      <button class="btn-primary" onclick="saveAdminMaintenanceConfig()" style="padding: 10px 20px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; min-width: 140px; margin: 0; background: #eab308; color: #000; font-weight:700;">Lưu Cấu Hình Bảo Trì</button>
+    </div>
+  </div>
+
   <!-- Dashboard Theo Dõi Bug, Stack Trace & Performance Telemetry (CHỈ ADMIN MỚI ĐƯỢC XEM) -->
   <div id="system-telemetry-section" class="settings-card-section" style="margin-top:20px; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); display: none;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap: wrap; gap: 8px;">
@@ -616,14 +642,37 @@ const ViewsComponent = `
   <div id="chat-support-container" class="chat-support-container show-list">
     <!-- List phiên chat bên trái -->
     <div class="chat-support-sidebar">
-      <div style="padding: 12px 14px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
-        <span style="font-weight: 700; font-size: 13px; color: var(--text-primary);">Hộp thoại Khách hàng</span>
+      <div style="padding: 12px 14px 8px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+        <span style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Hộp thoại Khách hàng</span>
         <button class="btn-outline" style="padding:4px 8px; font-size:11px; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;" onclick="loadStaffChatConsole()" title="Tải lại danh sách"><span data-icon="refreshCw"></span> Tải lại</button>
       </div>
+
+      <!-- Thanh Tìm Kiếm & Bộ Lọc Messenger (Ảnh 2) -->
+      <div style="padding: 8px 12px; border-bottom: 1px solid var(--border-color); background: var(--bg-primary); flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;">
+        <div style="position: relative; display: flex; align-items: center;">
+          <span style="position: absolute; left: 10px; color: var(--text-muted); display: inline-flex; pointer-events: none;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input type="text" id="staff-chat-search-input" placeholder="Tìm kiếm đoạn chat / email..." style="width: 100%; padding: 6px 10px 6px 30px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; outline: none;" oninput="onStaffChatSearchInput(this.value)" />
+        </div>
+
+        <!-- Bộ Lọc Nút Pill (Tất cả, Cần hỗ trợ, Đang hỗ trợ, Đã xong) -->
+        <div id="staff-chat-filter-pills" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;">
+          <button type="button" class="chat-filter-pill active" onclick="setStaffChatFilter('all', this)">Tất cả</button>
+          <button type="button" class="chat-filter-pill" onclick="setStaffChatFilter('needs_staff', this)">🔴 Cần hỗ trợ</button>
+          <button type="button" class="chat-filter-pill" onclick="setStaffChatFilter('in_progress', this)">🟢 Đang hỗ trợ</button>
+          <button type="button" class="chat-filter-pill" onclick="setStaffChatFilter('resolved', this)">✓ Đã xong</button>
+        </div>
+      </div>
+
       <div id="staff-chat-list" style="flex:1; min-height:0; overflow-y:auto; padding: 6px; display: flex; flex-direction: column; gap: 6px;">
         <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Đang tải danh sách cuộc trò chuyện...</div>
       </div>
     </div>
+
+    <!-- Cột Kéo Rút Điều Chỉnh Độ Rộng (Resizer Bar) -->
+    <div id="chat-sidebar-resizer" class="chat-resizer" title="Kéo chuột sang trái/phải để thay đổi kích thước"></div>
+
     <!-- Cửa sổ Chat tương tác bên phải -->
     <div class="chat-support-main">
       <div style="padding: 10px 14px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); gap: 8px; flex-shrink: 0; min-height: 52px; box-sizing: border-box;">

@@ -120,10 +120,9 @@
           <div class="chat-avatar" style="background: none; padding: 0;">
             <img src="img/logo.png" style="width:28px; height:28px; border-radius:50%; object-fit:cover; display:block;" alt="EIGU Logo" />
           </div>
-          <div>
+          <div style="flex:1; min-width:0;">
             <div class="chat-title">Hỗ trợ EIGU (AI & Staff)</div>
-            <div class="chat-status" style="font-size: 11px; color: var(--accent);"><span class="status-dot"></span> Tin
-              nhắn tự động xóa sau 24 giờ</div>
+            <div class="chat-status" style="font-size: 11px; color: var(--accent);"><span class="status-dot"></span> Trực tuyến · Tin nhắn tự động xóa sau 24h</div>
           </div>
         </div>
         <button type="button" class="chat-close-btn" onclick="toggleLiveChatWidget(event)" title="Đóng chat">
@@ -137,8 +136,7 @@
 
       <div id="chat-messages" class="chat-messages">
         <div class="chat-msg ai">
-          <div class="msg-bubble">Xin chào! Tôi là AI Assistant của EIGU Platform. Bạn cần hỗ trợ gì về hệ thống hôm
-            nay?</div>
+          <div class="msg-bubble">Xin chào! Tôi là AI Assistant của EIGU Platform. Bạn cần hỗ trợ gì về hệ thống hôm nay?</div>
           <div class="msg-time">Vừa xong</div>
         </div>
       </div>
@@ -152,16 +150,6 @@
         </div>
         <button type="button" onclick="cancelUserReplyQuote()"
           style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:0 4px;">✕</button>
-      </div>
-
-      <div
-        style="padding: 6px 12px; background: var(--bg-card); border-top: 1px solid var(--border-color); text-align: center;">
-        <button class="btn-outline"
-          style="font-size: 11px; padding: 6px 12px; width: 100%; border-color: var(--accent); color: var(--accent); display:inline-flex; align-items:center; justify-content:center; gap:6px;"
-          onclick="requestHumanSupport()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none"
-            stroke="currentColor" stroke-width="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg> Yêu cầu Nhân viên (Staff) hỗ trợ</button>
       </div>
 
       <div class="chat-input-area" style="position: relative;">
