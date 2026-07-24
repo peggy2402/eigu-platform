@@ -93,37 +93,14 @@ function createWindow() {
   }
 }
 
-async function syncApiPrefixFromGateway() {
-  try {
-    const port = process.env.PORT || 3001;
-    let res = await fetch(`http://localhost:${port}/api/bootstrap`);
-    if (!res.ok) {
-      res = await fetch(`http://localhost:${port}/api/system-config/bootstrap`);
-    }
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.apiPrefix) {
-        process.env.API_PREFIX = data.apiPrefix;
-      }
-    }
-  } catch (e) {
-    // Gateway offline or starting up — will use default 'api' prefix
-  }
-}
-
-app.whenReady().then(async () => {
+app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
   if (process.platform === 'darwin') {
     app.dock.setIcon(path.resolve(process.cwd(), 'apps/desktop/src/assets/img/logo.png'));
   }
+  createWindow();
 
   console.log('🚀 Khởi động EIGU Desktop Engine...');
-
-  // Sync API Prefix from Gateway BEFORE creating the window
-  // so the renderer gets the correct obfuscation URL from the first IPC call
-  await syncApiPrefixFromGateway();
-
-  createWindow();
 
   // Kết nối đến NestJS API
   const socket = io('http://localhost:3001/workflow');
@@ -135,16 +112,10 @@ app.whenReady().then(async () => {
   // Lắng nghe sự kiện từ giao diện UI khi người dùng ấn nút Xử lý
   let cancelCurrentWorkflow: (() => void) | null = null;
 
-  // Moved syncApiPrefixFromGateway BEFORE app.whenReady block for early access
-  // (defined as hoisted function at module level)
-
   function resolveApiUrl() {
     const port = process.env.PORT || 3001;
-    const rawPrefix = (process.env.API_PREFIX || '').trim().replace(/^\//, '').replace(/\/$/, '');
-    let prefix = 'api';
-    if (rawPrefix && rawPrefix !== 'api') {
-      prefix = rawPrefix.startsWith('api/') ? rawPrefix : `api/${rawPrefix}`;
-    }
+    const rawPrefix = (process.env.API_PREFIX || 'api').trim().replace(/^\//, '').replace(/\/$/, '');
+    const prefix = rawPrefix.startsWith('api/') ? rawPrefix : `api/${rawPrefix}`;
 
     let rawUrl = process.env.NEXT_PUBLIC_API_URL || process.env.EIGU_API_URL || `http://localhost:${port}`;
     rawUrl = rawUrl.replace(/\/$/, '');
@@ -164,7 +135,6 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.handle('get-api-config', async () => {
-    await syncApiPrefixFromGateway();
     const port = process.env.PORT || 3001;
     const apiPrefix = process.env.API_PREFIX || 'api';
     const apiUrl = resolveApiUrl();
