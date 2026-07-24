@@ -86,9 +86,9 @@ function copyKeyToClipboard(fullVal, btn) {
     btn.innerHTML = typeof icon === 'function' ? icon('check') : 'OK';
     btn.style.color = '#22c55e';
     setTimeout(() => { btn.innerHTML = original; btn.style.color = ''; }, 1500);
-    if (typeof showToast === 'function') showToast('Đã sao chép!', 'success');
+    if (typeof showToast === 'function') showToast(t('toast_copy_success'), 'success');
   }).catch(() => {
-    if (typeof showToast === 'function') showToast('Lỗi sao chép', 'error');
+    if (typeof showToast === 'function') showToast(t('toast_copy_error'), 'error');
   });
 }
 
@@ -317,6 +317,50 @@ async function saveAdminMaintenanceConfig() {
   }
 }
 
+async function checkMaintenanceOnLogin(force) {
+  const overlay = document.getElementById('maintenance-screen-overlay');
+  if (!overlay) return false;
+
+  // Nếu đang hiển thị và không phải force check mới -> bỏ qua
+  if (overlay.style.display === 'flex' && !force) return true;
+
+  // Nếu chưa login thì không kiểm tra
+  const token = localStorage.getItem('accessToken');
+  if (!token) return false;
+
+  try {
+    const res = await apiFetch('/system-config/bootstrap');
+    if (res && res.maintenanceMode) {
+      // Admin users bypass the maintenance overlay
+      if (userProfile && userProfile.role === 'admin') {
+        overlay.style.display = 'none';
+        overlay.classList.add('hidden');
+        if (typeof closeBannedScreen === 'function') closeBannedScreen();
+        showToast('Hệ thống đang bảo trì', 'Chỉ admin mới truy cập được. Vào Cài đặt để tắt bảo trì.', 'warning');
+        return false;
+      }
+      applyAppLanguage(localStorage.getItem('eigu_language') || 'vi');
+      overlay.style.display = 'flex';
+      overlay.classList.remove('hidden');
+      if (typeof closeBannedScreen === 'function') closeBannedScreen();
+      return true;
+    } else {
+      overlay.style.display = 'none';
+      overlay.classList.add('hidden');
+      // Nếu force check và maintenance đã tắt -> vào app
+      if (force && typeof enterApp === 'function') {
+        enterApp();
+      }
+      return false;
+    }
+  } catch (e) {
+    if (force) {
+      showToast(t('toast_error'), e.message || 'Không thể kiểm tra trạng thái bảo trì', 'error');
+    }
+    return false;
+  }
+}
+
 async function saveAdminApiConfig() {
   const input = document.getElementById('admin-custom-api-prefix');
   if (!input) return;
@@ -388,6 +432,13 @@ const I18N_DICTIONARY = {
     analytics_reports: 'B\u00e1o c\u00e1o Th\u1ed1ng k\u00ea',
     user_guide: 'H\u01b0\u1edbng d\u1eabn s\u1eed d\u1ee5ng',
     activity_logs: 'Nh\u1eadt k\u00fd ho\u1ea1t \u0111\u1ed9ng',
+    settings: 'C\u00e0i \u0111\u1eb7t',
+    profile: 'H\u1ed3 s\u01a1',
+    tools: 'C\u00f4ng c\u1ee5',
+    automation: 'T\u1ef1 \u0111\u1ed9ng h\u00f3a',
+    accounts: 'T\u00e0i kho\u1ea3n',
+    chat_support: 'Chat Support',
+    user_management: 'Qu\u1ea3n l\u00fd User/Staff',
 
     // Profile View
     profile_email: 'Email',
@@ -550,6 +601,142 @@ const I18N_DICTIONARY = {
     min_ver_label: 'Phi\u00ean B\u1ea3n App T\u1ed1i Thi\u1ec3u:',
     save_maint_btn: 'L\u01b0u C\u1ea5u H\u00ecnh B\u1ea3o Tr\u00ec',
 
+    // Telemetry
+    telemetry_title: 'Theo D\u00f5i Bug, Stack Trace & Performance Dashboard',
+    telemetry_title_text: 'Theo D\u00f5i Bug, Stack Trace & Performance Dashboard',
+    telemetry_clear_btn: 'X\u00f3a Logs',
+    telemetry_desc: 'T\u1ef1 \u0111\u1ed9ng ghi nh\u1eadn 100% Stack Trace, M\u00e3 l\u1ed7i HTTP, Session Replay Action Trail v\u00e0 \u0111\u1ed9 tr\u1ec5 m\u1ea1ng theo th\u1eddi gian th\u1ef1c.',
+    telemetry_empty: 'Ch\u01b0a ghi nh\u1eadn l\u1ed7i h\u1ec7 th\u1ed1ng n\u00e0o.',
+
+    // Toast Messages
+    toast_success: 'Th\u00e0nh c\u00f4ng',
+    toast_error: 'L\u1ed7i',
+    toast_notification: 'Th\u00f4ng b\u00e1o',
+    toast_login_success_title: '\u0110\u0103ng nh\u1eadp th\u00e0nh c\u00f4ng',
+    toast_login_success_desc: 'Ch\u00e0o m\u1eebng b\u1ea1n \u0111\u1ebfn v\u1edbi EIGU Platform',
+    toast_logout_success_title: '\u0110\u0103ng xu\u1ea5t',
+    toast_logout_success_desc: '\u0110\u00e3 \u0111\u0103ng xu\u1ea5t kh\u1ecfi h\u1ec7 th\u1ed1ng.',
+    toast_network_online_title: '\u0110\u00e3 k\u1ebft n\u1ed1i l\u1ea1i',
+    toast_network_online_desc: 'H\u1ec7 th\u1ed1ng \u0111\u00e3 k\u1ebft n\u1ed1i m\u1ea1ng th\u00e0nh c\u00f4ng.',
+    toast_network_offline_title: 'M\u1ea5t k\u1ebft n\u1ed1i',
+    toast_network_offline_desc: 'H\u1ec7 th\u1ed1ng c\u1ea7n ph\u1ea3i c\u00f3 m\u1ea1ng th\u00ec m\u1edbi s\u1eed d\u1ee5ng \u0111\u01b0\u1ee3c.',
+    toast_auto_unban_desc: 'T\u00e0i kho\u1ea3n c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c t\u1ef1 \u0111\u1ed9ng g\u1ee1 kh\u00f3a! Vui l\u00f2ng \u0111\u0103ng nh\u1eadp l\u1ea1i.',
+    toast_copy_success: '\u0110\u00e3 sao ch\u00e9p!',
+    toast_copy_error: 'L\u1ed7i sao ch\u00e9p',
+
+    // Guide View
+    guide_overview_title: 'T\u1ed5ng quan',
+    guide_overview_desc: 'Trang t\u1ed5ng quan hi\u1ec3n th\u1ecb s\u1ed1 li\u1ec7u video \u0111\u00e3 x\u1eed l\u00fd, \u0111\u00e3 upload TikTok, \u0111ang ch\u1edd v\u00e0 s\u1ed1 t\u00e0i kho\u1ea3n TikTok \u0111ang qu\u1ea3n l\u00fd. Theo d\u00f5i ho\u1ea1t \u0111\u1ed9ng h\u1ec7 th\u1ed1ng th\u1eddi gian th\u1ef1c.',
+    guide_video_title: 'T\u1ef1 \u0111\u1ed9ng h\u00f3a Video',
+    guide_video_desc_input: '\u0110\u1ea7u v\u00e0o: K\u00e9o th\u1ea3 file .mp4 ho\u1eb7c d\u00e1n link YouTube \u0111\u1ec3 t\u1ea3i video t\u1ef1 \u0111\u1ed9ng.',
+    guide_video_desc_cut: 'Ch\u1ebf \u0111\u1ed9 c\u1eaft: Ch\u1ecdn \u0111\u1ed9 d\u00e0i m\u1ed7i video (1-20 ph\u00fat) ho\u1eb7c t\u00f9y ch\u1ec9nh chi ti\u1ebft.',
+    guide_video_desc_ratio: 'T\u1ec9 l\u1ec7 khung h\u00ecnh: 9:16 (TikTok/Shorts), 16:9 (YouTube), 1:1 (Instagram).',
+    guide_video_desc_antidetect: 'Anti-Detect: X\u00f3a metadata, th\u00eam nhi\u1ec5u h\u1ea1t, l\u1eadt khung h\u00ecnh, \u0111\u1ea3o \u00e2m thanh 3D ch\u1ed1ng b\u1ea3n quy\u1ec1n.',
+    guide_workflow_title: 'Visual Workflow Builder',
+    guide_workflow_desc: 'Thi\u1ebft k\u1ebf lu\u1ed3ng x\u1eed l\u00fd t\u1ef1 \u0111\u1ed9ng b\u1eb1ng c\u00e1ch k\u00e9o th\u1ea3 c\u00e1c Node: L\u1ea5y URL \u279c T\u1ea3i xu\u1ed1ng \u279c AI X\u1eed l\u00fd (ASR + LLM) \u279c FFmpeg \u279c N\u1ea1p H\u1ed3 s\u01a1 Browser \u279c T\u1ea3i l\u00ean TikTok.',
+    guide_proxy_title: 'Qu\u1ea3n l\u00fd H\u1ed3 s\u01a1 & Proxy',
+    guide_proxy_desc: 'M\u1ed7i t\u00e0i kho\u1ea3n l\u00e0 m\u1ed9t Browser Profile ri\u00eang bi\u1ec7t v\u1edbi Cookies, Proxy SOCKS5/Residential ri\u00eang. Kh\u00f3a WebRTC ng\u0103n r\u00f2 r\u1ec9 \u0111\u1ecba ch\u1ec9 IP th\u1eadt qua UDP/STUN.',
+    guide_rbac_title: 'Ph\u00e2n Quy\u1ec1n & \u0110\u1ed9i Nh\u00f3m',
+    guide_rbac_desc: 'H\u1ec7 th\u1ed1ng ph\u00e2n quy\u1ec1n 3 c\u1ea5p \u0111\u1ed9 (Admin, Staff, User). Admin c\u00f3 quy\u1ec1n b\u1eadt/t\u1eaft hi\u1ec3n th\u1ecb t\u1eebng Tab ch\u1ee9c n\u0103ng ri\u00eang bi\u1ec7t cho t\u1eebng t\u00e0i kho\u1ea3n nh\u00e2n vi\u00ean.',
+    guide_telemetry_title: 'C\u1ea5u H\u00ecnh & Gi\u00e1m S\u00e1t L\u1ed7i',
+    guide_telemetry_desc: 'T\u1ef1 \u0111\u1ed9ng ghi nh\u1eadn 100% Stack Trace, M\u00e3 l\u1ed7i HTTP, Session Replay Action Trail gi\u00fap \u0111\u1ed9i ng\u0169 ph\u00e1t tri\u1ec3n ph\u00e1t hi\u1ec7n v\u00e0 x\u1eed l\u00fd s\u1ef1 c\u1ed1 t\u1ee9c th\u00ec.',
+    guide_badge_overview: 'T\u1ed5ng quan',
+    guide_badge_ai: 'C\u1eaft gh\u00e9p AI',
+    guide_badge_auto: 'Lu\u1ed3ng t\u1ef1 \u0111\u1ed9ng',
+    guide_badge_antidetect: 'Anti-Detect',
+    guide_badge_rbac: 'RBAC System',
+    guide_badge_telemetry: 'Telemetry',
+    guide_badge_dashboard: 'T\u1ed5ng quan',
+    guide_section_1_heading_dashboard: '1. Dashboard',
+
+    // Social Account Titles
+    social_tiktok_title: 'TikTok Accounts',
+    social_facebook_title: 'Facebook Accounts',
+    social_youtube_title: 'YouTube Channels',
+    social_x_title: 'X (Twitter) Accounts',
+    social_instagram_title: 'Instagram Accounts',
+    social_threads_title: 'Threads Accounts',
+
+    // Chat Support Template Keys
+    chat_sidebar_search_placeholder: 'T\u00ecm ki\u1ebfm \u0111o\u1ea1n chat / email...',
+    chat_sidebar_empty: 'Ch\u01b0a c\u00f3 cu\u1ed9c tr\u00f2 chuy\u1ec7n n\u00e0o.',
+    chat_no_permission: 'B\u1ea1n kh\u00f4ng c\u00f3 quy\u1ec1n truy c\u1eadp Staff Chat Console.',
+    chat_header_loading: '\u0110ang t\u1ea3i danh s\u00e1ch cu\u1ed9c tr\u00f2 chuy\u1ec7n...',
+    chat_header_chatting_with: '\u0110ang chat v\u1edbi:',
+    chat_header_email_label: 'T\u00e0i kho\u1ea3n Email:',
+    chat_back_btn: '\u2190 Danh s\u00e1ch',
+    chat_default_name: 'Ch\u1ecdn cu\u1ed9c tr\u00f2 chuy\u1ec7n \u0111\u1ec3 b\u1eaft \u0111\u1ea7u chat',
+    chat_default_email: 'Vui l\u00f2ng ch\u1ecdn m\u1ed9t phi\u00ean chat \u1edf danh s\u00e1ch b\u00ean tr\u00e1i',
+    chat_default_select_user: 'Ch\u1ecdn ng\u01b0\u1eddi d\u00f9ng \u1edf c\u1ed9t b\u00ean tr\u00e1i \u0111\u1ec3 trao \u0111\u1ed5i th\u00f4ng tin tr\u1ef1c ti\u1ebfp.',
+    chat_input_placeholder: 'G\u1eedi tin nh\u1eafn...',
+    chat_reply_prefix: '\u0110ang tr\u1ea3 l\u1eddi:',
+    chat_mention_ai_sub: '\u0110\u1eb7t c\u00e2u h\u1ecfi cho Tr\u1ee3 l\u00fd AI',
+    chat_mention_customer_sub: 'Nh\u1eafc \u0111\u1ebfn Kh\u00e1ch h\u00e0ng',
+    chat_mention_everyone_sub: 'Nh\u1eafc \u0111\u1ebfn to\u00e0n b\u1ed9 h\u1ec7 th\u1ed1ng',
+    chat_emoji_btn: '🎃',
+    chat_resizer_title: 'K\u00e9o chu\u1ed9t sang tr\u00e1i/ph\u1ea3i \u0111\u1ec3 thay \u0111\u1ed5i k\u00edch th\u01b0\u1edbc',
+    chat_resolve_btn: 'Ho\u00e0n t\u1ea5t H\u1ed7 tr\u1ee3',
+    chat_reopen_btn: 'M\u1edf l\u1ea1i H\u1ed7 tr\u1ee3',
+    chat_reply_btn: 'Tr\u1ea3 l\u1eddi',
+    chat_no_messages: 'Ch\u01b0a c\u00f3 tin nh\u1eafn',
+    chat_no_messages_history: 'Ch\u01b0a c\u00f3 l\u1ecbch s\u1eed tin nh\u1eafn n\u00e0o.',
+    chat_no_sessions: 'Ch\u01b0a c\u00f3 cu\u1ed9c tr\u00f2 chuy\u1ec7n n\u00e0o.',
+    chat_no_results: 'Kh\u00f4ng t\u00ecm th\u1ea5y k\u1ebft qu\u1ea3 ph\u00f9 h\u1ee3p.',
+    chat_customer: 'Kh\u00e1ch h\u00e0ng',
+    chat_staff_ai: 'AI Assistant',
+    chat_ai_assistant: 'AI Assistant',
+
+    // Filter Pill Keys
+    filter_pill_all: 'T\u1ea5t c\u1ea3',
+    filter_pill_needs_support: 'C\u1ea7n h\u1ed7 tr\u1ee3',
+    filter_pill_in_progress: '\u0110ang h\u1ed7 tr\u1ee3',
+    filter_pill_resolved: '\u0110\u00e3 xong',
+
+    // Chat Status Keys
+    status_in_progress: '\u0110ang h\u1ed7 tr\u1ee3',
+    status_needs_staff: 'C\u1ea6N STAFF H\u1ed6 TR\u1ee2',
+    status_resolved: '\u0110\u00e3 xong',
+
+    // Chat JS Toast/Sysmsg Keys
+    toast_chat_staff_warning: 'C\u1ea3nh b\u00e1o',
+    toast_chat_staff_title: 'Chat Support',
+    toast_chat_staff_desc: '\u0110\u00e3 chuy\u1ec3n cu\u1ed9c tr\u00f2 chuy\u1ec7n sang cho Nh\u00e2n vi\u00ean h\u1ed7 tr\u1ee3!',
+    toast_chat_human_support_title: 'Chat Support',
+    toast_chat_human_support_desc: '\u0110\u00e3 chuy\u1ec3n cu\u1ed9c tr\u00f2 chuy\u1ec7n sang cho Nh\u00e2n vi\u00ean h\u1ed7 tr\u1ee3!',
+    toast_chat_resolved: '\u0110\u00e3 ho\u00e0n t\u1ea5t h\u1ed7 tr\u1ee3 cho',
+    toast_chat_reopened: '\u0110\u00e3 m\u1edf l\u1ea1i h\u1ed7 tr\u1ee3 cho',
+    chat_sysmsg_staff_request: '\u0110\u00e3 g\u1eedi y\u00eau c\u1ea7u h\u1ed7 tr\u1ee3 t\u1edbi \u0111\u1ed9i ng\u0169 Staff / Admin! M\u1ed9t nh\u00e2n vi\u00ean s\u1ebd ph\u1ea3n h\u1ed3i cu\u1ed9c tr\u00f2 chuy\u1ec7n n\u00e0y trong \u00edt ph\u00fat.',
+    chat_sysmsg_resolved: 'Nh\u00e2n vi\u00ean \u0111\u00e3 \u0111\u00e1nh d\u1ea5u ho\u00e0n t\u1ea5t h\u1ed7 tr\u1ee3 phi\u00ean tr\u00f2 chuy\u1ec7n n\u00e0y.',
+    chat_sysmsg_reopened: 'Nh\u00e2n vi\u00ean \u0111\u00e3 m\u1edf l\u1ea1i phi\u00ean h\u1ed7 tr\u1ee3 n\u00e0y.',
+    chat_slash_help: 'Danh s\u00e1ch l\u1ec7nh h\u1ed7 tr\u1ee3:\n\u2022 @Eigu AI <c\u00e2u h\u1ecfi>: H\u1ecfi \u0111\u00e1p tr\u1ef1c ti\u1ebfp v\u1edbi AI Assistant\n\u2022 /staff ho\u1eb7c @Staff: G\u1eedi y\u00eau c\u1ea7u Nh\u00e2n vi\u00ean h\u1ed7 tr\u1ee3\n\u2022 /ai <c\u00e2u h\u1ecfi>: H\u1ecfi AI nhanh',
+    chat_ai_fallback: 'T\u00f4i hi\u1ec7n ch\u01b0a r\u00f5 c\u00e2u h\u1ecfi n\u00e0y. B\u1ea1n c\u00f3 th\u1ec3 g\u00f5 @Eigu AI <c\u00e2u h\u1ecfi> ho\u1eb7c b\u1ea5m Y\u00eau c\u1ea7u Staff h\u1ed7 tr\u1ee3 nh\u00e9!',
+    chat_ai_fallback_no_ipc: 'T\u00f4i hi\u1ec7n ch\u01b0a r\u00f5 c\u00e2u h\u1ecfi n\u00e0y.',
+    chat_ai_greeting: 'Xin ch\u00e0o! T\u00f4i l\u00e0 AI Assistant c\u1ee7a EIGU Platform. B\u1ea1n c\u1ea7n h\u1ed7 tr\u1ee3 g\u00ec h\u00f4m nay?',
+    chat_scroll_to_original: 'B\u1ea5m \u0111\u1ec3 cu\u1ed9n \u0111\u1ebfn tin nh\u1eafn g\u1ed1c',
+    chat_reply_title: 'Tr\u1ea3 l\u1eddi tin nh\u1eafn',
+    chat_reply_prefix: 'Tr\u1ea3 l\u1eddi',
+    chat_ai_fallback_response: 'AI Assistant EIGU Platform:\n\nC\u1ea3m \u01a1n c\u00e2u h\u1ecfi c\u1ee7a b\u1ea1n! T\u00f4i c\u00f3 th\u1ec3 gi\u1ea3i \u0111\u00e1p \u0111\u1ea7y \u0111\u1ee7 v\u1ec1 25 t\u00ednh n\u0103ng h\u1ec7 th\u1ed1ng (T\u1ef1 \u0111\u1ed9ng c\u1eaft, T\u1ea1o video AI, Reup, T\u1ea3i h\u00e0ng lo\u1ea1t, Workflow, Qu\u1ea3n l\u00fd t\u00e0i kho\u1ea3n TikTok/FB/YT, API Keys...).\n\nB\u1ea1n h\u00e3y g\u00f5 **@Eigu AI <c\u00e2u h\u1ecfi>** ho\u1eb7c b\u1ea5m **Y\u00eau c\u1ea7u Staff h\u1ed7 tr\u1ee3** \u0111\u1ec3 \u0111\u01b0\u1ee3c gi\u1ea3i \u0111\u00e1p tr\u1ef1c ti\u1ebfp nh\u00e9!',
+
+    // Chat Status Indicator Keys
+    chat_status_seen: '\u0110\u00e3 xem',
+    chat_status_sent: '\u0110\u00e3 g\u1eedi',
+    chat_just_now: 'V\u1eeba xong',
+
+    // Chat Reply Preview Keys
+    chat_reply_to: '\u0110ang tr\u1ea3 l\u1eddi:',
+    chat_reply_to_customer: 'Tr\u1ea3 l\u1eddi Kh\u00e1ch h\u00e0ng:',
+    chat_reply_to_staff: 'Tr\u1ea3 l\u1eddi Staff:',
+    chat_reply_to_ai: 'Tr\u1ea3 l\u1eddi AI:',
+
+    // Chat Sample Session Keys
+    chat_sample_msg1: 'Xin ch\u00e0o, t\u00f4i kh\u00f4ng n\u1ea1p \u0111\u01b0\u1ee3c API key Gemini v\u00e0o h\u1ec7 th\u1ed1ng.',
+    chat_sample_msg2: 'Ch\u00e0o b\u1ea1n! B\u1ea1n vui l\u00f2ng ki\u1ec3m tra tab C\u00e0i \u0111\u1eb7t > B\u1ec3 ch\u1ee9a API Keys. N\u1ebfu v\u1eabn l\u1ed7i, h\u00e3y g\u00f5 @Eigu AI ho\u1eb7c b\u1ea5m Y\u00eau c\u1ea7u Staff h\u1ed7 tr\u1ee3 nh\u00e9.',
+    chat_sample_msg3: 'T\u00f4i \u0111\u00e3 b\u1ea5m y\u00eau c\u1ea7u Staff h\u1ed7 tr\u1ee3, nh\u1edd b\u1ea1n ki\u1ec3m tra gi\u00fap.',
+
+    // Notification Toast Keys
+    toast_notify_chat_transferred_title: 'Chat Support',
+    toast_notify_chat_transferred_desc: '\u0110\u00e3 chuy\u1ec3n cu\u1ed9c tr\u00f2 chuy\u1ec7n sang cho Nh\u00e2n vi\u00ean h\u1ed7 tr\u1ee3!',
+
     // Settings - API Keys
     api_keys_title: 'B\u1ec3 ch\u1ee9a API Keys (T\u1ef1 \u0111\u1ed9ng xoay v\u00f2ng)',
     api_keys_hint: 'C\u00e1c key s\u1ebd \u0111\u01b0\u1ee3c m\u00e3 h\u00f3a an to\u00e0n b\u1eb1ng chip b\u1ea3o m\u1eadt c\u1ee7a m\u00e1y t\u00ednh (Keychain/DPAPI) tr\u01b0\u1edbc khi l\u01b0u xu\u1ed1ng \u1ed5 \u0111\u0129a.',
@@ -595,6 +782,12 @@ const I18N_DICTIONARY = {
     mark_read_all: '\u0110\u00e3 \u0111\u1ecdc t\u1ea5t c\u1ea3',
     feedback: 'G\u00f3p \u00fd / B\u00e1o l\u1ed7i',
     logout: '\u0110\u0103ng xu\u1ea5t',
+
+    // Maintenance Overlay Keys
+    maint_overlay_title: 'H\u1ec6 TH\u1ed0NG \u0110ANG B\u1ea2O TR\u00cc',
+    maint_overlay_subtitle: 'H\u1ec7 th\u1ed1ng \u0111ang \u0111\u01b0\u1ee3c b\u1ea3o tr\u00ec b\u1edfi Admin. Vui l\u00f2ng quay l\u1ea1i sau \u00edt ph\u00fat.',
+    maint_overlay_contact: 'Li\u00ean h\u1ec7 h\u1ed7 tr\u1ee3:',
+    maint_overlay_refresh: 'Ki\u1ec3m Tra L\u1ea1i',
   },
   en: {
     // Sidebar Labels
@@ -613,6 +806,7 @@ const I18N_DICTIONARY = {
     analytics_reports: 'Analytics & Reports',
     user_guide: 'User Manual',
     activity_logs: 'Activity Logs',
+    settings: 'Settings',
 
     // Profile View
     profile_email: 'Email',
@@ -775,6 +969,13 @@ const I18N_DICTIONARY = {
     min_ver_label: 'Minimum Required App Version:',
     save_maint_btn: 'Save Maintenance Settings',
 
+    // Telemetry
+    telemetry_title: 'Bug Tracking, Stack Trace & Performance Dashboard',
+    telemetry_title_text: 'Bug Tracking, Stack Trace & Performance Dashboard',
+    telemetry_clear_btn: 'Clear Logs',
+    telemetry_desc: 'Automatically capture 100% Stack Trace, HTTP errors, Session Replay Action Trail and network latency in real-time.',
+    telemetry_empty: 'No system errors recorded.',
+
     // Settings - API Keys
     api_keys_title: 'API Key Pool (Auto-rotation)',
     api_keys_hint: 'Keys are securely encrypted using device security chip (Keychain/DPAPI) before saving to disk.',
@@ -820,8 +1021,149 @@ const I18N_DICTIONARY = {
     mark_read_all: 'Mark all read',
     feedback: 'Submit Feedback',
     logout: 'Logout',
+
+    // Toast Messages
+    toast_success: 'Success',
+    toast_error: 'Error',
+    toast_notification: 'Notification',
+    toast_login_success_title: 'Login successful',
+    toast_login_success_desc: 'Welcome to EIGU Platform',
+    toast_logout_success_title: 'Logged out',
+    toast_logout_success_desc: 'You have been logged out successfully.',
+    toast_network_online_title: 'Connected',
+    toast_network_online_desc: 'Network connection restored.',
+    toast_network_offline_title: 'Disconnected',
+    toast_network_offline_desc: 'A network connection is required to use the system.',
+    toast_auto_unban_desc: 'Your account has been automatically unlocked! Please log in again.',
+    toast_copy_success: 'Copied!',
+    toast_copy_error: 'Copy error',
+
+    // Guide View
+    guide_overview_title: 'Overview',
+    guide_overview_desc: 'Dashboard displays processed video stats, uploaded to TikTok, pending, and managed TikTok accounts. Real-time system monitoring.',
+    guide_video_title: 'Video Automation',
+    guide_video_desc_input: 'Input: Drag & drop .mp4 or paste YouTube link to auto-download video.',
+    guide_video_desc_cut: 'Cut mode: Choose duration per video (1-20 min) or custom range.',
+    guide_video_desc_ratio: 'Aspect ratio: 9:16 (TikTok/Shorts), 16:9 (YouTube), 1:1 (Instagram).',
+    guide_video_desc_antidetect: 'Anti-Detect: Remove metadata, add noise grain, flip frame, 3D audio reversal to avoid copyright.',
+    guide_workflow_title: 'Visual Workflow Builder',
+    guide_workflow_desc: 'Design automated processing flows by dragging Nodes: Get URL ➔ Download ➔ AI Process (ASR + LLM) ➔ FFmpeg ➔ Load Browser Profile ➔ Upload to TikTok.',
+    guide_proxy_title: 'Profile & Proxy Management',
+    guide_proxy_desc: 'Each account is a separate Browser Profile with unique Cookies, SOCKS5/Residential Proxy. WebRTC lock prevents real IP leaks via UDP/STUN.',
+    guide_rbac_title: 'Permissions & Team',
+    guide_rbac_desc: '3-level permission system (Admin, Staff, User). Admin can toggle feature tab visibility for each staff account individually.',
+    guide_telemetry_title: 'Config & Error Monitoring',
+    guide_telemetry_desc: 'Automatically capture 100% Stack Trace, HTTP errors, Session Replay Action Trail to help the dev team detect and fix issues instantly.',
+    guide_badge_overview: 'Overview',
+    guide_badge_ai: 'AI Cut & Edit',
+    guide_badge_auto: 'Auto Flow',
+    guide_badge_antidetect: 'Anti-Detect',
+    guide_badge_rbac: 'RBAC System',
+    guide_badge_telemetry: 'Telemetry',
+    guide_badge_dashboard: 'Overview',
+    guide_section_1_heading_dashboard: '1. Dashboard',
+
+    // Social Account Titles
+    social_tiktok_title: 'TikTok Accounts',
+    social_facebook_title: 'Facebook Accounts',
+    social_youtube_title: 'YouTube Channels',
+    social_x_title: 'X (Twitter) Accounts',
+    social_instagram_title: 'Instagram Accounts',
+    social_threads_title: 'Threads Accounts',
+
+    // Chat Support Template Keys
+    chat_sidebar_search_placeholder: 'Search chats / email...',
+    chat_sidebar_empty: 'No conversations yet.',
+    chat_no_permission: 'You do not have permission to access the Staff Chat Console.',
+    chat_header_loading: 'Loading conversation list...',
+    chat_header_chatting_with: 'Chatting with:',
+    chat_header_email_label: 'Email Account:',
+    chat_back_btn: '\u2190 List',
+    chat_default_name: 'Select a conversation to start chatting',
+    chat_default_email: 'Please select a chat session from the list on the left',
+    chat_default_select_user: 'Select a user from the left column to start a conversation.',
+    chat_input_placeholder: 'Type a message...',
+    chat_reply_prefix: 'Replying to:',
+    chat_mention_ai_sub: 'Ask AI Assistant a question',
+    chat_mention_customer_sub: 'Mention Customer',
+    chat_mention_everyone_sub: 'Mention everyone in the system',
+    chat_emoji_btn: '🎃',
+    chat_resizer_title: 'Drag left/right to resize sidebar',
+    chat_resolve_btn: 'Mark Resolved',
+    chat_reopen_btn: 'Reopen Support',
+    chat_reply_btn: 'Reply',
+    chat_no_messages: 'No messages',
+    chat_no_messages_history: 'No message history yet.',
+    chat_no_sessions: 'No conversations yet.',
+    chat_no_results: 'No matching results found.',
+    chat_customer: 'Customer',
+    chat_staff_ai: 'AI Assistant',
+    chat_ai_assistant: 'AI Assistant',
+
+    // Filter Pill Keys
+    filter_pill_all: 'All',
+    filter_pill_needs_support: 'Needs Support',
+    filter_pill_in_progress: 'In Progress',
+    filter_pill_resolved: 'Resolved',
+
+    // Chat Status Keys
+    status_in_progress: 'In Progress',
+    status_needs_staff: 'NEEDS STAFF SUPPORT',
+    status_resolved: 'Resolved',
+
+    // Chat JS Toast/Sysmsg Keys
+    toast_chat_staff_warning: 'Warning',
+    toast_chat_staff_title: 'Chat Support',
+    toast_chat_staff_desc: 'Conversation has been transferred to staff support!',
+    toast_chat_human_support_title: 'Chat Support',
+    toast_chat_human_support_desc: 'Conversation has been transferred to staff support!',
+    toast_chat_resolved: 'Support completed for',
+    toast_chat_reopened: 'Support reopened for',
+    chat_sysmsg_staff_request: 'Support request has been sent to Staff/Admin team! A staff member will respond within minutes.',
+    chat_sysmsg_resolved: 'Staff has marked this conversation as resolved.',
+    chat_sysmsg_reopened: 'Staff has reopened this support session.',
+    chat_slash_help: 'Available commands:\n• @Eigu AI <question>: Ask AI Assistant directly\n• /staff or @Staff: Request staff support\n• /ai <question>: Quick AI question',
+    chat_ai_fallback: 'I am not sure about this question. You can type @Eigu AI <question> or click Request Staff Support!',
+    chat_ai_fallback_no_ipc: 'I am not sure about this question.',
+    chat_ai_greeting: 'Hello! I am AI Assistant of EIGU Platform. How can I help you today?',
+    chat_scroll_to_original: 'Click to scroll to original message',
+    chat_reply_title: 'Reply to message',
+    chat_reply_prefix: 'Reply to',
+    chat_ai_fallback_response: 'AI Assistant EIGU Platform:\n\nThank you for your question! I can answer about all 25 system features (Auto Cut, AI Video, Reup, Bulk Download, Workflow, TikTok/FB/YT Account Management, API Keys...).\n\nPlease type **@Eigu AI <question>** or click **Request Staff Support** for direct assistance!',
+
+    // Chat Status Indicator Keys
+    chat_status_seen: 'Seen',
+    chat_status_sent: 'Sent',
+    chat_just_now: 'Just now',
+
+    // Chat Reply Preview Keys
+    chat_reply_to: 'Replying to:',
+    chat_reply_to_customer: 'Reply to Customer:',
+    chat_reply_to_staff: 'Reply to Staff:',
+    chat_reply_to_ai: 'Reply to AI:',
+
+    // Chat Sample Session Keys
+    chat_sample_msg1: 'Hello, I cannot load the Gemini API key into the system.',
+    chat_sample_msg2: 'Hi there! Please check Settings > API Key Pool. If still having issues, type @Eigu AI or click Request Staff Support.',
+    chat_sample_msg3: 'I have clicked request staff support, please check for me.',
+
+    // Notification Toast Keys
+    toast_notify_chat_transferred_title: 'Chat Support',
+    toast_notify_chat_transferred_desc: 'Conversation has been transferred to staff support!',
+
+    // Maintenance Overlay Keys
+    maint_overlay_title: 'SYSTEM UNDER MAINTENANCE',
+    maint_overlay_subtitle: 'The system is currently being maintained by Admin. Please come back later.',
+    maint_overlay_contact: 'Contact support:',
+    maint_overlay_refresh: 'Check Again',
   }
 };
+
+function t(key) {
+  const lang = localStorage.getItem('eigu_language') || 'vi';
+  const dict = I18N_DICTIONARY[lang === 'en' ? 'en' : 'vi'];
+  return dict && dict[key] ? dict[key] : key;
+}
 
 function applyAppLanguage(lang) {
   const selectedLang = lang === 'en' ? 'en' : 'vi';
@@ -840,6 +1182,14 @@ function applyAppLanguage(lang) {
     const key = el.getAttribute('data-i18n-placeholder');
     if (dict && dict[key]) {
       el.setAttribute('placeholder', dict[key]);
+    }
+  });
+
+  // 3. Translate title tooltips for elements with data-i18n-title
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (dict && dict[key]) {
+      el.setAttribute('title', dict[key]);
     }
   });
 
@@ -915,10 +1265,10 @@ function changeAppLanguage(lang) {
 
   applyAppLanguage(selectedLang);
 
-  const msg = selectedLang === 'vi' 
-    ? 'Đã chuyển đổi ngôn ngữ giao diện sang Tiếng Việt thành công!' 
+  const msg = selectedLang === 'vi'
+    ? 'Đã chuyển đổi ngôn ngữ giao diện sang Tiếng Việt thành công!'
     : 'Successfully switched application interface language to English!';
-  
+
   showToast('Ngôn ngữ / Language', msg, 'info');
 }
 

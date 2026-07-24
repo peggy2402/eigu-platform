@@ -423,8 +423,8 @@ function renderUserChatHistory() {
         <div class="msg-main-row">
           <img src="${AVATAR_AI}" class="msg-avatar" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; border: 1px solid var(--border-color);" alt="AI" />
           <div class="msg-content-box">
-            <div class="msg-bubble" style="min-width:24px;">Xin chào! Tôi là AI Assistant của EIGU Platform. Bạn cần hỗ trợ gì hôm nay?</div>
-            <div class="msg-meta">Vừa xong</div>
+            <div class="msg-bubble" style="min-width:24px;">${t('chat_ai_greeting')}</div>
+            <div class="msg-meta">${t('chat_just_now')}</div>
           </div>
         </div>
       </div>
@@ -462,9 +462,9 @@ function renderUserChatHistory() {
     // 1. Independent Reply Preview Component Outside Bubble
     let replyTagHtml = '';
     if (msg.parentMsg) {
-      const pSender = msg.parentMsg.sender === 'user' ? 'Khách hàng' : (msg.parentMsg.sender === 'staff' ? 'Staff' : 'AI Assistant');
+      const pSender = msg.parentMsg.sender === 'user' ? t('chat_customer') : (msg.parentMsg.sender === 'staff' ? 'Staff' : t('chat_ai_assistant'));
       replyTagHtml = `
-        <div class="reply-preview-tag" onclick="scrollToChatMessage('${msg.parentMsg.id || ''}')" title="Bấm để cuộn đến tin nhắn gốc">
+        <div class="reply-preview-tag" onclick="scrollToChatMessage('${msg.parentMsg.id || ''}')" title="${t('chat_scroll_to_original')}">
           ${escapeHtml(msg.parentMsg.text)}
         </div>
       `;
@@ -473,7 +473,7 @@ function renderUserChatHistory() {
     // 2. Status Indicator (Sent / Seen)
     let statusText = '';
     if (isUser) {
-      statusText = msg.status === 'seen' ? ' • <span style="color:var(--accent); font-weight:600;">✓✓ Đã xem</span>' : ' • <span style="color:var(--text-muted);">✓ Đã gửi</span>';
+      statusText = msg.status === 'seen' ? ` • <span style="color:var(--accent); font-weight:600;">\u2713\u2713 ${t('chat_status_seen')}</span>` : ` • <span style="color:var(--text-muted);">\u2713 ${t('chat_status_sent')}</span>`;
     }
 
     const isMe = msg.sender === 'user';
@@ -489,9 +489,9 @@ function renderUserChatHistory() {
         <img src="${avatarUrl}" class="msg-avatar" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; border: 1px solid var(--border-color);" alt="${msg.sender}" />
         <div class="msg-content-box">
           <div class="msg-bubble" style="min-width:24px;">${formatMentions(msg.text)}</div>
-          <div class="msg-meta">${msg.time || 'Vừa xong'}${statusText}</div>
+          <div class="msg-meta">${msg.time || t('chat_just_now')}${statusText}</div>
         </div>
-        <div class="msg-hover-action" onclick="startUserReplyQuote('${msg.sender}', '${safeText}', '${msg.id}')" title="Trả lời tin nhắn">
+        <div class="msg-hover-action" onclick="startUserReplyQuote('${msg.sender}', '${safeText}', '${msg.id}')" title="${t('chat_reply_title')}">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
         </div>
       </div>
@@ -573,7 +573,7 @@ async function sendChatMessage() {
     session.messages.push({
       id: 'ai_msg_' + Date.now(),
       sender: 'ai',
-      text: '💡 Danh sách lệnh hỗ trợ:\n• @Eigu AI <câu hỏi>: Hỏi đáp trực tiếp với AI Assistant\n• /staff hoặc @Staff: Gửi yêu cầu Nhân viên hỗ trợ\n• /ai <câu hỏi>: Hỏi AI nhanh',
+      text: t('chat_slash_help'),
       time: timeStr,
       status: 'seen'
     });
@@ -625,7 +625,7 @@ async function sendChatMessage() {
     notifyUnreadUserChatMessage();
   } catch (err) {
     removeTypingIndicator(aiTypingId);
-    const fallbackText = 'Tôi hiện chưa rõ câu hỏi này. Bạn có thể gõ @Eigu AI <câu hỏi> hoặc bấm Yêu cầu Staff hỗ trợ nhé!';
+    const fallbackText = t('chat_ai_fallback');
     session.messages.push({ id: 'ai_msg_' + Date.now(), sender: 'ai', text: fallbackText, time: timeStr, status: 'seen' });
     saveStoredChatSessions(sessions);
     renderUserChatHistory();
@@ -647,7 +647,7 @@ function requestHumanSupport() {
     sessions[email].lastActive = new Date().toISOString();
   }
 
-  const noticeText = 'Đã gửi yêu cầu hỗ trợ tới đội ngũ Staff / Admin! Một nhân viên sẽ phản hồi cuộc trò chuyện này trong ít phút.';
+  const noticeText = t('chat_sysmsg_staff_request');
   sessions[email].messages.push({ id: 'sys_' + Date.now(), sender: 'system', text: noticeText, time: timeStr, status: 'seen' });
   saveStoredChatSessions(sessions);
 
@@ -661,7 +661,7 @@ function requestHumanSupport() {
   } catch (e) {}
 
   renderUserChatHistory();
-  showToast('Chat Support', 'Đã chuyển cuộc trò chuyện sang cho Nhân viên hỗ trợ!', 'info');
+  showToast(t('toast_notification'), t('toast_chat_human_support_desc'), 'info');
 
   const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
   if (isStaffOrAdmin && typeof loadStaffChatConsole === 'function') {
@@ -733,7 +733,7 @@ function startUserReplyQuote(sender, text, id) {
   const nameEl = document.getElementById('user-reply-target-name');
   const textEl = document.getElementById('user-reply-target-text');
   if (preview && nameEl && textEl) {
-    nameEl.innerText = `Trả lời ${sender === 'user' ? ' ' : (sender === 'staff' ? 'Staff' : 'AI')}:`;
+    nameEl.innerText = `${t('chat_reply_prefix')} ${sender === 'user' ? ' ' : (sender === 'staff' ? 'Staff' : t('chat_ai_assistant'))}:`;
     textEl.innerText = text.length > 40 ? text.slice(0, 40) + '...' : text;
     preview.style.display = 'flex';
   }
@@ -852,7 +852,7 @@ Nhiệm vụ: Trả lời ngắn gọn, chuẩn xác, lịch sự và giải đ�
   if (q.includes('tiện ích')) return EIGU_SYSTEM_KNOWLEDGE['tien-ich'];
   if (q.includes('hướng dẫn') || q.includes('guide')) return EIGU_SYSTEM_KNOWLEDGE['guide'];
 
-  return `🤖 AI Assistant EIGU Platform:\n\nCảm ơn câu hỏi của bạn! Tôi có thể giải đáp đầy đủ về 25 tính năng hệ thống (Tự động cắt, Tạo video AI, Reup, Tải hàng loạt, Workflow, Quản lý tài khoản TikTok/FB/YT, API Keys...).\n\nBạn hãy gõ **@Eigu AI <câu hỏi>** hoặc bấm **Yêu cầu Staff hỗ trợ** để được giải đáp trực tiếp nhé!`;
+  return t('chat_ai_fallback_response');
 }
 
 // -----------------------------------------------------------
@@ -913,11 +913,15 @@ function initChatSidebarResizer() {
     if (!isResizing) return;
     const dx = e.clientX - startX;
     let newWidth = startWidth + dx;
+    const container = sidebar.parentElement;
+    const containerWidth = container ? container.getBoundingClientRect().width : 800;
+    const maxAllowed = Math.min(500, Math.floor(containerWidth * 0.45));
     if (newWidth < 220) newWidth = 220;
-    if (newWidth > 600) newWidth = 600;
+    if (newWidth > maxAllowed) newWidth = Math.max(220, maxAllowed);
     sidebar.style.width = newWidth + 'px';
     localStorage.setItem('eigu_chat_sidebar_width', newWidth);
   });
+
 
   document.addEventListener('mouseup', () => {
     if (isResizing) {
@@ -936,7 +940,7 @@ function loadStaffChatConsole() {
 
   const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
   if (!isStaffOrAdmin) {
-    listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Bạn không có quyền truy cập Staff Chat Console.</div>';
+    listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">${t('chat_no_permission')}</div>`;
     const msgBox = document.getElementById('staff-chat-messages');
     if (msgBox) msgBox.innerHTML = '';
     return;
@@ -946,7 +950,7 @@ function loadStaffChatConsole() {
   let sessionKeys = Object.keys(sessions);
 
   if (sessionKeys.length === 0) {
-    listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Chưa có cuộc trò chuyện nào.</div>';
+    listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">${t('chat_no_sessions')}</div>`;
     return;
   }
 
@@ -973,7 +977,7 @@ function loadStaffChatConsole() {
   }
 
   if (sessionKeys.length === 0) {
-    listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Không tìm thấy kết quả phù hợp.</div>';
+    listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">${t('chat_no_results')}</div>`;
     return;
   }
 
@@ -987,14 +991,14 @@ function loadStaffChatConsole() {
     item.className = `chat-session-item ${isActive ? 'active' : ''}`;
     item.style.cssText = `padding: 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; ${isActive ? 'background: var(--bg-card); border: 2px solid var(--accent); box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);' : 'background: var(--bg-primary); border: 1px solid var(--border-color);'}`;
 
-    const lastMsg = s.messages && s.messages.length > 0 ? s.messages[s.messages.length - 1].text : 'Chưa có tin nhắn';
+    const lastMsg = s.messages && s.messages.length > 0 ? s.messages[s.messages.length - 1].text : t('chat_no_messages');
     const shortMsg = lastMsg.length > 40 ? lastMsg.slice(0, 40) + '...' : lastMsg;
 
-    let statusTag = `<span style="color: #22c55e; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><span style="width:6px; height:6px; border-radius:50%; background:#22c55e; display:inline-block;"></span> Đang hỗ trợ</span>`;
+    let statusTag = `<span style="color: #22c55e; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><span style="width:6px; height:6px; border-radius:50%; background:#22c55e; display:inline-block;"></span> ${t('status_in_progress')}</span>`;
     if (s.needsStaff) {
-      statusTag = `<span style="color: #ef4444; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><span style="width:6px; height:6px; border-radius:50%; background:#ef4444; display:inline-block;"></span> CẦN STAFF HỖ TRỢ</span>`;
+      statusTag = `<span style="color: #ef4444; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><span style="width:6px; height:6px; border-radius:50%; background:#ef4444; display:inline-block;"></span> ${t('status_needs_staff')}</span>`;
     } else if (s.isResolved) {
-      statusTag = `<span style="color: var(--text-muted); font-weight: 600; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">✓ Đã xong</span>`;
+      statusTag = `<span style="color: var(--text-muted); font-weight: 600; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">\u2713 ${t('status_resolved')}</span>`;
     }
 
     item.innerHTML = `
@@ -1018,10 +1022,24 @@ function loadStaffChatConsole() {
   }
 }
 
+function toggleStaffChatMobilePanel(view) {
+  const container = document.getElementById('chat-support-container');
+  if (!container) return;
+  if (view === 'list') {
+    container.classList.remove('show-chat');
+    container.classList.add('show-list');
+  } else {
+    container.classList.remove('show-list');
+    container.classList.add('show-chat');
+  }
+}
+
 function selectStaffChatSession(email) {
   activeStaffChatEmail = email;
+  toggleStaffChatMobilePanel('chat');
   const sessions = getStoredChatSessions();
   const s = sessions[email];
+
 
   if (!s) return;
 
@@ -1043,17 +1061,17 @@ function selectStaffChatSession(email) {
   // Update Header & Resolve Button
   const nameEl = document.getElementById('staff-chat-target-name');
   const emailEl = document.getElementById('staff-chat-target-email');
-  if (nameEl) nameEl.innerText = `Đang chat với: ${s.username || 'Khách hàng'}`;
-  if (emailEl) emailEl.innerText = `Tài khoản Email: ${s.userEmail}`;
+  if (nameEl) nameEl.innerText = `${t('chat_header_chatting_with')} ${s.username || t('chat_customer')}`;
+  if (emailEl) emailEl.innerText = `${t('chat_header_email_label')} ${s.userEmail}`;
 
   const resolveBtn = document.getElementById('staff-resolve-btn');
   if (resolveBtn) {
     if (s.isResolved) {
-      resolveBtn.textContent = '🔄 Mở lại Hỗ trợ';
+      resolveBtn.textContent = t('chat_reopen_btn');
       resolveBtn.style.borderColor = 'var(--accent)';
       resolveBtn.style.color = 'var(--accent)';
     } else {
-      resolveBtn.textContent = '✓ Hoàn tất Hỗ trợ';
+      resolveBtn.textContent = t('chat_resolve_btn');
       resolveBtn.style.borderColor = 'var(--border-color)';
       resolveBtn.style.color = 'var(--text-primary)';
     }
@@ -1065,7 +1083,7 @@ function selectStaffChatSession(email) {
 
   messagesBox.innerHTML = '';
   if (!s.messages || s.messages.length === 0) {
-    messagesBox.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:13px;">Chưa có lịch sử tin nhắn nào.</div>';
+    messagesBox.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:13px;">${t('chat_no_messages_history')}</div>`;
     return;
   }
 
@@ -1098,9 +1116,9 @@ function selectStaffChatSession(email) {
     // 1. Independent Reply Preview Component Outside Bubble
     let replyTagHtml = '';
     if (msg.parentMsg) {
-      const pSender = msg.parentMsg.sender === 'user' ? 'Khách hàng' : (msg.parentMsg.sender === 'staff' ? 'Staff' : 'AI Assistant');
+      const pSender = msg.parentMsg.sender === 'user' ? t('chat_customer') : (msg.parentMsg.sender === 'staff' ? 'Staff' : t('chat_ai_assistant'));
       replyTagHtml = `
-        <div class="reply-preview-tag" onclick="scrollToChatMessage('${msg.parentMsg.id || ''}')" title="Bấm để cuộn đến tin nhắn gốc">
+        <div class="reply-preview-tag" onclick="scrollToChatMessage('${msg.parentMsg.id || ''}')" title="${t('chat_scroll_to_original')}">
           ${escapeHtml(msg.parentMsg.text)}
         </div>
       `;
@@ -1121,7 +1139,7 @@ function selectStaffChatSession(email) {
           <div class="msg-bubble" style="min-width:24px;">${formatMentions(msg.text)}</div>
           <div class="msg-meta">${msg.time || ''}</div>
         </div>
-        <div class="msg-hover-action" onclick="startStaffReplyQuote('${msg.sender}', '${safeText}', '${msg.id}')" title="Trả lời tin nhắn">
+        <div class="msg-hover-action" onclick="startStaffReplyQuote('${msg.sender}', '${safeText}', '${msg.id}')" title="${t('chat_reply_title')}">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
         </div>
       </div>
@@ -1139,7 +1157,7 @@ function sendStaffChatMessage(e) {
   if (!text) return;
 
   if (!activeStaffChatEmail) {
-    showToast('Cảnh báo', 'Vui lòng chọn một cuộc trò chuyện ở danh sách bên trái trước.', 'warning');
+    showToast(t('toast_error'), t('toast_chat_staff_warning'), 'warning');
     return;
   }
 
@@ -1217,11 +1235,11 @@ function resolveCurrentStaffChat() {
 
   const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   if (session.isResolved) {
-    session.messages.push({ id: 'sys_' + Date.now(), sender: 'system', text: '✅ Nhân viên đã đánh dấu hoàn tất hỗ trợ phiên trò chuyện này.', time: timeStr, status: 'seen' });
-    if (typeof showToast === 'function') showToast('Thành công', `Đã hoàn tất hỗ trợ cho ${activeStaffChatEmail}!`, 'success');
+    session.messages.push({ id: 'sys_' + Date.now(), sender: 'system', text: t('chat_sysmsg_resolved'), time: timeStr, status: 'seen' });
+    if (typeof showToast === 'function') showToast(t('toast_success'), `${t('toast_chat_resolved')} ${activeStaffChatEmail}!`, 'success');
   } else {
-    session.messages.push({ id: 'sys_' + Date.now(), sender: 'system', text: '🔄 Nhân viên đã mở lại phiên hỗ trợ này.', time: timeStr, status: 'seen' });
-    if (typeof showToast === 'function') showToast('Thông báo', `Đã mở lại hỗ trợ cho ${activeStaffChatEmail}!`, 'info');
+    session.messages.push({ id: 'sys_' + Date.now(), sender: 'system', text: t('chat_sysmsg_reopened'), time: timeStr, status: 'seen' });
+    if (typeof showToast === 'function') showToast(t('toast_notification'), `${t('toast_chat_reopened')} ${activeStaffChatEmail}!`, 'info');
   }
 
   saveStoredChatSessions(sessions);

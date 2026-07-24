@@ -387,32 +387,32 @@ const ViewsComponent = `
 <!-- Social Account Views -->
 <div id="view-tk-tiktok" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
-    <div><span data-icon="tiktok" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#ff0050;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">TikTok Accounts</h3><p style="color:var(--text-muted);" data-i18n="tiktok_desc">Quản lý tài khoản TikTok — thêm, xóa, theo dõi trạng thái</p></div>
+    <div><span data-icon="tiktok" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#ff0050;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_tiktok_title">TikTok Accounts</h3><p style="color:var(--text-muted);" data-i18n="tiktok_desc">Quản lý tài khoản TikTok — thêm, xóa, theo dõi trạng thái</p></div>
   </div>
 </div>
 <div id="view-tk-facebook" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
-    <div><span data-icon="facebook" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#1877F2;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Facebook Accounts</h3><p style="color:var(--text-muted);" data-i18n="facebook_desc">Quản lý tài khoản Facebook & Fanpage</p></div>
+    <div><span data-icon="facebook" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#1877F2;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_facebook_title">Facebook Accounts</h3><p style="color:var(--text-muted);" data-i18n="facebook_desc">Quản lý tài khoản Facebook & Fanpage</p></div>
   </div>
 </div>
 <div id="view-tk-youtube" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
-    <div><span data-icon="youtube" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#FF0000;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">YouTube Channels</h3><p style="color:var(--text-muted);" data-i18n="youtube_desc">Quản lý kênh YouTube & đăng tải tự động</p></div>
+    <div><span data-icon="youtube" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#FF0000;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_youtube_title">YouTube Channels</h3><p style="color:var(--text-muted);" data-i18n="youtube_desc">Quản lý kênh YouTube & đăng tải tự động</p></div>
   </div>
 </div>
 <div id="view-tk-x" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
-    <div><span data-icon="twitter" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">X (Twitter) Accounts</h3><p style="color:var(--text-muted);" data-i18n="x_desc">Quản lý tài khoản X & đăng Tweet tự động</p></div>
+    <div><span data-icon="twitter" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_x_title">X (Twitter) Accounts</h3><p style="color:var(--text-muted);" data-i18n="x_desc">Quản lý tài khoản X & đăng Tweet tự động</p></div>
   </div>
 </div>
 <div id="view-tk-instagram" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
-    <div><span data-icon="instagram" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#E4405F;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Instagram Accounts</h3><p style="color:var(--text-muted);" data-i18n="instagram_desc">Quản lý tài khoản Instagram & đăng bài tự động</p></div>
+    <div><span data-icon="instagram" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#E4405F;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_instagram_title">Instagram Accounts</h3><p style="color:var(--text-muted);" data-i18n="instagram_desc">Quản lý tài khoản Instagram & đăng bài tự động</p></div>
   </div>
 </div>
 <div id="view-tk-threads" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
-    <div><span data-icon="threads" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;">Threads Accounts</h3><p style="color:var(--text-muted);" data-i18n="threads_desc">Quản lý tài khoản Threads</p></div>
+    <div><span data-icon="threads" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_threads_title">Threads Accounts</h3><p style="color:var(--text-muted);" data-i18n="threads_desc">Quản lý tài khoản Threads</p></div>
   </div>
 </div>
 <div id="view-tiep-thi" class="view">
@@ -436,53 +436,53 @@ const ViewsComponent = `
   <div class="guide-container">
     <div class="guide-section">
       <div class="guide-heading">
-        <span>📊 1. Dashboard</span>
-        <span class="guide-badge">Tổng quan</span>
+        <span data-i18n="guide_section_1_heading_dashboard">📊 1. Dashboard</span>
+        <span class="guide-badge" data-i18n="guide_badge_dashboard">Tổng quan</span>
       </div>
-      <p>Trang tổng quan hiển thị số liệu video đã xử lý, đã upload TikTok, đang chờ và số tài khoản TikTok đang quản lý. Theo dõi hoạt động hệ thống thời gian thực.</p>
+      <p data-i18n="guide_overview_desc">Trang tổng quan hiển thị số liệu video đã xử lý, đã upload TikTok, đang chờ và số tài khoản TikTok đang quản lý. Theo dõi hoạt động hệ thống thời gian thực.</p>
     </div>
     
     <div class="guide-section">
       <div class="guide-heading">
-        <span>🎬 2. Tự động hóa Video</span>
-        <span class="guide-badge">Cắt ghép AI</span>
+        <span data-i18n="guide_video_title">🎬 2. Tự động hóa Video</span>
+        <span class="guide-badge" data-i18n="guide_badge_ai">Cắt ghép AI</span>
       </div>
-      <p><strong>Đầu vào:</strong> Kéo thả file .mp4 hoặc dán link YouTube để tải video tự động.</p>
-      <p><strong>Chế độ cắt:</strong> Chọn độ dài mỗi video (1-20 phút) hoặc tùy chỉnh chi tiết.</p>
-      <p><strong>Tỉ lệ khung hình:</strong> 9:16 (TikTok/Shorts), 16:9 (YouTube), 1:1 (Instagram).</p>
-      <p><strong>Anti-Detect:</strong> Xóa metadata, thêm nhiễu hạt, lật khung hình, đảo âm thanh 3D chống bản quyền.</p>
+      <p data-i18n="guide_video_desc_input"><strong>Đầu vào:</strong> Kéo thả file .mp4 hoặc dán link YouTube để tải video tự động.</p>
+      <p data-i18n="guide_video_desc_cut"><strong>Chế độ cắt:</strong> Chọn độ dài mỗi video (1-20 phút) hoặc tùy chỉnh chi tiết.</p>
+      <p data-i18n="guide_video_desc_ratio"><strong>Tỉ lệ khung hình:</strong> 9:16 (TikTok/Shorts), 16:9 (YouTube), 1:1 (Instagram).</p>
+      <p data-i18n="guide_video_desc_antidetect"><strong>Anti-Detect:</strong> Xóa metadata, thêm nhiễu hạt, lật khung hình, đảo âm thanh 3D chống bản quyền.</p>
     </div>
     
     <div class="guide-section">
       <div class="guide-heading">
-        <span>🔄 3. Visual Workflow Builder</span>
-        <span class="guide-badge">Luồng tự động</span>
+        <span data-i18n="guide_workflow_title">🔄 3. Visual Workflow Builder</span>
+        <span class="guide-badge" data-i18n="guide_badge_auto">Luồng tự động</span>
       </div>
-      <p>Thiết kế luồng xử lý tự động bằng cách kéo thả các Node: Lấy URL ➔ Tải xuống ➔ AI Xử lý (ASR + LLM) ➔ FFmpeg ➔ Nạp Hồ sơ Browser ➔ Tải lên TikTok.</p>
+      <p data-i18n="guide_workflow_desc">Thiết kế luồng xử lý tự động bằng cách kéo thả các Node: Lấy URL ➔ Tải xuống ➔ AI Xử lý (ASR + LLM) ➔ FFmpeg ➔ Nạp Hồ sơ Browser ➔ Tải lên TikTok.</p>
     </div>
     
     <div class="guide-section">
       <div class="guide-heading">
-        <span>🌐 4. Quản lý Hồ sơ & Proxy</span>
-        <span class="guide-badge">Anti-Detect</span>
+        <span data-i18n="guide_proxy_title">🌐 4. Quản lý Hồ sơ & Proxy</span>
+        <span class="guide-badge" data-i18n="guide_badge_antidetect">Anti-Detect</span>
       </div>
-      <p>Mỗi tài khoản là một Browser Profile riêng biệt với Cookies, Proxy SOCKS5/Residential riêng. Khóa WebRTC ngăn rò rỉ địa chỉ IP thật qua UDP/STUN.</p>
+      <p data-i18n="guide_proxy_desc">Mỗi tài khoản là một Browser Profile riêng biệt với Cookies, Proxy SOCKS5/Residential riêng. Khóa WebRTC ngăn rò rỉ địa chỉ IP thật qua UDP/STUN.</p>
     </div>
     
     <div class="guide-section">
       <div class="guide-heading">
-        <span>👥 5. Phân Quyền & Đội Nhóm</span>
-        <span class="guide-badge">RBAC System</span>
+        <span data-i18n="guide_rbac_title">👥 5. Phân Quyền & Đội Nhóm</span>
+        <span class="guide-badge" data-i18n="guide_badge_rbac">RBAC System</span>
       </div>
-      <p>Hệ thống phân quyền 3 cấp độ (Admin, Staff, User). Admin có quyền bật/tắt hiển thị từng Tab chức năng riêng biệt cho từng tài khoản nhân viên.</p>
+      <p data-i18n="guide_rbac_desc">Hệ thống phân quyền 3 cấp độ (Admin, Staff, User). Admin có quyền bật/tắt hiển thị từng Tab chức năng riêng biệt cho từng tài khoản nhân viên.</p>
     </div>
     
     <div class="guide-section">
       <div class="guide-heading">
-        <span>🛠️ 6. Cấu Hình & Giám Sát Lỗi</span>
-        <span class="guide-badge">Telemetry</span>
+        <span data-i18n="guide_telemetry_title">🛠️ 6. Cấu Hình & Giám Sát Lỗi</span>
+        <span class="guide-badge" data-i18n="guide_badge_telemetry">Telemetry</span>
       </div>
-      <p>Tự động ghi nhận 100% Stack Trace, Mã lỗi HTTP, Session Replay Action Trail giúp đội ngũ phát triển phát hiện và xử lý sự cố tức thì.</p>
+      <p data-i18n="guide_telemetry_desc">Tự động ghi nhận 100% Stack Trace, Mã lỗi HTTP, Session Replay Action Trail giúp đội ngũ phát triển phát hiện và xử lý sự cố tức thì.</p>
     </div>
   </div>
 </div>
@@ -561,13 +561,13 @@ const ViewsComponent = `
   <!-- Dashboard Theo Dõi Bug, Stack Trace & Performance Telemetry (CHỈ ADMIN MỚI ĐƯỢC XEM) -->
   <div id="system-telemetry-section" class="settings-card-section" style="margin-top:20px; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); display: none;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap: wrap; gap: 8px;">
-      <h3 style="color: #ef4444; margin:0; display:inline-flex; align-items:center; gap:6px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3 3 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6z"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg> Theo Dõi Bug, Stack Trace & Performance Dashboard</h3>
-      <button class="btn-outline" onclick="if(window.EIGU_TELEMETRY) window.EIGU_TELEMETRY.clearLogs();" style="padding:4px 12px; font-size:12px; border-color:#ef4444; color:#ef4444; border-radius: 6px;">Xóa Logs</button>
+      <h3 style="color: #ef4444; margin:0; display:inline-flex; align-items:center; gap:6px;" data-i18n="telemetry_title"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3 3 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6z"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg> <span data-i18n="telemetry_title_text">Theo D\u00f5i Bug, Stack Trace & Performance Dashboard</span></h3>
+      <button class="btn-outline" onclick="if(window.EIGU_TELEMETRY) window.EIGU_TELEMETRY.clearLogs();" style="padding:4px 12px; font-size:12px; border-color:#ef4444; color:#ef4444; border-radius: 6px;" data-i18n="telemetry_clear_btn">X\u00f3a Logs</button>
     </div>
-    <p class="settings-hint">Tự động ghi nhận 100% Stack Trace, Mã lỗi HTTP, Session Replay Action Trail và độ trễ mạng theo thời gian thực.</p>
+    <p class="settings-hint" data-i18n="telemetry_desc">T\u1ef1 \u0111\u1ed9ng ghi nh\u1eadn 100% Stack Trace, M\u00e3 l\u1ed7i HTTP, Session Replay Action Trail v\u00e0 \u0111\u1ed9 tr\u1ec5 m\u1ea1ng theo th\u1eddi gian th\u1ef1c.</p>
     
     <div id="telemetry-logs-list" style="margin-top: 14px; max-height: 320px; overflow-y: auto;">
-      <div style="text-align:center; padding: 20px; color: var(--text-muted);">✅ Chưa ghi nhận lỗi hệ thống nào.</div>
+      <div style="text-align:center; padding: 20px; color: var(--text-muted);" data-i18n="telemetry_empty">Ch\u01b0a ghi nh\u1eadn l\u1ed7i h\u1ec7 th\u1ed1ng n\u00e0o.</div>
     </div>
   </div>
 
@@ -667,7 +667,7 @@ const ViewsComponent = `
           <span style="position: absolute; left: 10px; color: var(--text-muted); display: inline-flex; pointer-events: none;">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </span>
-          <input type="text" id="staff-chat-search-input" placeholder="Tìm kiếm đoạn chat / email..." style="width: 100%; padding: 6px 10px 6px 30px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; outline: none;" oninput="onStaffChatSearchInput(this.value)" />
+          <input type="text" id="staff-chat-search-input" placeholder="Tìm kiếm đoạn chat / email..." style="width: 100%; padding: 6px 10px 6px 30px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; outline: none;" oninput="onStaffChatSearchInput(this.value)" data-i18n-placeholder="chat_sidebar_search_placeholder" />
         </div>
 
         <!-- Bộ Lọc Nút Pill (Tất cả, Cần hỗ trợ, Đang hỗ trợ, Đã xong) -->
@@ -680,32 +680,32 @@ const ViewsComponent = `
       </div>
 
       <div id="staff-chat-list" style="flex:1; min-height:0; overflow-y:auto; padding: 6px; display: flex; flex-direction: column; gap: 6px;">
-        <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Đang tải danh sách cuộc trò chuyện...</div>
+        <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;" data-i18n="chat_header_loading">Đang tải danh sách cuộc trò chuyện...</div>
       </div>
     </div>
 
     <!-- Cột Kéo Rút Điều Chỉnh Độ Rộng (Resizer Bar) -->
-    <div id="chat-sidebar-resizer" class="chat-resizer" title="Kéo chuột sang trái/phải để thay đổi kích thước"></div>
+    <div id="chat-sidebar-resizer" class="chat-resizer" title="Kéo chuột sang trái/phải để thay đổi kích thước" data-i18n-title="chat_resizer_title"></div>
 
     <!-- Cửa sổ Chat tương tác bên phải -->
     <div class="chat-support-main">
       <div style="padding: 10px 14px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); gap: 8px; flex-shrink: 0; min-height: 52px; box-sizing: border-box;">
         <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
-          <button id="staff-chat-back-btn" class="btn-outline" style="padding: 4px 8px; font-size: 11px; display: none; flex-shrink: 0;" onclick="toggleStaffChatMobilePanel('list')">← Danh sách</button>
+          <button id="staff-chat-back-btn" class="btn-outline" style="padding: 4px 8px; font-size: 11px; display: none; flex-shrink: 0;" onclick="toggleStaffChatMobilePanel('list')" data-i18n="chat_back_btn">← Danh sách</button>
           <div style="min-width:0; flex:1;">
-            <div id="staff-chat-target-name" style="font-weight: 700; font-size: 13px; color: var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Chọn cuộc trò chuyện để bắt đầu chat</div>
-            <div id="staff-chat-target-email" style="font-size: 11px; color: var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Vui lòng chọn một phiên chat ở danh sách bên trái</div>
+            <div id="staff-chat-target-name" style="font-weight: 700; font-size: 13px; color: var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" data-i18n="chat_default_name">Chọn cuộc trò chuyện để bắt đầu chat</div>
+            <div id="staff-chat-target-email" style="font-size: 11px; color: var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" data-i18n="chat_default_email">Vui lòng chọn một phiên chat ở danh sách bên trái</div>
           </div>
         </div>
         <button id="staff-resolve-btn" class="btn-outline" style="padding: 4px 12px; font-size: 11px; flex-shrink: 0; white-space: nowrap;" onclick="resolveCurrentStaffChat()" data-i18n="resolve_support">Hoàn tất Hỗ trợ</button>
       </div>
       <div id="staff-chat-messages" style="flex:1; min-height:0; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: var(--bg-primary);">
-        <div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">Chọn người dùng ở cột bên trái để trao đổi thông tin trực tiếp.</div>
+        <div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;" data-i18n="chat_default_select_user">Chọn người dùng ở cột bên trái để trao đổi thông tin trực tiếp.</div>
       </div>
       <!-- Quote Reply Preview Bar -->
       <div id="staff-chat-reply-preview" style="display:none; padding: 6px 16px; background: var(--bg-card); border-top: 1px solid var(--border-color); font-size: 12px; color: var(--text-secondary); align-items: center; justify-content: space-between;">
         <div style="min-width:0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-          <span style="font-weight:700; color:var(--accent);" id="staff-reply-target-name">Đang trả lời:</span>
+          <span style="font-weight:700; color:var(--accent);" id="staff-reply-target-name" data-i18n="chat_reply_prefix">Đang trả lời:</span>
           <span id="staff-reply-target-text" style="margin-left:4px; opacity:0.85;">...</span>
         </div>
         <button type="button" onclick="cancelStaffReplyQuote()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:0 4px;">✕</button>
@@ -718,26 +718,26 @@ const ViewsComponent = `
             <img src="img/logo.png" class="mention-avatar" style="background:#6366f1; padding:2px;" alt="AI" />
             <div class="mention-info">
               <div class="mention-title">@Eigu AI</div>
-              <div class="mention-sub">Đặt câu hỏi cho Trợ lý AI</div>
+              <div class="mention-sub" data-i18n="chat_mention_ai_sub">Đặt câu hỏi cho Trợ lý AI</div>
             </div>
           </div>
           <div class="mention-item" onclick="insertStaffMention('@Khách hàng ')">
             <img src="https://cdn2.fptshop.com.vn/unsafe/800x0/avatar_anime_nam_cute_14_60037b48e5.jpg" class="mention-avatar" alt="Client" />
             <div class="mention-info">
               <div class="mention-title">@Khách hàng</div>
-              <div class="mention-sub">Nhắc đến Khách hàng</div>
+              <div class="mention-sub" data-i18n="chat_mention_customer_sub">Nhắc đến Khách hàng</div>
             </div>
           </div>
           <div class="mention-item" onclick="insertStaffMention('@mọi người ')">
             <div class="mention-avatar" style="background:var(--bg-card-hover); display:flex; align-items:center; justify-content:center; font-size:14px;">👥</div>
             <div class="mention-info">
               <div class="mention-title">@mọi người</div>
-              <div class="mention-sub">Nhắc đến toàn bộ hệ thống</div>
+              <div class="mention-sub" data-i18n="chat_mention_everyone_sub">Nhắc đến toàn bộ hệ thống</div>
             </div>
           </div>
         </div>
 
-        <button type="button" class="btn-outline" style="padding: 8px 12px; font-size: 16px; border-radius: 20px; border-color: var(--border-color);" onclick="toggleStaffEmojiPicker(event)" title="Thêm biểu cảm Emoji">😊</button>
+        <button type="button" class="btn-outline" style="padding: 8px 12px; font-size: 16px; border-radius: 20px; border-color: var(--border-color);" onclick="toggleStaffEmojiPicker(event)" title="Emoji" data-i18n="chat_emoji_btn">😊</button>
         
         <!-- Popover Emoji Picker -->
         <div id="staff-emoji-picker" style="display:none; position: absolute; bottom: 60px; left: 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 8px; grid-template-columns: repeat(5, 1fr); gap: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 9999;">
@@ -753,7 +753,7 @@ const ViewsComponent = `
           <button type="button" class="emoji-btn" onclick="insertStaffEmoji('💯')" style="font-size:18px; border:none; background:none; cursor:pointer; padding:4px;">💯</button>
         </div>
 
-        <div id="staff-chat-input" class="chat-input-editable" contenteditable="true" data-placeholder="Gửi tin nhắn..." oninput="handleStaffMentionInput(event)" onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); event.stopPropagation(); sendStaffChatMessage(event); }"></div>
+        <div id="staff-chat-input" class="chat-input-editable" contenteditable="true" data-placeholder="Gửi tin nhắn..." data-i18n-placeholder="chat_input_placeholder" oninput="handleStaffMentionInput(event)" onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); event.stopPropagation(); sendStaffChatMessage(event); }"></div>
         <button type="button" class="btn-primary" style="width: auto !important; min-width: 90px; flex-shrink: 0; padding: 10px 24px; border-radius: 20px; margin: 0;" onclick="sendStaffChatMessage(event)" data-i18n="send_btn">Gửi</button>
       </div>
     </div>

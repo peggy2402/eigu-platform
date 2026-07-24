@@ -60,8 +60,10 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
     const isValidCode = isValidFormat && this.obfConfigService.isCodeValid(candidateCode);
 
     if (isDev) {
+      const authHeader = req.headers['authorization'];
+      const tokenPreview = authHeader ? authHeader.substring(0, 50) + '...' : 'MISSING';
       this.logger.debug(
-        `[ObfuscationMW] Method: ${req.method} | Incoming: ${rawUrl} | Code: "${candidateCode}" | Valid: ${isValidCode}`,
+        `[ObfuscationMW] Method: ${req.method} | Incoming: ${rawUrl} | Code: "${candidateCode}" | Valid: ${isValidCode} | Auth: ${tokenPreview}`,
       );
     }
 

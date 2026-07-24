@@ -11,6 +11,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app/app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ObfuscationConfigService } from './common/obfuscation/obfuscation-config.service';
+import { SystemConfigService } from './system-config/system-config.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,14 +21,16 @@ async function bootstrap() {
   // 1. Set NestJS Global Prefix to /api
   app.setGlobalPrefix('api');
 
-  // 2. Register public discovery endpoints for Clients (/api/bootstrap & /api/system-config/bootstrap)
-  const bootstrapHandler = (_req: any, res: any) => {
+  // 2. Register public discovery endpoint for Clients (/api/bootstrap)
+  const bootstrapHandler = async (_req: any, res: any) => {
     try {
       const obfService = app.get(ObfuscationConfigService);
+      const sysConfig = app.get(SystemConfigService);
+      const bootstrapData = await sysConfig.getBootstrapConfig();
       res.json({
         apiPrefix: obfService.getFullPrefix(),
-        minAppVersion: '1.0.0',
-        maintenanceMode: false,
+        minAppVersion: bootstrapData.minAppVersion || '1.0.0',
+        maintenanceMode: bootstrapData.maintenanceMode,
         timestamp: new Date().toISOString(),
       });
     } catch (e) {

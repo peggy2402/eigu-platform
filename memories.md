@@ -820,4 +820,107 @@ Xử lý:
   - **Loại bỏ 100% Emoji Icon**: Xóa bỏ toàn bộ icon emoji thô ráp, thay thế bằng nhãn Soft Badge cao cấp và SVG Icons chuẩn doanh nghiệp tuân thủ quy tắc thiết kế trong `AI_CONTEXT.md`.
   - **Sửa Lỗi Phóng To / Thu Nhỏ Cửa Sổ (Window Resizing Fix)**: Cập nhật `#view-user-activity-logs` sang cấu trúc Responsive Flex Height (`height: 100%; display: flex; flex-direction: column; overflow: hidden;`), khung chứa bảng có `overflow-y: auto; overflow-x: auto; min-width: 850px;`, đồng thời tự động chuyển đổi linh hoạt sang dạng **Responsive Card Grid Layout** khi thu nhỏ cửa sổ ứng dụng, giúp nội dung lịch sử hiển thị đầy đủ, không bao giờ bị cắt xén hay ẩn mất.
   - **Chuẩn Hóa Tên Thao Tác (Friendly Action Labels)**: Chuẩn hóa tên hành động thô (`LOGIN` ➔ `Đăng nhập hệ thống`, `CUT_VIDEO` ➔ `Tự động cắt video`, `UPDATE_SETTINGS` ➔ `Cập nhật Cài đặt`).
-  - **Phân Quyền Lọc Role (RBAC)**: Tự động ẩn thanh chọn Role đối với tài khoản User, ẩn lựa chọn Admin đối với Staff, chỉ hiển thị đầy đủ đối với Admin.
+   - **Phân Quyền Lọc Role (RBAC)**: Tự động ẩn thanh chọn Role đối với tài khoản User, ẩn lựa chọn Admin đối với Staff, chỉ hiển thị đầy đủ đối với Admin.
+
+## Phase 19: Phiên làm việc 25/07/2026 — Debug & Fix Double Logout Request & Maintenance Overlay Admin Lockout
+
+### 19.1 Phát hiện: Hai request `/auth/logout` — 1 authenticated, 1 unauthenticated
+- **Thời gian xử lý:** 25/07/2026 01:03 - 01:44 GMT+7
+- **Vấn đề:** Khi click "Đăng Xuất" trên maintenance overlay, backend nhận 2 request POST `/auth/logout`:
+  - Request 1: Có `Authorization: Bearer ...` → `JwtStrategy.validate()` gọi → 200 OK
+  - Request 2 (1 giây sau): Không có `Authorization` header → `JwtAuthGuard` từ chối → 401
+- **Chẩn đoán backend đã xác nhận:** Backend hoạt động đúng — vấn đề nằm ở frontend gửi request thứ hai khi token đã bị xóa.
+
+### 19.2 Thêm diagnostic tracing (`auth.service.js`, `api.js`, `index.html`)
+- **File:** `apps/desktop/src/assets/js/domain/auth.service.js`
+- Thêm `console.trace('[LOGOUT_TRACE] handleLogout called')` + in vào debug overlay DOM
+- **File:** `apps/desktop/src/assets/js/core/api.js`
+- Thêm `console.trace('[LOGOUT_TRACE] apiFetch(/auth/logout)')` khi path === '/auth/logout' + log token state
+- Thêm `[API_DIAG]` log chi tiết headers, tokenSource (memory vs localStorage), isRetry flag ngay trước `fetch()`
+- **File:** `apps/desktop/src/assets/index.html`
+- Thêm `#logout-debug-log` floating overlay (z-index 999999) hiển thị stack trace + token state trong app
+
+### 19.3 Kết quả diagnostic — Stack trace xác nhận caller
+- **Debug panel output:**
+  ```
+  [01:07:30] handleLogout called
+    at HTMLButtonElement.onclick (index.html:111)
+  [01:07:30] apiFetch(/auth/logout) isRetry=false token=eyJ... lsToken=eyJ...
+  ```
+- **Caller identified:** `index.html:111` — nút "Đăng Xuất" trong **maintenance overlay** (`#maintenance-screen-overlay`)
+- **Backend log matching:** Chỉ 1 request được ghi nhận trong run này (bug intermittent)
+
+### 19.4 Root cause analysis
+- **Không tìm thấy code path nào khác gọi `/auth/logout`** ngoài `apiFetch()` trong `handleLogout()`
+- Khi `checkMaintenanceOnLogin()` bật maintenance overlay (`display: flex`, `z-index: 999998`), sau đó người dùng click "Đăng Xuất", `handleLogout()` chạy:
+  1. `apiFetch('/auth/logout')` — authenticated (200) ✅
+  2. Xóa token (memory + localStorage)
+  3. **Ẩn `banned-screen-overlay`** (dòng 175-179)
+  4. **Không ẩn `maintenance-screen-overlay`** — overlay vẫn hiển thị với nút "Đăng Xuất" còn click được
+  5. Hiện auth container + gọi `showAuth('login')`
+  6. Maintenance overlay vẫn ở `display: flex` trên tất cả
+- **Kết luận:** Nếu người dùng click lại (hoặc double-click), `handleLogout()` chạy lần 2 với token = null → 401
+
+### 19.5 Fix 1: Re-entrant guard + Ẩn maintenance overlay (`auth.service.js`)
+- **File:** `apps/desktop/src/assets/js/domain/auth.service.js` (dòng 150-209)
+- **Giải pháp:**
+  ```javascript
+  let _isLoggingOut = false;
+
+  async function handleLogout() {
+    if (_isLoggingOut) return;  // Guard chống gọi lại
+    _isLoggingOut = true;
+    try {
+      try { await apiFetch('/auth/logout', { method:'POST' }); } catch {}
+      // ... xóa token, dọn DOM ...
+      const maintOverlay = document.getElementById('maintenance-screen-overlay');
+      if (maintOverlay) {
+        maintOverlay.classList.add('hidden');
+        maintOverlay.style.display = 'none';  // Ẩn maintenance overlay
+      }
+      // ...
+      showAuth('login');
+    } finally {
+      _isLoggingOut = false;  // Luôn reset guard
+    }
+  }
+  ```
+- **Thay đổi:**
+  - Thêm `let _isLoggingOut = false` (module-level flag)
+  - `if (_isLoggingOut) return;` ngăn chặn re-entrant call
+  - `_isLoggingOut = true / false` trong try/finally — đảm bảo reset kể cả khi exception
+  - Thêm block ẩn `#maintenance-screen-overlay` (dòng 172-176) — giống pattern của banned overlay
+- **Lưu ý:** `finally` block quan trọng vì lần đầu implement thiếu finally, guard bị kẹt `true` vĩnh viễn khi DOM throw exception → admin không thể logout lần sau
+
+### 19.6 Fix 2: Admin bypass maintenance overlay (`settings.js`)
+- **File:** `apps/desktop/src/assets/js/ui/settings.js` (dòng 320-354)
+- **Vấn đề UX nghiêm trọng:** Nếu admin duy nhất bật "System Maintenance" và logout, không ai có thể tắt được — tất cả tài khoản (kể cả admin) đều bị chặn bởi maintenance overlay
+- **Giải pháp:** Trong `checkMaintenanceOnLogin()`, kiểm tra `userProfile.role === 'admin'`:
+  ```javascript
+  if (res && res.maintenanceMode) {
+    // Admin users bypass the maintenance overlay
+    if (userProfile && userProfile.role === 'admin') {
+      overlay.style.display = 'none';
+      overlay.classList.add('hidden');
+      showToast('Hệ thống đang bảo trì',
+        'Chỉ admin mới truy cập được. Vào Cài đặt để tắt bảo trì.', 'warning');
+      return false;  // Cho phép vào app
+    }
+    // Non-admin users see the blocking overlay
+    applyAppLanguage(...);
+    overlay.style.display = 'flex';
+    overlay.classList.remove('hidden');
+    return true;
+  }
+  ```
+- **Cơ chế:** Admin vẫn thấy toast cảnh báo nhưng được vào app để tắt maintenance trong Cài đặt
+
+### 19.7 Dọn diagnostic code
+- **`api.js`:** Xóa `console.trace('[LOGOUT_TRACE] apiFetch(/auth/logout)')`, xóa `[API_DIAG]` log, khôi phục `fetch()` gốc
+- **`index.html`:** Xóa `#logout-debug-log` div
+- **`auth.service.js`:** Xóa `console.trace` và diagnostic DOM manipulation code
+
+### 19.8 Bài học kỹ thuật
+- **Re-entrant guard cần try/finally:** Module flag phải luôn được reset trong `finally` block, không chỉ ở cuối function — exception từ DOM operations có thể làm treo flag vĩnh viễn
+- **Maintenance overlay cần được ẩn khi logout:** `handleLogout()` đã ẩn banned overlay nhưng quên maintenance overlay — cần ẩn tất cả overlay khi logout
+- **Admin cần emergency escape hatch:** Bất kỳ feature nào có thể lock admin ra khỏi hệ thống (maintenance mode) cần có bypass cho admin role

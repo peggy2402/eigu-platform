@@ -159,11 +159,22 @@ function closeBannedScreen() {
 
 async function enterApp(showToastNotice = false) {
   closeBannedScreen();
+
+  // Kiểm tra bảo trì hệ thống trước khi cho vào app
+  if (typeof checkMaintenanceOnLogin === 'function') {
+    const isMaintenance = await checkMaintenanceOnLogin();
+    if (isMaintenance) {
+      document.getElementById('auth-container').style.display = 'none';
+      document.getElementById('app-container').style.display = 'none';
+      return;
+    }
+  }
+
   document.getElementById('auth-container').style.display = 'none';
   document.getElementById('app-container').style.display = 'flex';
   addLog('[SYSTEM] Dang nhap thanh cong.');
   if (showToastNotice) {
-    showToast('Đăng nhập thành công', 'Chào mừng bạn đến với EIGU Platform', 'success');
+    showToast(t('toast_login_success_title'), t('toast_login_success_desc'), 'success');
   }
   if (!userProfile || !userProfile.createdAt) {
     try { userProfile = await apiFetch('/auth/me'); } catch (e) { }
@@ -210,7 +221,7 @@ function showBannedScreen(banInfo) {
           overlay.classList.add('hidden');
           overlay.style.display = 'none';
           if (typeof handleLogout === 'function') handleLogout();
-          showToast('Thông báo', 'Tài khoản của bạn đã được tự động gỡ khóa! Vui lòng đăng nhập lại.', 'success');
+          showToast(t('toast_notification'), t('toast_auto_unban_desc'), 'success');
         }, 2000);
         return;
       }
@@ -366,8 +377,8 @@ window.addEventListener('resize', () => {
 
 // Network Connectivity Validation
 window.addEventListener('online', () => {
-  showToast('Đã kết nối lại', 'Hệ thống đã kết nối mạng thành công.', 'success');
+  showToast(t('toast_network_online_title'), t('toast_network_online_desc'), 'success');
 });
 window.addEventListener('offline', () => {
-  showToast('Mất kết nối', 'Hệ thống cần phải có mạng thì mới sử dụng được.', 'error');
+  showToast(t('toast_network_offline_title'), t('toast_network_offline_desc'), 'error');
 });

@@ -3,6 +3,27 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect, ReactNode } from 'react';
 import { Check, X, AlertTriangle, Info } from 'lucide-react';
 
+const I18N_TOAST: Record<string, Record<string, string>> = {
+  vi: {
+    toast_network_online_title: 'Đã kết nối lại',
+    toast_network_online_desc: 'Hệ thống đã kết nối mạng thành công.',
+    toast_network_offline_title: 'Mất kết nối',
+    toast_network_offline_desc: 'Hệ thống cần phải có mạng thì mới sử dụng được.',
+  },
+  en: {
+    toast_network_online_title: 'Connected',
+    toast_network_online_desc: 'Network connection restored.',
+    toast_network_offline_title: 'Disconnected',
+    toast_network_offline_desc: 'A network connection is required to use the system.',
+  },
+};
+
+function t(key: string): string {
+  const lang = typeof window !== 'undefined' ? localStorage.getItem('eigu_language') || 'vi' : 'vi';
+  const dict = I18N_TOAST[lang] ?? I18N_TOAST.vi;
+  return dict[key] ?? key;
+}
+
 type ToastType = 'success' | 'error' | 'warning' | 'info';
 
 interface Toast {
@@ -44,8 +65,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const handleOnline = () => showToast('Đã kết nối lại', 'Hệ thống đã kết nối mạng thành công.', 'success');
-    const handleOffline = () => showToast('Mất kết nối', 'Hệ thống cần phải có mạng thì mới sử dụng được.', 'error');
+    const handleOnline = () => showToast(t('toast_network_online_title'), t('toast_network_online_desc'), 'success');
+    const handleOffline = () => showToast(t('toast_network_offline_title'), t('toast_network_offline_desc'), 'error');
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     return () => {

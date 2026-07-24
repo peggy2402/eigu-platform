@@ -147,49 +147,63 @@ async function handleResetPass() {
   finally { btn.disabled = false; btn.textContent = 'Đặt lại mật khẩu'; }
 }
 
+let _isLoggingOut = false;
+
 async function handleLogout() {
-  try { await apiFetch('/auth/logout', { method:'POST' }); } catch {}
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  accessToken = null;
-  refreshToken = null;
-  userProfile = null;
+  if (_isLoggingOut) return;
+  _isLoggingOut = true;
+  try {
+    try { await apiFetch('/auth/logout', { method:'POST' }); } catch {}
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    accessToken = null;
+    refreshToken = null;
+    userProfile = null;
 
-  if (typeof bannedCountdownInterval !== 'undefined' && bannedCountdownInterval) {
-    clearInterval(bannedCountdownInterval);
-    bannedCountdownInterval = null;
+    if (typeof bannedCountdownInterval !== 'undefined' && bannedCountdownInterval) {
+      clearInterval(bannedCountdownInterval);
+      bannedCountdownInterval = null;
+    }
+    const bannedOverlay = document.getElementById('banned-screen-overlay');
+    if (bannedOverlay) {
+      bannedOverlay.classList.add('hidden');
+      bannedOverlay.style.display = 'none';
+    }
+
+    const maintOverlay = document.getElementById('maintenance-screen-overlay');
+    if (maintOverlay) {
+      maintOverlay.classList.add('hidden');
+      maintOverlay.style.display = 'none';
+    }
+
+    // Reset phân quyền UI Sidebar khi Đăng xuất
+    document.querySelectorAll('.staff-only').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.sidebar-nav > .nav-item[data-view]').forEach(el => el.classList.remove('hidden'));
+    document.querySelectorAll('.sidebar-nav > .nav-item-wrapper').forEach(el => el.classList.remove('hidden'));
+    document.querySelectorAll('.nav-sub-item[data-sub]').forEach(el => el.classList.remove('hidden'));
+    document.querySelectorAll('#profile-dropdown .profile-menu-item').forEach(el => el.classList.remove('hidden'));
+    document.querySelectorAll('#search-popup-body .search-result').forEach(el => el.classList.remove('hidden'));
+
+    // Reset Trạng thái Chat & Notification RAM state khi Đăng xuất
+    if (typeof resetChatState === 'function') {
+      resetChatState();
+    }
+    if (typeof notificationsData !== 'undefined') {
+      notificationsData = [];
+    }
+
+    // Trả view về Hồ sơ
+    if (typeof switchView === 'function') switchView('ho-so');
+
+    // Ẩn Live Chat Widget khi Đăng xuất
+    const liveChatWidget = document.getElementById('live-chat-container');
+    if (liveChatWidget) liveChatWidget.style.display = 'none';
+
+    document.getElementById('auth-container').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+    showAuth('login');
+  } finally {
+    _isLoggingOut = false;
   }
-  const bannedOverlay = document.getElementById('banned-screen-overlay');
-  if (bannedOverlay) {
-    bannedOverlay.classList.add('hidden');
-    bannedOverlay.style.display = 'none';
-  }
-
-  // Reset phân quyền UI Sidebar khi Đăng xuất
-  document.querySelectorAll('.staff-only').forEach(el => el.classList.add('hidden'));
-  document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
-  document.querySelectorAll('.sidebar-nav > .nav-item[data-view]').forEach(el => el.classList.remove('hidden'));
-  document.querySelectorAll('.sidebar-nav > .nav-item-wrapper').forEach(el => el.classList.remove('hidden'));
-  document.querySelectorAll('.nav-sub-item[data-sub]').forEach(el => el.classList.remove('hidden'));
-  document.querySelectorAll('#profile-dropdown .profile-menu-item').forEach(el => el.classList.remove('hidden'));
-  document.querySelectorAll('#search-popup-body .search-result').forEach(el => el.classList.remove('hidden'));
-
-  // Reset Trạng thái Chat & Notification RAM state khi Đăng xuất
-  if (typeof resetChatState === 'function') {
-    resetChatState();
-  }
-  if (typeof notificationsData !== 'undefined') {
-    notificationsData = [];
-  }
-
-  // Trả view về Hồ sơ
-  if (typeof switchView === 'function') switchView('ho-so');
-
-  // Ẩn Live Chat Widget khi Đăng xuất
-  const liveChatWidget = document.getElementById('live-chat-container');
-  if (liveChatWidget) liveChatWidget.style.display = 'none';
-
-  document.getElementById('auth-container').style.display = 'flex';
-  document.getElementById('app-container').style.display = 'none';
-  showAuth('login');
 }
