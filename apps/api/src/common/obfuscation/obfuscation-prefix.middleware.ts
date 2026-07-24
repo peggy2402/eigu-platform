@@ -6,13 +6,13 @@ import { ObfuscationConfigService } from './obfuscation-config.service';
 export class ObfuscationPrefixMiddleware implements NestMiddleware {
   private readonly logger = new Logger(ObfuscationPrefixMiddleware.name);
 
-  constructor(private readonly obfConfigService: ObfuscationConfigService) {}
+  constructor(private readonly obfConfigService: ObfuscationConfigService) { }
 
   use(req: Request, res: Response, next: NextFunction) {
     const rawUrl = req.originalUrl || req.url;
     const isDev = process.env.NODE_ENV !== 'production';
 
-    // 1. Bypass Static / Docs / Health / Root API / System Config
+    // 1. Bypass Static / Docs / Health / Root API / System Config Bootstrap / Security
     if (
       rawUrl === '/api' ||
       rawUrl === '/api/' ||

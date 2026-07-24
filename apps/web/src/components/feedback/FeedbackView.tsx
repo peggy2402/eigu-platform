@@ -42,9 +42,8 @@ export default function FeedbackView() {
               throw new Error(data.message || 'Lỗi gửi báo cáo');
             }
             
-            alert('Cảm ơn bạn đã gửi báo cáo thành công!');
-            target.message.value = '';
-            target.file.value = '';
+            (target as any).message.value = '';
+            if ((target as any).file) (target as any).file.value = '';
           } catch (err: any) {
             alert(err.message);
           } finally {

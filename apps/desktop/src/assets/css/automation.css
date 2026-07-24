@@ -1,14 +1,24 @@
-.automation-container { max-width: 1000px; width: 100%; }
+.automation-container { 
+  max-width: 1280px; 
+  width: 100%; 
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-bottom: 40px;
+}
+
 .automation-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 20px;
+  align-items: start;
 }
-@media (min-width: 900px) {
+
+@media (min-width: 1200px) {
   .automation-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(340px, 1fr) minmax(420px, 1.2fr);
   }
 }
+
 .input-section {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -17,7 +27,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: 100%;
+  height: fit-content;
+  box-sizing: border-box;
+  width: 100%;
 }
 .drop-zone {
   border: 2px dashed var(--border-color);
@@ -63,7 +75,11 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   padding: 20px;
-  display: flex; flex-direction: column; gap: 14px;
+  display: flex; 
+  flex-direction: column; 
+  gap: 14px;
+  box-sizing: border-box;
+  width: 100%;
 }
 .settings-card label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
 .settings-card select, .settings-card input[type="text"] {
@@ -284,4 +300,28 @@
   transition: all 0.2s ease-out;
   object-fit: contain;
 }
+
+/* Compact Responsive Media Queries for Narrow Windows */
+@media (max-width: 1024px) {
+  .settings-card select, 
+  .settings-card input[type="text"],
+  .custom-select {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .output-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .output-row .path {
+    text-align: left;
+    margin: 4px 0;
+    width: 100%;
+  }
+  .output-row .change-btn {
+    width: 100%;
+  }
+}
+
 

@@ -38,63 +38,75 @@ const ViewsComponent = `
           </select>
         </div>
         
-        <div id="video-preview-card" class="video-preview-card" style="margin-top: 4px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px dashed var(--border-color); border-radius: var(--radius-sm); padding: 24px; background: var(--bg-primary); text-align: center; min-height: 180px; position: relative; overflow: hidden;">
+        <div id="video-preview-card" class="video-preview-card" style="margin-top: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px dashed var(--border-color); border-radius: var(--radius-sm); padding: 24px; background: var(--bg-primary); text-align: center; min-height: 180px; position: relative; overflow: hidden;">
           <span data-icon="youtube" style="font-size: 32px; color: var(--text-muted); margin-bottom: 12px; opacity: 0.5;"></span>
           <p style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">Thông tin Video</p>
           <span style="color: var(--text-muted); font-size: 12px; margin-top: 4px; max-width: 80%;">Thumbnail và thời lượng sẽ hiển thị tại đây khi bạn chọn file hoặc dán link.</span>
         </div>
+
+        <!-- Chế độ cắt Video (Nằm dưới khối Thông tin Video) -->
+        <div class="cut-mode-card" style="margin-top: 4px; padding: 16px; background: var(--bg-primary); border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;">
+          <label style="font-weight:600; color:var(--accent); font-size: 14px; display:flex; align-items:center; gap:6px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg> Chế độ & Thông số Cắt Video</label>
+          
+          <div>
+            <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Chế độ cắt Video</label>
+            <select id="split-mode" class="custom-select">
+              <option value="split_1">1 phút / video</option>
+              <option value="split_2">2 phút / video</option>
+              <option value="split_3">3 phút / video</option>
+              <option value="split_5" selected>5 phút / video</option>
+              <option value="split_10">10 phút / video</option>
+              <option value="split_20">20 phút / video</option>
+              <option value="custom">Tùy chỉnh thời gian</option>
+              <option value="ai_smart">AI Smart Cutter (Tự động 30-90s)</option>
+            </select>
+            <div id="custom-times" class="hidden" style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+              <input type="text" id="time-start" placeholder="00:00:00" style="flex:1;" />
+              <span style="color:var(--text-muted);">→</span>
+              <input type="text" id="time-end" placeholder="00:01:20" style="flex:1;" />
+            </div>
+          </div>
+          
+          <div>
+            <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Cách thức Cắt</label>
+            <select id="cut-engine" class="custom-select">
+              <option value="fast" selected>🟢 Fast Mode (Siêu tốc, giữ nguyên chất lượng)</option>
+              <option value="accurate">🟡 Accurate Mode (Chậm hơn, cắt cực chuẩn từng frame)</option>
+            </select>
+            
+            <div id="quality-config" class="hidden" style="margin-top:6px;">
+              <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Chất lượng xuất (Re-encode)</label>
+              <select id="cut-quality" class="custom-select">
+                <option value="auto">Tự động (H.264)</option>
+                <option value="h264">H.264 (Tương thích tốt)</option>
+                <option value="h265">H.265 / HEVC (Dung lượng thấp)</option>
+                <option value="av1">AV1 (Chất lượng tốt nhất)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Tỉ lệ khung hình</label>
+            <select id="aspect-ratio" class="custom-select">
+              <option value="original">Giữ nguyên bản</option>
+              <option value="9:16">9:16 (TikTok, Shorts)</option>
+              <option value="16:9">16:9 (YouTube)</option>
+              <option value="1:1">1:1 (Instagram)</option>
+            </select>
+          </div>
+
+          <label class="checkbox-row" style="margin-top: 4px;"><input type="checkbox" id="auto-part" checked />Tự động đánh số "Phần 1/N"</label>
+        </div>
       </div>
 
       <div class="settings-card">
-        <label>Chế độ cắt Video</label>
-        <select id="split-mode">
-          <option value="split_1">1 phút / video</option>
-          <option value="split_2">2 phút / video</option>
-          <option value="split_3">3 phút / video</option>
-          <option value="split_5" selected>5 phút / video</option>
-          <option value="split_10">10 phút / video</option>
-          <option value="split_20">20 phút / video</option>
-          <option value="custom">Tùy chỉnh thời gian</option>
-          <option value="ai_smart">AI Smart Cutter (Tự động 30-90s)</option>
-        </select>
-        <div id="custom-times" class="hidden" style="display:flex;gap:8px;align-items:center;">
-          <input type="text" id="time-start" placeholder="00:00:00" style="flex:1;" />
-          <span style="color:var(--text-muted);">→</span>
-          <input type="text" id="time-end" placeholder="00:01:20" style="flex:1;" />
-        </div>
-        
-        <label style="margin-top:8px;">Cách thức Cắt</label>
-        <select id="cut-engine">
-          <option value="fast" selected>🟢 Fast Mode (Siêu tốc, giữ nguyên chất lượng)</option>
-          <option value="accurate">🟡 Accurate Mode (Chậm hơn, cắt cực chuẩn từng frame)</option>
-        </select>
-        
-        <div id="quality-config" class="hidden" style="margin-top:8px;">
-          <label>Chất lượng xuất (Re-encode)</label>
-          <select id="cut-quality">
-            <option value="auto">Tự động (H.264)</option>
-            <option value="h264">H.264 (Tương thích tốt)</option>
-            <option value="h265">H.265 / HEVC (Dung lượng thấp)</option>
-            <option value="av1">AV1 (Chất lượng tốt nhất)</option>
-          </select>
-        </div>
-
-        <label style="margin-top:8px;">Tỉ lệ khung hình</label>
-        <select id="aspect-ratio">
-          <option value="original">Giữ nguyên bản</option>
-          <option value="9:16">9:16 (TikTok, Shorts)</option>
-          <option value="16:9">16:9 (YouTube)</option>
-          <option value="1:1">1:1 (Instagram)</option>
-        </select>
-        <label class="checkbox-row"><input type="checkbox" id="auto-part" checked />Tự động đánh số "Phần 1/N"</label>
-        <hr />
-        <label style="font-weight:600;color:#38bdf8;">Tính năng Anti-Detect</label>
+        <label style="font-weight:600;color:#38bdf8;font-size:14px;">Tính năng Anti-Detect</label>
         <label class="checkbox-row"><input type="checkbox" id="opt-metadata" checked />Xóa siêu dữ liệu (Metadata Stripping)</label>
         <label class="checkbox-row"><input type="checkbox" id="opt-noise" />Nhiễu hạt & Cân bằng sáng (Noise & EQ)</label>
         <label class="checkbox-row"><input type="checkbox" id="opt-decimate" />Xóa khung hình tĩnh (Decimation)</label>
         <label class="checkbox-row"><input type="checkbox" id="opt-audio" />Đảo chiều âm thanh 3D (Spatial Panning)</label>
         <hr />
-        <label style="font-weight:600;color:#a78bfa;">Chỉnh sửa nâng cao</label>
+        <label style="font-weight:600;color:#a78bfa;font-size:14px;">Chỉnh sửa nâng cao</label>
 
         <label>Lật video</label>
         <select id="opt-flip" class="custom-select">

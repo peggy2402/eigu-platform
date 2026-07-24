@@ -20,6 +20,7 @@ const viewTitles: Record<ViewType, [string, string]> = {
   'cut': ['Tự động cắt', 'Cắt và xử lý video tự động'],
   'ai-video': ['Tạo video AI', 'Sinh video bằng trí tuệ nhân tạo'],
   'hot-niche': ['Tìm ngách hot', 'Phân tích xu hướng thị trường'],
+  'bulk-download': ['Tải video hàng loạt', 'Tải danh sách video hàng loạt từ nhiều nguồn'],
   'workflow': ['Tạo workflow', 'Thiết kế luồng xử lý tự động'],
   'record': ['Ghi thao tác', 'Ghi lại các thao tác trình duyệt'],
   'tai-khoan': ['Tài khoản', 'Quản lý tài khoản TikTok'],

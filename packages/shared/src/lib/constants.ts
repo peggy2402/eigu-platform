@@ -11,6 +11,17 @@ export const DEFAULT_WEBSOCKET_URL = 'http://localhost:3001';
  * Lấy URL Gốc của API Server dựa theo Biến môi trường hoặc Cấu hình Cục bộ
  */
 export function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined' && window) {
+    if ((window as any).__EIGU_ACTIVE_API_URL__) {
+      return (window as any).__EIGU_ACTIVE_API_URL__;
+    }
+    if ((window as any).EIGU_CONFIG && (window as any).EIGU_CONFIG.API_BASE_URL) {
+      return (window as any).EIGU_CONFIG.API_BASE_URL;
+    }
+    if ((window as any).EIGU_API_URL) {
+      return (window as any).EIGU_API_URL;
+    }
+  }
   if (typeof process !== 'undefined' && process && process.env) {
     const env = process.env;
     const rawPrefix = (env['API_PREFIX'] || '').trim().replace(/^\//, '').replace(/\/$/, '');
@@ -26,12 +37,6 @@ export function getApiBaseUrl(): string {
     if (!baseHost) baseHost = 'http://localhost:3001';
 
     return `${baseHost}/${prefix}`;
-  }
-  if (typeof window !== 'undefined' && window && (window as any).EIGU_CONFIG && (window as any).EIGU_CONFIG.API_BASE_URL) {
-    return (window as any).EIGU_CONFIG.API_BASE_URL;
-  }
-  if (typeof window !== 'undefined' && window && (window as any).EIGU_API_URL) {
-    return (window as any).EIGU_API_URL;
   }
   return DEFAULT_API_BASE_URL;
 }

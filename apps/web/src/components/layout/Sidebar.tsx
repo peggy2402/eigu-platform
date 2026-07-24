@@ -5,7 +5,7 @@ import {
   Users, Link, Grid, BookOpen, Settings, LogOut, ChevronRight, DownloadCloud
 } from 'lucide-react';
 
-export type ViewType = 'ho-so' | 'cut' | 'ai-video' | 'hot-niche' | 'workflow' | 'record' | 'tai-khoan' | 'tiep-thi' | 'doi-nhom' | 'tien-ich' | 'guide' | 'settings' | 'feedback';
+export type ViewType = 'ho-so' | 'cut' | 'ai-video' | 'hot-niche' | 'bulk-download' | 'workflow' | 'record' | 'tai-khoan' | 'tiep-thi' | 'doi-nhom' | 'tien-ich' | 'guide' | 'settings' | 'feedback';
 
 interface SidebarProps {
   activeView: ViewType;

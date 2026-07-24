@@ -23,25 +23,66 @@ function saveStoredHeaderNotifications(data) {
   } catch (e) {}
 }
 
+function parseNotificationTime(n) {
+  if (n.rawTime && typeof n.rawTime === 'number') return n.rawTime;
+  if (n.createdAt) return new Date(n.createdAt).getTime();
+  if (n.time && typeof n.time === 'string' && n.time.includes('/')) {
+    // Parse format "HH:mm DD/MM/YYYY"
+    const parts = n.time.split(' ');
+    if (parts.length === 2) {
+      const dateParts = parts[1].split('/');
+      const timeParts = parts[0].split(':');
+      if (dateParts.length === 3 && timeParts.length === 2) {
+        return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]).getTime();
+      }
+    }
+  }
+  return Date.now();
+}
+
 async function loadRealNotifications() {
-  const localNotifs = getStoredHeaderNotifications();
+  const localNotifs = getStoredHeaderNotifications().map(n => ({
+    ...n,
+    rawTime: parseNotificationTime(n)
+  }));
   notificationsData = localNotifs;
+
   try {
     const list = await apiFetch('/notifications');
     if (Array.isArray(list)) {
-      const remoteNotifs = list.map(n => ({
-        id: n.id,
-        title: n.title,
-        content: n.content,
-        targetRole: n.target || 'all',
-        read: n.isRead,
-        time: n.createdAt ? new Date(n.createdAt).toLocaleDateString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Vừa xong'
-      }));
+      const remoteNotifs = list.map(n => {
+        const rawTime = n.createdAt ? new Date(n.createdAt).getTime() : Date.now();
+        const dateObj = n.createdAt ? new Date(n.createdAt) : new Date();
+        const isToday = dateObj.toDateString() === new Date().toDateString();
+        const formattedTime = isToday
+          ? dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+          : `${dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} ${dateObj.toLocaleDateString('vi-VN')}`;
+
+        return {
+          id: n.id,
+          title: n.title,
+          content: n.content,
+          targetRole: n.target || 'all',
+          read: n.isRead,
+          rawTime,
+          time: formattedTime
+        };
+      });
+
       // Merge remote + local chat notifications without duplicates
       const merged = [...localNotifs];
       remoteNotifs.forEach(rn => {
-        if (!merged.some(mn => mn.id === rn.id)) merged.push(rn);
+        const existingIdx = merged.findIndex(mn => mn.id === rn.id);
+        if (existingIdx >= 0) {
+          merged[existingIdx] = { ...merged[existingIdx], ...rn };
+        } else {
+          merged.push(rn);
+        }
       });
+
+      // Sort newest first (descending by rawTime)
+      merged.sort((a, b) => b.rawTime - a.rawTime);
+
       notificationsData = merged;
       saveStoredHeaderNotifications(notificationsData);
     }
@@ -89,6 +130,13 @@ function renderNotifications() {
     if (!n.targetRole || n.targetRole === 'all') return true;
     if (isStaffOrAdmin) return n.targetRole === 'staff';
     return n.targetRole === 'user';
+  });
+
+  // Always sort newest first (descending by rawTime)
+  filteredData.sort((a, b) => {
+    const timeA = parseNotificationTime(a);
+    const timeB = parseNotificationTime(b);
+    return timeB - timeA;
   });
 
   const unreadCount = filteredData.filter(n => !n.read).length;
@@ -151,34 +199,39 @@ function handleNotificationClick(n) {
 }
 
 function addChatNotificationForStaff(userEmail, textPreview) {
+  const now = Date.now();
   const notif = {
-    id: 'chat_notif_stf_' + Date.now(),
+    id: 'chat_notif_stf_' + now,
     title: '💬 Yêu cầu Chat Support từ: ' + userEmail,
     content: textPreview.length > 50 ? textPreview.slice(0, 50) + '...' : textPreview,
     userEmail: userEmail,
     targetRole: 'staff',
     isChatNotif: true,
     read: false,
+    rawTime: now,
     time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
   };
   
   const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
   if (isStaffOrAdmin) {
     notificationsData.unshift(notif);
+    notificationsData.sort((a, b) => parseNotificationTime(b) - parseNotificationTime(a));
     saveStoredHeaderNotifications(notificationsData);
     renderNotifications();
   }
 }
 
 function addChatNotificationForUser(targetEmail, textPreview) {
+  const now = Date.now();
   const notif = {
-    id: 'chat_notif_usr_' + Date.now(),
+    id: 'chat_notif_usr_' + now,
     title: '💬 Staff EIGU vừa trả lời tin nhắn của bạn',
     content: textPreview.length > 50 ? textPreview.slice(0, 50) + '...' : textPreview,
     userEmail: targetEmail,
     targetRole: 'user',
     isChatNotif: true,
     read: false,
+    rawTime: now,
     time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
   };
   
@@ -189,12 +242,14 @@ function addChatNotificationForUser(targetEmail, textPreview) {
     const raw = localStorage.getItem(userNotifKey);
     if (raw) userNotifs = JSON.parse(raw);
     userNotifs.unshift(notif);
+    userNotifs.sort((a, b) => parseNotificationTime(b) - parseNotificationTime(a));
     localStorage.setItem(userNotifKey, JSON.stringify(userNotifs));
   } catch (e) {}
 
   // Update live UI if target email matches current logged-in user
   if (typeof userProfile !== 'undefined' && userProfile && userProfile.email === targetEmail) {
     notificationsData.unshift(notif);
+    notificationsData.sort((a, b) => parseNotificationTime(b) - parseNotificationTime(a));
     saveStoredHeaderNotifications(notificationsData);
     renderNotifications();
   }
@@ -280,11 +335,9 @@ async function loadAdminNotificationHistory() {
         ? `<span style="background: rgba(148,163,184,0.2); color: var(--text-secondary); padding: 2px 8px; border-radius: 4px; font-size:11px; white-space:nowrap;">Chỉ User</span>`
         : `<span style="background: rgba(99,102,241,0.2); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-weight:600; font-size:11px; white-space:nowrap;">Tất cả (All)</span>`;
 
-      // Giới hạn hiển thị tối đa 100 ký tự
       const rawContent = n.content || '';
       const displayContent = rawContent.length > 100 ? rawContent.slice(0, 100) + '...' : rawContent;
 
-      // 1. Render Table Row (Desktop View)
       const tr = document.createElement('tr');
       tr.style.borderBottom = '1px solid var(--border-color)';
       tr.innerHTML = `
@@ -300,7 +353,6 @@ async function loadAdminNotificationHistory() {
       `;
       tbody.appendChild(tr);
 
-      // 2. Render Responsive Card (Screen < 900px)
       if (cardsContainer) {
         const card = document.createElement('div');
         card.className = 'notif-card';
