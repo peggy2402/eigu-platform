@@ -17,10 +17,10 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
       rawUrl === '/api' ||
       rawUrl === '/api/' ||
       rawUrl.startsWith('/api/docs') ||
+      rawUrl.includes('/docs') ||
       rawUrl === '/api/bootstrap' ||
       rawUrl.startsWith('/api/bootstrap') ||
-      rawUrl === '/api/system-config/bootstrap' ||
-      rawUrl.startsWith('/api/system-config/bootstrap') ||
+      rawUrl.startsWith('/api/system-config') ||
       rawUrl.startsWith('/api/security')
     ) {
       return next();
@@ -38,16 +38,22 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
       return next();
     }
 
-    // 3. Extract obfCode
-    const queryString = rawUrl.includes('?') ? '?' + rawUrl.split('?')[1] : '';
-    const cleanUrl = rawUrl.split('?')[0];
-    const parts = cleanUrl.split('/').filter(Boolean); // ['api', 'v2-test-2026', 'notifications']
+    // 3. Extract Obfuscation Candidate Code
+    // Format: /api/{obfCode}/path/to/resource
+    const parts = rawUrl.split('?')[0].split('/');
+    const queryString = rawUrl.includes('?') ? `?${rawUrl.split('?')[1]}` : '';
 
-    if (parts.length < 2) {
-      return this.sendStealthNotFound(res);
+    if (parts.length < 3) {
+      return next();
     }
 
-    const candidateCode = parts[1]; // e.g. 'v2-test-2026'
+    const candidateCode = parts[2];
+
+    // If candidateCode is a known controller path, bypass
+    const systemBypassRoutes = ['auth', 'users', 'notifications', 'chat', 'feedback', 'voice', 'system-config', 'security', 'docs', 'bootstrap'];
+    if (systemBypassRoutes.includes(candidateCode)) {
+      return next();
+    }
 
     // 4. Validate Token against ObfuscationConfigService (Active + Grace Period L1 Cache)
     const isValidFormat = this.obfConfigService.isValidCodeFormat(candidateCode);
@@ -65,15 +71,15 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
 
     // 5. Perform Transparent Pre-Routing URL Rewrite
     // Incoming: /api/v2-test-2026/notifications?page=1
-    // req.originalUrl remains: /api/v2-test-2026/notifications?page=1
-    // req.url becomes: /api/notifications?page=1
-    const restPath = parts.slice(2).join('/');
+    // req.url & req.originalUrl become: /api/notifications?page=1
+    const restPath = parts.slice(3).join('/');
     const rewrittenPath = `/api/${restPath}${queryString}`;
 
     req.url = rewrittenPath;
+    req.originalUrl = rewrittenPath;
 
     if (isDev) {
-      this.logger.debug(`[ObfuscationMW] Rewrote req.url -> "${req.url}" (originalUrl: "${req.originalUrl}")`);
+      this.logger.debug(`[ObfuscationMW] Rewrote req.url & req.originalUrl -> "${req.url}"`);
     }
 
     return next();
