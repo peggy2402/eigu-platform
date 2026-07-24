@@ -20,8 +20,8 @@ async function bootstrap() {
   // 1. Set NestJS Global Prefix to /api
   app.setGlobalPrefix('api');
 
-  // 2. Register public discovery endpoint /api/bootstrap for Clients
-  app.getHttpAdapter().get('/api/bootstrap', (_req: any, res: any) => {
+  // 2. Register public discovery endpoints for Clients (/api/bootstrap & /api/system-config/bootstrap)
+  const bootstrapHandler = (_req: any, res: any) => {
     try {
       const obfService = app.get(ObfuscationConfigService);
       res.json({
@@ -31,14 +31,18 @@ async function bootstrap() {
         timestamp: new Date().toISOString(),
       });
     } catch (e) {
+      const defaultPrefix = process.env.API_PREFIX ? (process.env.API_PREFIX.startsWith('api/') ? process.env.API_PREFIX : `api/${process.env.API_PREFIX}`) : 'api/v2-sec-2026';
       res.json({
-        apiPrefix: 'api/v2-test-2026',
+        apiPrefix: defaultPrefix,
         minAppVersion: '1.0.0',
         maintenanceMode: false,
         timestamp: new Date().toISOString(),
       });
     }
-  });
+  };
+
+  app.getHttpAdapter().get('/api/bootstrap', bootstrapHandler);
+  app.getHttpAdapter().get('/api/system-config/bootstrap', bootstrapHandler);
 
   app.useGlobalFilters(new AllExceptionsFilter());
 

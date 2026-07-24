@@ -96,7 +96,10 @@ function createWindow() {
 async function syncApiPrefixFromGateway() {
   try {
     const port = process.env.PORT || 3001;
-    const res = await fetch(`http://localhost:${port}/api/bootstrap`);
+    let res = await fetch(`http://localhost:${port}/api/bootstrap`);
+    if (!res.ok) {
+      res = await fetch(`http://localhost:${port}/api/system-config/bootstrap`);
+    }
     if (res.ok) {
       const data = await res.json();
       if (data && data.apiPrefix) {

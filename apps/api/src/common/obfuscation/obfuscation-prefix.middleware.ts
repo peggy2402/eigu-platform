@@ -19,6 +19,8 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
       rawUrl.startsWith('/api/docs') ||
       rawUrl === '/api/bootstrap' ||
       rawUrl.startsWith('/api/bootstrap') ||
+      rawUrl === '/api/system-config/bootstrap' ||
+      rawUrl.startsWith('/api/system-config/bootstrap') ||
       rawUrl.startsWith('/api/security')
     ) {
       return next();
