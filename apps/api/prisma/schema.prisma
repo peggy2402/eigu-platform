@@ -34,12 +34,18 @@ model User {
   passwordResetToken   String?
   passwordResetExpires DateTime?
 
+  creditBalance        Float               @default(100.0)
+  creditTransactions   CreditTransaction[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   proxies        Proxy[]
   accounts       TikTokAccount[]
   feedbacks      Feedback[]
+  aiProjects     AIProject[]
+  aiCharacters   AICharacter[]
+  aiComments     AIComment[]
 }
 
 model Proxy {
@@ -177,6 +183,336 @@ model ObfuscationHistory {
   @@index([code])
 }
 
+// ========== AI VIDEO STUDIO MODULE ==========
+
+model AIProject {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  workspaceId String?
+  category    String?
+  status      String   @default("draft")
+  language    String   @default("vi")
+  aspectRatio String   @default("9:16")
+  resolution  String   @default("1080x1920")
+  fps         Int      @default(30)
+  duration    Int?
+  thumbnail   String?
+  tags        String[]
+  priority    Int      @default(0)
+  cost        Float    @default(0)
+  totalScenes Int      @default(0)
+  provider    String?
+  createdBy   String?
+  updatedBy   String?
+  deletedAt   DateTime?
+
+  userId  String
+  user    User @relation(fields: [userId], references: [id])
+
+  scenes     AIScene[]
+  characters AICharacter[]
+  assets     AIAsset[]
+  brandKit   AIBrandKit?
+  jobs       AIJob[]
+  versions   AIVersion[]
+  comments   AIComment[]
+  quality    AIQualityCheck?
+  analytics  AIAnalytics?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([status])
+  @@index([workspaceId])
+  @@index([deletedAt])
+}
+
+model AIScene {
+  id          String @id @default(uuid())
+  index       Int
+  prompt      String
+  negativePrompt String?
+  duration    Float   @default(5)
+  transition  String  @default("cut")
+  camera      String?
+  lens        String?
+  lighting    String?
+  emotion     String?
+  voiceLine   String?
+  musicMood   String?
+  seed        Int?
+  provider    String?
+  referenceImages String[]
+  referenceVideo  String?
+
+  characterId  String?
+  character    AICharacter? @relation(fields: [characterId], references: [id])
+  lockCharacter Boolean @default(false)
+  lockFace      Boolean @default(false)
+  lockStyle     Boolean @default(false)
+  lockOutfit    Boolean @default(false)
+  lockSeed      Boolean @default(false)
+
+  projectId String
+  project   AIProject @relation(fields: [projectId], references: [id])
+
+  status     String   @default("pending")
+  outputUrl  String?
+  renderTime Int?
+  cost       Float    @default(0)
+  error      String?
+  retryCount Int      @default(0)
+
+  subtitle   AISubtitle?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId, index])
+  @@index([characterId])
+}
+
+model AICharacter {
+  id          String @id @default(uuid())
+  name        String
+  description String?
+  face        String?
+  hair        String?
+  body        String?
+  outfit      String?
+  age         String?
+  style       String?
+  personality String?
+  prompt      String
+  negativePrompt String?
+  lora        String?
+  voiceId     String?
+  voiceProvider String?
+  voiceSettings String?
+  seed        Int?
+  referenceImages String[]
+  isGlobal    Boolean @default(false)
+
+  projectId String
+  project   AIProject @relation(fields: [projectId], references: [id])
+  scenes    AIScene[]
+
+  userId    String?
+  user      User? @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([userId, isGlobal])
+}
+
+model AIAsset {
+  id        String  @id @default(uuid())
+  name      String
+  type      String
+  url       String
+  thumbnail String?
+  mimeType  String
+  sizeBytes Int
+  duration  Float?
+  width     Int?
+  height    Int?
+  tags      String[]
+  metadata  String?
+
+  projectId String
+  project   AIProject @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId, type])
+}
+
+model AIBrandKit {
+  id               String @id @default(uuid())
+  logoUrl          String?
+  primaryColor     String @default("#6366f1")
+  secondaryColor   String @default("#22c55e")
+  typography       String?
+  watermark        String?
+  watermarkPosition String @default("bottom-right")
+  introUrl         String?
+  outroUrl         String?
+  ctaText          String?
+  ctaUrl           String?
+  brandVoice       String?
+  brandStyle       String?
+
+  projectId String @unique
+  project   AIProject @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AISubtitle {
+  id        String  @id @default(uuid())
+  text      String
+  language  String  @default("vi")
+  startTime Float
+  endTime   Float
+  animation String?
+  style     String?
+  emoji     Boolean @default(false)
+
+  sceneId String @unique
+  scene   AIScene @relation(fields: [sceneId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sceneId])
+}
+
+model AIJob {
+  id           String   @id @default(uuid())
+  type         String
+  status       String   @default("queued")
+  priority     Int      @default(0)
+  projectId    String
+  project      AIProject @relation(fields: [projectId], references: [id])
+  sceneId      String?
+  providerId   String?
+  provider     AIProvider? @relation(fields: [providerId], references: [id])
+  workerId     String?
+  progress     Float    @default(0)
+  eta          DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  cost         Float    @default(0)
+  costLimit    Float    @default(100)
+  error        String?
+  retryCount   Int      @default(0)
+  maxRetries   Int      @default(3)
+  outputUrl    String?
+  dependencies String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, priority])
+  @@index([projectId])
+  @@index([sceneId])
+}
+
+model AIVersion {
+  id        String @id @default(uuid())
+  version   Int
+  snapshot  String
+  message   String?
+  createdBy String?
+
+  projectId String
+  project   AIProject @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId, version])
+}
+
+model AIComment {
+  id        String  @id @default(uuid())
+  text      String
+  sceneId   String?
+  resolved  Boolean @default(false)
+
+  projectId String
+  project   AIProject @relation(fields: [projectId], references: [id])
+
+  userId   String
+  user     User @relation(fields: [userId], references: [id])
+  parentId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([sceneId])
+}
+
+model AIQualityCheck {
+  id           String  @id @default(uuid())
+  overallScore Float   @default(0)
+  promptScore  Float   @default(0)
+  storyScore   Float   @default(0)
+  sceneScores  String?
+  subtitleScore Float  @default(0)
+  voiceScore   Float   @default(0)
+  musicScore   Float   @default(0)
+  feedback     String?
+
+  projectId String @unique
+  project   AIProject @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model AIAnalytics {
+  id             String @id @default(uuid())
+  totalScenes    Int    @default(0)
+  totalDuration  Float  @default(0)
+  totalCost      Float  @default(0)
+  totalRenderTime Int   @default(0)
+  providerUsage  String?
+  characterCount Int    @default(0)
+  assetCount     Int    @default(0)
+
+  projectId String @unique
+  project   AIProject @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AIBudget {
+  id            String @id @default(uuid())
+  userId        String
+  daily         Float  @default(50)
+  weekly        Float  @default(250)
+  monthly       Float  @default(1000)
+  spentToday    Float  @default(0)
+  spentThisWeek Float  @default(0)
+  spentThisMonth Float @default(0)
+  alertThreshold Float @default(0.8)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model AIProvider {
+  id            String  @id @default(uuid())
+  name          String  @unique
+  displayName   String
+  apiEndpoint   String
+  apiKeyId      String?
+  model         String
+  maxDuration   Int     @default(30)
+  maxResolution String  @default("1080p")
+  creditCost    Float   @default(1)
+  speed         Int     @default(50)
+  quality       Int     @default(50)
+  isActive      Boolean @default(true)
+  retryCount    Int     @default(3)
+  fallback      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobs AIJob[]
+}
+
 model AuditLog {
   id         String   @id @default(uuid())
   adminId    String?
@@ -199,5 +535,20 @@ model AuditLog {
   @@index([module])
   @@index([action])
   @@index([createdAt])
+}
+
+model CreditTransaction {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  amount      Float    // negative for deduction, positive for top-up
+  type        String   // "DEDUCTION", "TOP_UP", "REFUND"
+  jobId       String?
+  providerId  String?
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([jobId])
 }
 

@@ -21,6 +21,9 @@ async function handleLogin() {
       localStorage.removeItem('eigu_saved_password');
     }
     userProfile = data.user;
+    if (typeof IPC !== 'undefined' && IPC.invoke) {
+      await IPC.invoke('user:setActive', userProfile.id);
+    }
     enterApp(true);
   } catch(e) {
     if (e.data && e.data.isBanned) {
@@ -159,6 +162,9 @@ async function handleLogout() {
     accessToken = null;
     refreshToken = null;
     userProfile = null;
+    if (typeof IPC !== 'undefined' && IPC.invoke) {
+      await IPC.invoke('user:setActive', 'guest_' + Date.now());
+    }
 
     if (typeof bannedCountdownInterval !== 'undefined' && bannedCountdownInterval) {
       clearInterval(bannedCountdownInterval);

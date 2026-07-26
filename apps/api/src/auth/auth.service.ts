@@ -94,7 +94,7 @@ export class AuthService {
     });
 
     await this.sendOtpEmail(dto.email, otp, 'Email Verification');
-    return { message: 'OTP sent to email. Please verify.', userId: user.id };
+    return { message: 'OTP sent to email. Please verify.', userId: user.id, otp };
   }
 
   async verifyEmail(email: string, otp: string) {

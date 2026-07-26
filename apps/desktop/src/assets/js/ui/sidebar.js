@@ -12,11 +12,26 @@ function toggleDropdown(el, e) {
 }
 
 function switchView(view, navEl, sub, e) {
+  console.log('[DEBUG switchView] Called with view:', view, 'sub:', sub, 'targetElement:', document.getElementById('view-' + view));
   if (e) { e.stopPropagation(); }
   currentView = view;
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const target = document.getElementById('view-' + view);
-  if (target) target.classList.add('active');
+  if (target) {
+    target.classList.add('active');
+    console.log('[DEBUG switchView] Activated #view-' + view, target);
+  } else {
+    console.error('[DEBUG switchView] Target element NOT FOUND: #view-' + view);
+  }
+
+  if (view === 'ai-studio' || view === 'ai-video') {
+    console.log('[DEBUG switchView] Triggering AIVideoStudio.init("#studio-root") for view:', view);
+    if (typeof AIVideoStudio !== 'undefined' && typeof AIVideoStudio.init === 'function') {
+      AIVideoStudio.init('#studio-root');
+    } else {
+      console.error('[DEBUG switchView] AIVideoStudio is UNDEFINED or init is not a function!', typeof AIVideoStudio);
+    }
+  }
 
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   document.querySelectorAll('.nav-item.open').forEach(i => i.classList.remove('open'));
@@ -29,7 +44,8 @@ function switchView(view, navEl, sub, e) {
   const titles = {
     'ho-so': lang === 'en' ? ['Profile', 'Account settings & system status'] : ['Hồ sơ', 'Cài đặt tài khoản & thông số hệ thống'],
     'cut': lang === 'en' ? ['Auto Cut Video', 'Cut short video with anti-reup algorithms'] : ['Tự động cắt', 'Cắt video ngắn với thuật toán chống reup'],
-    'ai-video': lang === 'en' ? ['Create AI Video', 'Generate script, voiceover and video from AI'] : ['Tạo video AI', 'Tạo kịch bản, giọng đọc và video từ AI'],
+    'ai-video': lang === 'en' ? ['Create AI Video (Quick)', 'Generate script, voiceover and video from AI'] : ['Tạo video AI (Nhanh)', 'Tạo kịch bản, giọng đọc và video từ AI'],
+    'ai-studio': lang === 'en' ? ['AI Video Studio', 'EIGU Project Editor & Storyboard Workspace (.eigu)'] : ['AI Video Studio (.eigu)', 'Trình biên tập kịch bản, phân cảnh & xuất dự án .eigu'],
     'reup': lang === 'en' ? ['Reup Video', 'Anti-copyright MD5 decimation & noise injection'] : ['Tạo video Reup', 'Lách bản quyền MD5 decimation & noise injection'],
     'hot-niche': lang === 'en' ? ['Hot Niche Finder', 'Search trending niches and keywords'] : ['Tìm ngách hot', 'Tìm kiếm ngách hot và từ khóa xu hướng'],
     'bulk-download': lang === 'en' ? ['Bulk Download', 'Batch download videos without watermark'] : ['Tải video hàng loạt', 'Tải hàng loạt video không logo'],
@@ -99,6 +115,11 @@ function switchView(view, navEl, sub, e) {
 
   if (view === 'analytics-reports' && typeof loadAnalyticsReportsData === 'function') {
     loadAnalyticsReportsData();
+  }
+
+  // Load AI Video Studio when entering AI Video Studio view
+  if ((view === 'ai-studio' || view === 'ai-video') && typeof AIVideoStudio !== 'undefined' && typeof AIVideoStudio.init === 'function') {
+    AIVideoStudio.init('#studio-root');
   }
 
   // Load Real Chat Console if entering Chat Support view

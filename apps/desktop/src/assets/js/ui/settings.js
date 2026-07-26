@@ -109,9 +109,10 @@ async function loadApiKeys() {
 
   try {
     const keys = await ipc.invoke('get-api-keys');
+    renderProviderMatrix(keys);
     tbody.innerHTML = '';
 
-    if (keys.length === 0) {
+    if (!keys || keys.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:12px; color:var(--text-muted);">Chưa có API Key nào được lưu.</td></tr>';
       return;
     }
@@ -145,6 +146,134 @@ async function loadApiKeys() {
     });
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:12px; color:#ef4444;">Lỗi: ${err.message}</td></tr>`;
+  }
+}
+
+function renderProviderMatrix(keys) {
+  const container = document.getElementById('provider-matrix-container');
+  if (!container) return;
+
+  const providerDefs = [
+    {
+      id: 'gemini',
+      name: 'Google Gemini',
+      role: 'Sinh Kịch Bản (AI Director)',
+      keyType: 'GEMINI_API_KEY',
+      model: 'gemini-1.5-flash / gemini-1.5-pro',
+      description: 'Dùng chính để phân tích video, sinh prompts phân cảnh kịch bản 3D.'
+    },
+    {
+      id: 'openai',
+      name: 'OpenAI GPT-4o',
+      role: 'Sinh Kịch Bản (Fallback)',
+      keyType: 'OPENAI_API_KEY',
+      model: 'gpt-4o-mini / gpt-4o',
+      description: 'Dự phòng sinh prompts kịch bản khi Gemini hết quota hoặc bận.'
+    },
+    {
+      id: 'fal',
+      name: 'Fal.ai Engine',
+      role: 'Render AI Video Multi-Model',
+      keyType: 'FAL_KEY',
+      model: 'fal-ai/hunyuan-video',
+      description: 'Render video tốc độ cao, hỗ trợ Hunyuan, Kling, Luma.'
+    },
+    {
+      id: 'veo',
+      name: 'Google Veo 3',
+      role: 'Render AI Video High-End',
+      keyType: 'VEO_API_KEY',
+      fallbackKey: 'GEMINI_API_KEY',
+      model: 'veo-2.0-generate-001',
+      description: 'Render video chất lượng điện ảnh cao cấp từ Google DeepMind.'
+    },
+    {
+      id: 'runway',
+      name: 'Runway Gen-3',
+      role: 'Render AI Video Motion',
+      keyType: 'RUNWAY_API_KEY',
+      model: 'gen3a_turbo',
+      description: 'Tạo video chuyển động mượt mà và camera hoành tráng.'
+    },
+    {
+      id: 'kling',
+      name: 'Kling AI 1.5',
+      role: 'Render AI Video Realistic',
+      keyType: 'KLING_API_KEY',
+      model: 'kling-v1.5',
+      description: 'Tạo video tả thực nhân vật và bối cảnh sống động.'
+    }
+  ];
+
+  const hasKeyMap = {};
+  (keys || []).forEach(k => {
+    if (k.type) hasKeyMap[k.type] = true;
+  });
+
+  let html = `
+    <div style="overflow-x:auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-card);">
+            <th style="padding: 10px 12px;">Provider / AI Engine</th>
+            <th style="padding: 10px 12px;">Chức năng</th>
+            <th style="padding: 10px 12px;">Model đang dùng</th>
+            <th style="padding: 10px 12px; text-align:center;">Trạng thái Key</th>
+            <th style="padding: 10px 12px; text-align:center;">Cấu hình nhanh</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  providerDefs.forEach(p => {
+    const isConfigured = !!(hasKeyMap[p.keyType] || (p.fallbackKey && hasKeyMap[p.fallbackKey]));
+    const statusBadge = isConfigured
+      ? `<span style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:12px; background:rgba(34,197,94,0.15); color:#22c55e; font-weight:600; font-size:12px;">✅ Đã cấu hình</span>`
+      : `<span style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:12px; background:rgba(239,68,68,0.15); color:#ef4444; font-weight:600; font-size:12px;">❌ Chưa cấu hình</span>`;
+
+    html += `
+      <tr style="border-bottom: 1px solid var(--border-color);">
+        <td style="padding: 10px 12px; font-weight:600; color:var(--accent);">
+          ${p.name}
+          <div style="font-size:11px; color:var(--text-muted); font-weight:normal;">Key: ${p.keyType}</div>
+        </td>
+        <td style="padding: 10px 12px; color:var(--text-primary);">${p.role}</td>
+        <td style="padding: 10px 12px; font-family:monospace; color:#38bdf8;">${p.model}</td>
+        <td style="padding: 10px 12px; text-align:center;">${statusBadge}</td>
+        <td style="padding: 10px 12px; text-align:center;">
+          <button class="btn-outline" onclick="quickConfigureProvider('${p.id}', '${p.keyType}')" style="padding: 4px 10px; font-size:12px; border-color:var(--accent); color:var(--accent); border-radius:6px;">
+            ${isConfigured ? 'Cập nhật Key' : 'Nhập API Key'}
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+async function quickConfigureProvider(providerId, keyType) {
+  const apiKey = prompt(`Nhập API Key cho ${providerId.toUpperCase()} (${keyType}):`);
+  if (!apiKey || !apiKey.trim()) return;
+
+  const ipc = window.ipcRenderer || (typeof require !== 'undefined' ? require('electron').ipcRenderer : null);
+  if (!ipc) {
+    showToast('Lỗi', 'Tính năng chỉ hoạt động trên Desktop!', 'error');
+    return;
+  }
+
+  try {
+    await ipc.invoke('provider:configure', { provider: providerId, apiKey: apiKey.trim(), note: 'Cấu hình từ Matrix UI' });
+    showToast('Thành công', `Đã lưu API Key cho ${providerId.toUpperCase()}!`, 'success');
+    loadApiKeys();
+  } catch (err) {
+    showToast('Lỗi', err.message || 'Không thể lưu key', 'error');
   }
 }
 
@@ -231,11 +360,10 @@ async function loadAdminApiConfig() {
     : 'user';
 
   const isAdmin = role === 'admin';
-  const isStaff = role === 'staff';
 
   if (prefixSection) prefixSection.style.display = isAdmin ? 'block' : 'none';
   if (telemetrySection) telemetrySection.style.display = isAdmin ? 'block' : 'none';
-  if (secureKeySection) secureKeySection.style.display = (isAdmin || isStaff) ? 'block' : 'none';
+  if (secureKeySection) secureKeySection.style.display = isAdmin ? 'block' : 'none';
 
   if (input) {
     const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
@@ -527,11 +655,17 @@ const I18N_DICTIONARY = {
     cancel_process: 'H\u1ee7y ti\u1ebfn tr\u00ecnh',
     status_init: '\u0110ang kh\u1edfi t\u1ea1o...',
     status_preparing: '\u0110ang chu\u1ea9n b\u1ecb...',
-    show_logs: 'Hi\u1ec3n th\u1ecb chi ti\u1ebft / Logs',
+    show_logs: 'Hiển thị chi tiết / Logs',
+    toast_info: 'Thông báo',
+    toast_success: 'Thành công',
+    toast_error: 'Lỗi',
 
     // AI Video View
     ai_copy_video: 'Copy Video',
     ai_from_idea: 'T\u1ea1o t\u1eeb \u00dd T\u01b0\u1edfng',
+    ai_from_image: 'T\u1ea1o t\u1eeb H\u00ecnh \u1ea3nh',
+    ai_image_upload_prompt: 'K\u00e9o th\u1ea3 ho\u1eb7c nh\u1ea5p \u0111\u1ec3 ch\u1ecdn h\u00ecnh \u1ea3nh ngu\u1ed3n (PNG, JPG)',
+    ai_generate_image_script: 'Ph\u00e2n t\u00edch \u1ea3nh & Sinh K\u1ecbch b\u1ea3n',
     ai_paste_link_placeholder: 'D\u00e1n link TikTok/YouTube/Facebook...',
     ai_analyze_btn: 'Ph\u00e2n t\u00edch Video & L\u1ea5y K\u1ecbch b\u1ea3n',
     ai_idea_placeholder: 'Nh\u1eadp \u00fd t\u01b0\u1edfng c\u1ee7a b\u1ea1n... VD: M\u1ed9t video k\u1ec3 v\u1ec1 h\u00e0nh tr\u00ecnh th\u00e1m hi\u1ec3m v\u0169 tr\u1ee5...',
@@ -544,9 +678,54 @@ const I18N_DICTIONARY = {
     ai_audio_voice: '\u00c2m thanh & Gi\u1ecdng n\u00f3i',
     ai_keep_audio: 'Gi\u1eef l\u1ea1i \u00e2m thanh g\u1ed1c (Ch\u1ec9 cho ch\u1ebf \u0111\u1ed9 Copy)',
     ai_dubbing: 'L\u1ed3ng ti\u1ebfng (AI Voice)',
-    ai_start_render: 'B\u1eaft \u0111\u1ea7u Render H\u00e0ng lo\u1ea1t',
+    ai_start_render: 'B\u1eaft \u0111\u1ea7u Render',
     ai_preview_title: 'Preview Video Th\u00e0nh Ph\u1ea9m',
     open_output_folder: 'M\u1edf th\u01b0 m\u1ee5c ch\u1ee9a File',
+    ai_new_project: 'D\u1ef1 \u00e1n m\u1edbi',
+    ai_story: 'K\u1ecbch b\u1ea3n',
+    ai_storyboard: 'Storyboard',
+    ai_scenes: 'Ph\u00e2n c\u1ea3nh',
+    ai_characters: 'Nh\u00e2n v\u1eadt',
+    ai_assets: 'T\u00e0i nguy\u00ean',
+    ai_brand: 'Th\u01b0\u01a1ng hi\u1ec7u',
+    ai_queue: 'H\u00e0ng \u0111\u1ee3i',
+    ai_render: 'Render',
+    ai_add_scene: 'Th\u00eam c\u1ea3nh',
+    ai_generate_ai: 'AI T\u1ea1o',
+    ai_submit_all: 'Submit T\u1ea5t c\u1ea3',
+    ai_input_idea: '\u00dd t\u01b0\u1edfng',
+    ai_input_script: 'K\u1ecbch b\u1ea3n',
+    ai_input_image: 'H\u00ecnh \u1ea3nh',
+    ai_input_pdf: 'PDF',
+    ai_input_website: 'Website',
+    ai_new_character: 'Thêm nhân vật',
+    ai_activity_logs: 'Nhật ký hoạt động',
+    ai_copy_logs: 'Sao chép Logs',
+    ai_clear_logs: 'Xóa Logs',
+    ai_save_project: 'Lưu dự án',
+    ai_save_as: 'Lưu thành bản khác',
+    ai_export_video: 'Xuất Video',
+    ai_close_project: 'Đóng dự án',
+    ai_select_scene_props: 'Chọn phân cảnh để chỉnh sửa thuộc tính',
+    ai_cost: 'Chi phí',
+    ai_pending: 'đang chờ',
+    ai_providers_loading: 'Đang kiểm tra AI Providers...',
+    ai_draft: 'Bản nháp',
+    ai_no_project: 'Chưa chọn dự án',
+    ai_brand_kit: 'B\u1ed9 nh\u1eadn di\u1ec7n',
+    ai_render_queue: 'H\u00e0ng \u0111\u1ee3i Render',
+    ai_pending: '\u0110ang ch\u1edd',
+    ai_active: '\u0110ang ch\u1ea1y',
+    ai_completed: 'Ho\u00e0n th\u00e0nh',
+    ai_failed: 'Th\u1ea5t b\u1ea1i',
+    ai_draft: 'B\u1ea3n nh\u00e1p',
+    ai_select_scene: 'Ch\u1ecdn m\u1ed9t ph\u00e2n c\u1ea3nh \u0111\u1ec3 ch\u1ec9nh s\u1eeda',
+    ai_cost: 'Chi ph\u00ed',
+    ai_unsaved: '\u25cf Ch\u01b0a l\u01b0u',
+    ai_select_project: '-- Ch\u1ecdn Project --',
+    ai_select_project_first: 'Vui l\u00f2ng ch\u1ecdn ho\u1eb7c t\u1ea1o project tr\u01b0\u1edbc',
+    ai_gen_unavailable: 'AI t\u1ea1o k\u1ecbch b\u1ea3n ch\u01b0a kh\u1ea3 d\u1ee5ng. Vui l\u00f2ng th\u00eam scene th\u1ee7 c\u00f4ng.',
+    ai_providers_ready: 'Providers: S\u1eb5n s\u00e0ng',
 
     // Placeholder Views
     feature_developing: 'T\u00ednh n\u0103ng \u0111ang ph\u00e1t tri\u1ec3n',
@@ -609,9 +788,13 @@ const I18N_DICTIONARY = {
     telemetry_empty: 'Ch\u01b0a ghi nh\u1eadn l\u1ed7i h\u1ec7 th\u1ed1ng n\u00e0o.',
 
     // Toast Messages
+    toast_info: 'Th\u00f4ng b\u00e1o',
     toast_success: 'Th\u00e0nh c\u00f4ng',
     toast_error: 'L\u1ed7i',
     toast_notification: 'Th\u00f4ng b\u00e1o',
+    toast_creating_project: '\u0110ang t\u1ea3i v\u00e0 kh\u1edfi t\u1ea1o t\u1ec7p d\u1ef1 \u00e1n .eigu...',
+    toast_create_project_success: '\u0110\u00e3 t\u1ea1o d\u1ef1 \u00e1n th\u00e0nh c\u00f4ng!',
+    toast_create_project_error: 'L\u1ed7i khi kh\u1edfi t\u1ea1o t\u1ec7p d\u1ef1 \u00e1n .eigu',
     toast_login_success_title: '\u0110\u0103ng nh\u1eadp th\u00e0nh c\u00f4ng',
     toast_login_success_desc: 'Ch\u00e0o m\u1eebng b\u1ea1n \u0111\u1ebfn v\u1edbi EIGU Platform',
     toast_logout_success_title: '\u0110\u0103ng xu\u1ea5t',
@@ -900,6 +1083,9 @@ const I18N_DICTIONARY = {
     // AI Video View
     ai_copy_video: 'Copy Video',
     ai_from_idea: 'Create from Idea',
+    ai_from_image: 'Create from Image',
+    ai_image_upload_prompt: 'Drag & drop or click to select source images (PNG, JPG)',
+    ai_generate_image_script: 'Analyze Images & Generate Script',
     ai_paste_link_placeholder: 'Paste TikTok/YouTube/Facebook link...',
     ai_analyze_btn: 'Analyze Video & Extract Script',
     ai_idea_placeholder: 'Enter your idea... e.g. A video about a space exploration journey...',
@@ -912,9 +1098,41 @@ const I18N_DICTIONARY = {
     ai_audio_voice: 'Audio & Voice',
     ai_keep_audio: 'Keep original audio (Copy mode only)',
     ai_dubbing: 'Voice Dubbing (AI Voice)',
-    ai_start_render: 'Start Batch Render',
+    ai_start_render: 'Start Render',
     ai_preview_title: 'Preview Final Video',
     open_output_folder: 'Open Output Folder',
+    ai_new_project: 'New Project',
+    ai_story: 'Story',
+    ai_storyboard: 'Storyboard',
+    ai_scenes: 'Scenes',
+    ai_characters: 'Characters',
+    ai_assets: 'Assets',
+    ai_brand: 'Brand',
+    ai_queue: 'Queue',
+    ai_render: 'Render',
+    ai_add_scene: 'Add Scene',
+    ai_generate_ai: 'AI Generate',
+    ai_submit_all: 'Submit All',
+    ai_input_idea: 'Idea',
+    ai_input_script: 'Script',
+    ai_input_image: 'Image',
+    ai_input_pdf: 'PDF',
+    ai_input_website: 'Website',
+    ai_new_character: 'New Character',
+    ai_brand_kit: 'Brand Kit',
+    ai_render_queue: 'Render Queue',
+    ai_pending: 'Pending',
+    ai_active: 'Active',
+    ai_completed: 'Completed',
+    ai_failed: 'Failed',
+    ai_draft: 'Draft',
+    ai_select_scene: 'Select a scene to edit properties',
+    ai_cost: 'Cost',
+    ai_unsaved: '\u25cf Unsaved',
+    ai_select_project: '-- Select Project --',
+    ai_select_project_first: 'Please select or create a project first',
+    ai_gen_unavailable: 'AI script generation is not yet available. Please add scenes manually.',
+    ai_providers_ready: 'Providers: Ready',
 
     // Placeholder Views
     feature_developing: 'Feature under development',
@@ -1023,9 +1241,13 @@ const I18N_DICTIONARY = {
     logout: 'Logout',
 
     // Toast Messages
+    toast_info: 'Notice',
     toast_success: 'Success',
     toast_error: 'Error',
     toast_notification: 'Notification',
+    toast_creating_project: 'Creating .eigu project file...',
+    toast_create_project_success: 'Project created successfully!',
+    toast_create_project_error: 'Failed to create .eigu project file',
     toast_login_success_title: 'Login successful',
     toast_login_success_desc: 'Welcome to EIGU Platform',
     toast_logout_success_title: 'Logged out',

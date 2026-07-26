@@ -1,4 +1,4 @@
-import { Controller, Get, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Delete, Query, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -9,9 +9,11 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Get('history')
-  @ApiOperation({ summary: 'Lấy lịch sử cuộc trò chuyện theo Email' })
-  @ApiQuery({ name: 'userEmail', required: true })
-  async getHistory(@Query('userEmail') userEmail: string) {
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lấy lịch sử cuộc trò chuyện của người dùng đăng nhập' })
+  async getHistory(@Req() req: any) {
+    const userEmail = req.user?.email;
     if (!userEmail) return [];
     return this.chatService.getHistory(userEmail.toLowerCase());
   }
@@ -20,15 +22,21 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy danh sách các cuộc trò chuyện dành cho Staff/Admin' })
-  async getSessions() {
+  async getSessions(@Req() req: any) {
+    if (req.user?.role !== 'admin' && req.user?.role !== 'staff') {
+      return [];
+    }
     return this.chatService.getSessions();
   }
 
   @Delete('cleanup')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Tự động dọn dẹp các tin nhắn chat cũ hơn 24 giờ' })
-  async cleanupOldMessages() {
+  @ApiOperation({ summary: 'Tự động dọn dẹp các tin nhắn chat cũ hơn 24 giờ (Chỉ Admin)' })
+  async cleanupOldMessages(@Req() req: any) {
+    if (req.user?.role !== 'admin') {
+      return { count: 0 };
+    }
     return this.chatService.autoCleanupOldMessages();
   }
 }
