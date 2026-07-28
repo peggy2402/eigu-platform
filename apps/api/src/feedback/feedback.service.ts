@@ -27,28 +27,30 @@ export class FeedbackService {
     const usernameStr = user?.username ? `@${user.username}` : 'Chưa đặt';
 
     const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-    if (webhookUrl) {
-      const formattedContent = `🚀 **BÁO CÁO PHẢN HỒI (FEEDBACK MỚI)** 🚀\n` +
-        `📧 **Email:** ${emailStr}\n` +
-        `👤 **Username:** ${usernameStr}\n` +
-        `🆔 **User ID:** \`${userId}\` \n` +
-        `📝 **Nội dung góp ý:**\n> ${content.replace(/\n/g, '\n> ')}\n` +
-        `⏰ **Thời gian gửi:** <t:${Math.floor(Date.now() / 1000)}:F>`;
+    if (!webhookUrl) {
+      throw new Error('Discord Webhook URL is not configured.');
+    }
 
-      const formData = new FormData();
-      formData.append('content', formattedContent);
-      
-      if (file) {
-        formData.append('file', file.buffer, { filename: file.originalname });
-      }
+    const formattedContent = `🚀 **BÁO CÁO PHẢN HỒI (FEEDBACK MỚI)** 🚀\n` +
+      `📧 **Email:** ${emailStr}\n` +
+      `👤 **Username:** ${usernameStr}\n` +
+      `🆔 **User ID:** \`${userId}\` \n` +
+      `📝 **Nội dung góp ý:**\n> ${content.replace(/\n/g, '\n> ')}\n` +
+      `⏰ **Thời gian gửi:** <t:${Math.floor(Date.now() / 1000)}:F>`;
 
-      try {
-        await axios.post(webhookUrl, formData, {
-          headers: formData.getHeaders(),
-        });
-      } catch (e: any) {
-        console.error('Failed to send to Discord:', e.message);
-      }
+    const formData = new FormData();
+    formData.append('content', formattedContent);
+    
+    if (file) {
+      formData.append('file', file.buffer, { filename: file.originalname });
+    }
+
+    try {
+      await axios.post(webhookUrl, formData, {
+        headers: formData.getHeaders(),
+      });
+    } catch (e: any) {
+      throw new Error('Failed to send to Discord: ' + e.message);
     }
 
     await this.prisma.feedback.create({
@@ -61,26 +63,15 @@ export class FeedbackService {
     return { success: true, message: 'Cảm ơn bạn đã góp ý!' };
   }
 
-  async findAll(userId: string, userRole: string, q?: string) {
+  async findAll(q?: string) {
     const where: any = {};
-    
-    // Non-admin users can ONLY see their own feedback
-    if (userRole !== 'admin') {
-      where.userId = userId;
-    }
-
     if (q) {
-      where.AND = [
-        {
-          OR: [
-            { content: { contains: q, mode: 'insensitive' } },
-            { user: { email: { contains: q, mode: 'insensitive' } } },
-            { user: { username: { contains: q, mode: 'insensitive' } } },
-          ],
-        }
+      where.OR = [
+        { content: { contains: q, mode: 'insensitive' } },
+        { user: { email: { contains: q, mode: 'insensitive' } } },
+        { user: { username: { contains: q, mode: 'insensitive' } } },
       ];
     }
-
     return this.prisma.feedback.findMany({
       where,
       include: {

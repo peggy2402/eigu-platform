@@ -15,7 +15,6 @@ import { ObfuscationModule } from '../common/obfuscation/obfuscation.module';
 import { ObfuscationPrefixMiddleware } from '../common/obfuscation/obfuscation-prefix.middleware';
 import { SecurityCenterModule } from '../security-center/security-center.module';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
-import { AIVideoModule } from '../ai-video/ai-video.module';
 
 @Module({
   imports: [
@@ -30,7 +29,6 @@ import { AIVideoModule } from '../ai-video/ai-video.module';
     ObfuscationModule,
     SecurityCenterModule,
     AuditLogsModule,
-    AIVideoModule,
   ],
   controllers: [AppController],
   providers: [
