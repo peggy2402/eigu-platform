@@ -247,8 +247,7 @@
 .view { display: none !important; }
 .view.active { display: block !important; }
 #view-chat-support.view.active,
-#view-user-activity-logs.view.active,
-#view-ai-studio.view.active { display: flex !important; flex-direction: column !important; flex: 1 !important; height: 100% !important; min-height: calc(100vh - 80px) !important; }
+#view-user-activity-logs.view.active { display: flex !important; flex-direction: column !important; height: 100% !important; }
 .stats-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px; margin-bottom: 24px;

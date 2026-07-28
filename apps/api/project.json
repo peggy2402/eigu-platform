@@ -46,21 +46,6 @@
       "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
       "executor": "nx:noop"
     },
-    "test": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "jest --passWithNoTests",
-        "cwd": "apps/api"
-      },
-      "configurations": {
-        "coverage": {
-          "command": "jest --coverage --passWithNoTests"
-        },
-        "watch": {
-          "command": "jest --watch --passWithNoTests"
-        }
-      }
-    },
     "serve": {
       "continuous": true,
       "executor": "@nx/js:node",
