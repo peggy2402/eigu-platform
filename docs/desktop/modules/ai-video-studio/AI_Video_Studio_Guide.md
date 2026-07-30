@@ -9,7 +9,7 @@
 ## 1. Mục Tiêu
 
 Thiết kế lại hoàn toàn **Module AI Video Studio** của EIGU từ đầu.
-
+- Module này sẽ khác với Module AI Video hiện tại ở chỗ là nó dành cho khách hàng trả tiền theo tháng/credit (subscription) còn Module AI Video hiện tại dành cho khách hàng trả tiền theo dự án.
 - **Loại ứng dụng:** Desktop Application
 - **Yêu cầu mở rộng:** Hệ thống phải đủ khả năng mở rộng trong nhiều năm tới
 
@@ -86,10 +86,10 @@ Mỗi thành phần cần được gắn nhãn theo các phân loại sau:
 Khách hàng mua theo tháng. Ví dụ các gói:
 
 - **Trial** ~ 7 ngày
-- **Basic** / tháng
-- **Pro** / tháng
-- **Team** / tháng
-- **Enterprise** / tháng, quý, 6 tháng, 12 tháng
+- **Basic** / tháng - 300 credit - ~ 80.000 VNĐ (chỉ 1 tài khoản)
+- **Pro** / tháng - 1000 credit - ~ 300.000 VNĐ (chỉ 1 tài khoản)
+- **Team** / tháng - 5000 credit - ~ 1.250.000 VNĐ (5 tài khoản)
+- **Enterprise** / tháng / quý / 6 tháng / năm - 12000 credit - ~ 2.450.000 VNĐ (10 tài khoản)
 
 ### Mỗi gói phải có
 
@@ -128,10 +128,10 @@ Mỗi gói Subscription sẽ có thêm một trường: **`MonthlyAIBudget`**
 
 | Mục | Giá trị |
 |-----|---------|
-| Giá bán | 650.000 VNĐ |
-| Monthly AI Budget | 300.000 VNĐ |
+| Giá bán | 300.000 VNĐ |
+| Monthly AI Budget | 150.000 VNĐ |
 
-Phần còn lại (350.000 VNĐ trong ví dụ trên) dùng cho:
+Phần còn lại (150.000 VNĐ trong ví dụ trên) dùng cho:
 
 - Lợi nhuận
 - Server
