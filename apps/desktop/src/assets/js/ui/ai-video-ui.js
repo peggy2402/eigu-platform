@@ -1,17 +1,15 @@
 // AI Video Generation UI Logic
 
 let aiVideoState = {
-  mode: 'copy', // 'copy', 'idea', 'image'
+  mode: 'copy', // 'copy' hoặc 'idea'
   url: '',
   ideaText: '',
-  images: [], // List of image objects { name, path, url }
   model: 'veo3',
   scenesCount: 'auto',
   ratio: '9:16',
   keepAudio: true,
   voiceEngine: 'elevenlabs',
-  prompts: [],
-  lastOutputPath: ''
+  prompts: []
 };
 
 function switchAiVideoMode(mode) {
@@ -19,127 +17,29 @@ function switchAiVideoMode(mode) {
   
   const btnCopy = document.getElementById('mode-copy-btn');
   const btnIdea = document.getElementById('mode-idea-btn');
-  const btnImage = document.getElementById('mode-image-btn');
   const copySection = document.getElementById('ai-video-copy-section');
   const ideaSection = document.getElementById('ai-video-idea-section');
-  const imageSection = document.getElementById('ai-video-image-section');
   const voiceOptions = document.getElementById('ai-video-voice-options');
   const keepAudioCb = document.getElementById('ai-video-keep-audio');
   
-  btnCopy.className = mode === 'copy' ? 'btn-primary' : 'btn-outline';
-  btnIdea.className = mode === 'idea' ? 'btn-primary' : 'btn-outline';
-  if (btnImage) btnImage.className = mode === 'image' ? 'btn-primary' : 'btn-outline';
-  
-  if (copySection) copySection.classList.toggle('hidden', mode !== 'copy');
-  if (ideaSection) ideaSection.classList.toggle('hidden', mode !== 'idea');
-  if (imageSection) imageSection.classList.toggle('hidden', mode !== 'image');
-  
   if (mode === 'copy') {
-    if (keepAudioCb) keepAudioCb.disabled = false;
-    if (voiceOptions && keepAudioCb) {
-      voiceOptions.classList.toggle('hidden', keepAudioCb.checked);
+    btnCopy.className = 'btn-primary';
+    btnIdea.className = 'btn-outline';
+    copySection.classList.remove('hidden');
+    ideaSection.classList.add('hidden');
+    
+    keepAudioCb.disabled = false;
+    if (keepAudioCb.checked) {
+      voiceOptions.classList.add('hidden');
     }
   } else {
-    if (keepAudioCb) keepAudioCb.disabled = true;
-    if (voiceOptions) voiceOptions.classList.remove('hidden');
-  }
-}
-
-function handleAiImageSelect(event) {
-  const files = Array.from(event.target.files || []);
-  if (files.length === 0) return;
-
-  files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imgObj = {
-        name: file.name,
-        path: file.path || file.name,
-        dataUrl: e.target.result
-      };
-      aiVideoState.images.push(imgObj);
-      renderAiImagePreviewList();
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function renderAiImagePreviewList() {
-  const container = document.getElementById('ai-image-preview-list');
-  if (!container) return;
-  container.innerHTML = '';
-
-  aiVideoState.images.forEach((img, idx) => {
-    const item = document.createElement('div');
-    item.style = 'position: relative; width: 72px; height: 72px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); background: var(--bg-card);';
+    btnCopy.className = 'btn-outline';
+    btnIdea.className = 'btn-primary';
+    copySection.classList.add('hidden');
+    ideaSection.classList.remove('hidden');
     
-    const imgEl = document.createElement('img');
-    imgEl.src = img.dataUrl;
-    imgEl.style = 'width: 100%; height: 100%; object-fit: cover;';
-
-    const removeBtn = document.createElement('button');
-    removeBtn.innerHTML = '×';
-    removeBtn.style = 'position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; line-height: 16px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;';
-    removeBtn.onclick = (e) => {
-      e.stopPropagation();
-      aiVideoState.images.splice(idx, 1);
-      renderAiImagePreviewList();
-    };
-
-    item.appendChild(imgEl);
-    item.appendChild(removeBtn);
-    container.appendChild(item);
-  });
-}
-
-function startAiImageScriptGeneration() {
-  if (aiVideoState.images.length === 0) {
-    showToast('Lỗi', 'Vui lòng chọn ít nhất 1 hình ảnh nguồn!', 'error');
-    return;
-  }
-
-  const btn = document.getElementById('ai-image-analyze-btn');
-  if (btn) {
-    btn.disabled = true;
-    btn.innerText = 'Đang phân tích ảnh & sinh kịch bản...';
-  }
-
-  if (window.ipcRenderer) {
-    window.ipcRenderer.invoke('ai-video-generate-prompts', {
-      images: aiVideoState.images.map(img => img.path),
-      mode: 'image'
-    })
-    .then(res => {
-      let prompts = Array.isArray(res) ? res : (res && res.success ? res.prompts : null);
-      if (!prompts) {
-        showToast('Lỗi AI Director', (res && res.error) || 'Lỗi khi phân tích ảnh', 'error');
-        return;
-      }
-      aiVideoState.prompts = prompts;
-      renderAiScenes();
-      showToast('Thành công', 'Đã sinh kịch bản Image-to-Video thành công!', 'success');
-    })
-    .catch(err => {
-      showToast('Lỗi AI Director', err.message || 'Lỗi khi phân tích ảnh', 'error');
-    })
-    .finally(() => {
-      if (btn) {
-        btn.disabled = false;
-        btn.innerText = 'Phân tích Ảnh & Sinh Kịch bản';
-      }
-    });
-  } else {
-    setTimeout(() => {
-      if (btn) {
-        btn.disabled = false;
-        btn.innerText = 'Phân tích Ảnh & Sinh Kịch bản';
-      }
-      aiVideoState.prompts = aiVideoState.images.map((img, idx) => 
-        `Scene ${idx + 1}: Chuyển động camera mượt mà biến bức ảnh "${img.name}" thành đoạn video sống động 3D.`
-      );
-      renderAiScenes();
-      showToast('Thành công', 'Đã sinh kịch bản Image-to-Video thành công!', 'success');
-    }, 1500);
+    keepAudioCb.disabled = true;
+    voiceOptions.classList.remove('hidden'); // Idea mode always needs voice if there is dialogue
   }
 }
 
@@ -149,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (keepAudioCb) {
     keepAudioCb.addEventListener('change', (e) => {
       const voiceOptions = document.getElementById('ai-video-voice-options');
-      if (e.target.checked && aiVideoState.mode === 'copy') {
+      if (e.target.checked) {
         voiceOptions.classList.add('hidden');
       } else {
         voiceOptions.classList.remove('hidden');
@@ -169,23 +69,18 @@ function startAiVideoAnalysis() {
   
   const btn = document.getElementById('ai-analyze-btn');
   btn.disabled = true;
-  btn.innerText = 'Đang phân tích...';
+  btn.innerText = 'Đang phân tích... (Giả lập)';
   
   // IPC call
   if (window.ipcRenderer) {
     window.ipcRenderer.invoke('ai-video-generate-prompts', { text: url, mode: 'copy' })
-      .then(res => {
-        let prompts = Array.isArray(res) ? res : (res && res.success ? res.prompts : null);
-        if (!prompts) {
-          showToast('Lỗi AI Director', (res && res.error) || 'Lỗi khi phân tích video', 'error');
-          return;
-        }
+      .then(prompts => {
         aiVideoState.prompts = prompts;
         renderAiScenes();
         showToast('Thành công', 'Đã phân tích xong video!', 'success');
       })
       .catch(err => {
-        showToast('Lỗi AI Director', err.message || 'Lỗi khi gọi AI', 'error');
+        showToast('Lỗi', err.message || 'Lỗi khi gọi AI', 'error');
       })
       .finally(() => {
         btn.disabled = false;
@@ -218,23 +113,18 @@ function startAiScriptGeneration() {
   
   const btn = document.getElementById('ai-generate-script-btn');
   btn.disabled = true;
-  btn.innerText = 'Đang sinh kịch bản...';
+  btn.innerText = 'Đang sinh kịch bản... (Giả lập)';
   
   // IPC call
   if (window.ipcRenderer) {
     window.ipcRenderer.invoke('ai-video-generate-prompts', { text: text, mode: 'idea' })
-      .then(res => {
-        let prompts = Array.isArray(res) ? res : (res && res.success ? res.prompts : null);
-        if (!prompts) {
-          showToast('Lỗi AI Director', (res && res.error) || 'Lỗi khi sinh kịch bản', 'error');
-          return;
-        }
+      .then(prompts => {
         aiVideoState.prompts = prompts;
         renderAiScenes();
         showToast('Thành công', 'Đã sinh kịch bản thành công!', 'success');
       })
       .catch(err => {
-        showToast('Lỗi AI Director', err.message || 'Lỗi khi gọi AI', 'error');
+        showToast('Lỗi', err.message || 'Lỗi khi sinh kịch bản', 'error');
       })
       .finally(() => {
         btn.disabled = false;

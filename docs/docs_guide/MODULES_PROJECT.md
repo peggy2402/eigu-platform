@@ -85,28 +85,7 @@ Phân hệ tích hợp trí tuệ nhân tạo chuyển đổi văn bản thành 
 
 ---
 
-### 2.7. 🎬 `AIVideoModule` (`apps/api/src/ai-video/`)
-Phân hệ AI Video Studio backend — quản lý project, scene, character, asset, queue render, provider adapter, AI Director, RAG, content safety, budget, analytics.
-
-- **Các Chức Năng Chi Tiết**:
-  - **Project CRUD**: Tạo/sửa/xóa/duplicate project, filter theo status/category, multi-user support
-  - **Scene System**: Multi-scene với prompt, negative prompt, duration, transition, camera, lighting, seed, character binding, lock controls
-  - **Character Library**: Lưu face/hair/body/outfit/style/prompt/voice/seed, global sharing, reuse across projects
-  - **Asset Library**: Upload images/video/audio/music/logo/fonts/intro/outro, type-based organization
-  - **Brand Kit**: Logo, colors, typography, watermark, intro/outro, brand voice/style
-  - **Render Queue**: Submit single/batch render jobs, cancel/pause/resume, progress tracking
-  - **Provider Adapter Pattern**: Abstract layer cho Google Veo, Kling, Runway, Luma, Pika, PixVerse, Hailuo, Wan — mỗi provider có implementation riêng
-  - **AI Director**: Content type detection (tiktok/storytelling/education/review/commercial), pacing/emotion/camera/lighting decision engine
-  - **RAG Knowledge Base**: Upload PDF/doc/website, chunk + embed → vector store, context-aware prompt generation
-  - **Content Safety**: Prompt/image/voice/subtitle safety check, platform policy compliance
-  - **Budget Guardrails**: Daily/weekly/monthly budget, alert threshold, auto-switch provider
-  - **Quality Check**: AI đánh giá prompt/story/scene/subtitle/voice/music, overall score
-  - **Publish Pipeline**: Schedule upload to YouTube/TikTok/Facebook/Instagram (API official)
-  - **Analytics**: Project stats, provider usage breakdown, cost trends
-  - **14 Database Models**: AIProject, AIScene, AICharacter, AIAsset, AIBrandKit, AISubtitle, AIJob, AIVersion, AIComment, AIQualityCheck, AIAnalytics, AIBudget, AIProvider
-  - **30+ REST Endpoints**: Đầy đủ CRUD + generate/render/publish/analytics
-
-### 2.8. ⚙️ `PrismaModule` & `AppModule` Core Telemetry
+### 2.7. ⚙️ `PrismaModule` & `AppModule` Core Telemetry
 - **Prisma PostgreSQL**: Quản lý các Model `User`, `Notification`, `Feedback`, `ChatMessage`, `ChatSession`, `TabPermission`.
 - **Workflow WebSocket Gateway (`reportProgress`)**: Truyền tải tiến trình tự động hóa video thời gian thực từ Desktop App lên Server và Web Dashboard.
 - **Global Exception Filter & Telemetry (`AllExceptionsFilter`)**: Bắt 100% lỗi 404, 500, DB crashes, tự động ghi nhận **Full Stack Trace**, Error ID, Path, IP và Timestamp ra log server.
@@ -169,20 +148,8 @@ Hệ thống giao diện EIGU Desktop bao gồm **25+ Mô-đun Chức Năng** đ
   - Chọn chế độ cắt theo thời lượng (1-20 phút) hoặc cắt theo khoảnh khắc có hội thoại (Silence Detection).
   - Tự động thay đổi tỉ lệ khung hình: `9:16` (TikTok/Shorts/Reels), `16:9` (YouTube), `1:1` (Instagram).
 
-#### 7. 🎬 `ai-video` (AI Video Studio — Hệ Thống Sản Xuất Video Doanh Nghiệp)
-- **Mô tả**: Module AI Video Studio được thiết kế lại hoàn toàn theo kiến trúc Enterprise với multi-panel studio layout, project-based workflow, scene system, character library, brand kit, render queue, provider adapter pattern và AI Director.
-- **Kiến trúc giao diện 7 panel**:
-  - **Storyboard Panel**: Thumbnail grid, drag-drop sắp xếp scene, AI generate storyboard từ 17 input methods
-  - **Timeline Panel**: Multi-track timeline (video, audio, subtitle), move/split/duplicate/delete
-  - **Preview Panel**: Video player với aspect ratio tự động, overlay annotations
-  - **Properties Panel**: Prompt/Negative Prompt editor, duration/transition/camera/lighting selectors, character binding, lock controls (face/style/outfit/seed), voice/subtitle/music pickers
-  - **Character Panel**: Library với face/hair/body/outfit/age/style, global sharing, character consistency engine
-  - **Asset Panel**: Upload và quản lý images/video/audio/music/logo/fonts/intro/outro
-  - **Queue Panel**: Real-time render queue status, submit/cancel/retry
-- **17 Input Methods**: Idea, Copy Video, Image, Multi-image, Character, Story, Script, PDF, Website, Blog, News, Markdown, JSON, Audio, Voice, Product, Template
-- **9+ Provider Support**: Google Veo 3, OpenAI Sora, Kling AI, Runway Gen-3, Pika, PixVerse, Luma Dream Machine, Hailuo, Wan — abstract provider adapter pattern
-- **Backend**: NestJS module với 30+ REST endpoints, 14 database models (Prisma + PostgreSQL), BullMQ queue, worker pool, smart cache, RAG knowledge base, content safety, budget guardrails, analytics
-- **Desktop App**: Studio layout thay thế form cũ, Zustand-like state management (StudioStore, QueueStore), real-time API calls (không mock), auto-save, keyboard shortcuts
+#### 7. 🤖 `ai-video` (Tạo Video AI Từ Kịch Bản)
+- **Tính năng**: Tích hợp API Fal.ai, OpenAI Sora, Kling AI và Luma Dream Machine để sinh video ngắn 4K từ câu lệnh (Text-to-Video) hoặc từ ảnh có sẵn (Image-to-Video).
 
 #### 8. 🛡️ `reup` (Tạo Video Reup Lách Bản Quyền Anti-Detect)
 - **Tính năng**:

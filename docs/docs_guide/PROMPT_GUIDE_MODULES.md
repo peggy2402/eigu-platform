@@ -58,7 +58,7 @@ Hãy kiểm tra file @[tên_file], đọc log lỗi và khắc phục theo nguy�
 | `tien-ich` | Tiện ích mở rộng | `views.component.js` |
 | `guide` | Hướng dẫn sử dụng | `views.component.js` |
 | `cut` | Tự động cắt video | `automation-ui.js` |
-| `ai-video` | AI Video Studio (Enterprise) | `studio-main.js`, `studio.store.js`, `studio-ipc-handlers.ts` |
+| `ai-video` | Tạo video AI | `ai-video-ui.js` |
 | `reup` | Tạo video Reup | `automation-ui.js` |
 | `hot-niche` | Tìm ngách hot | `automation-ui.js` |
 | `bulk-download` | Tải video hàng loạt | `automation-ui.js` |
