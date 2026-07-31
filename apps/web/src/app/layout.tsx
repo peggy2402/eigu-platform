@@ -7,6 +7,11 @@ import { LanguageProvider } from '../contexts/LanguageContext';
 export const metadata = {
   title: 'EIGU Platform - MMO Automation Engine',
   description: 'AI-driven TikTok Automation via Anti-detect Engine',
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 const themeScript = `
@@ -17,6 +22,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/logo.png" type="image/png" sizes="any" />
+        <link rel="apple-touch-icon" href="/logo.png" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
