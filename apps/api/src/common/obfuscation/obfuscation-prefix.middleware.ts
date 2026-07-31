@@ -50,7 +50,7 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
     const candidateCode = parts[2];
 
     // If candidateCode is a known controller path, bypass
-    const systemBypassRoutes = ['auth', 'users', 'notifications', 'chat', 'feedback', 'voice', 'system-config', 'security', 'docs', 'bootstrap'];
+    const systemBypassRoutes = ['auth', 'users', 'pricing', 'GetInfoPrice', 'notifications', 'chat', 'feedback', 'voice', 'system-config', 'security', 'docs', 'bootstrap'];
     if (systemBypassRoutes.includes(candidateCode)) {
       return next();
     }

@@ -3,6 +3,94 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PricingModuleDto, PricingTierDto, PricingBadgeDto } from '@eigu-platform/shared';
 import { CreateModuleDto, UpdateModuleDto, CreateTierDto, UpdateTierDto, CreateBadgeDto } from './dto/create-pricing.dto';
 
+const FALLBACK_MODULES: PricingModuleDto[] = [
+  {
+    id: 'fb-cut',
+    slug: 'cut',
+    name: 'Tự động cắt video',
+    tagline: 'Tự động phân đoạn video 1-20 phút và tối ưu 9:16',
+    icon: 'Scissors',
+    isActive: true,
+    sortOrder: 0,
+    tiers: [
+      {
+        id: 'fb-cut-trial',
+        code: 'trial',
+        label: 'Trial',
+        tagline: 'Gói trải nghiệm miễn phí 7 ngày',
+        price: 0,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: 'Miễn phí',
+        formattedOriginalPrice: null,
+        billingPeriod: 'trial',
+        trialDays: 7,
+        machines: 1,
+        threads: 2,
+        resolution: '720p',
+        badge: 'TRẢI NGHIỆM MIỄN PHÍ',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 0,
+        features: ['Cắt video 1-20 phút', 'Silence Detection', 'Định dạng 9:16'],
+      },
+      {
+        id: 'fb-cut-pro',
+        code: 'pro',
+        label: 'Pro',
+        tagline: 'Dành cho Creator & Reuper chuyên nghiệp',
+        price: 350000,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: '350.000đ',
+        formattedOriginalPrice: null,
+        billingPeriod: 'monthly',
+        trialDays: 0,
+        machines: 1,
+        threads: 8,
+        resolution: '1080p/2K/4K',
+        badge: 'PHỔ BIẾN NHẤT',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 1,
+        features: ['Tối ưu GPU Hardware', 'Export 1080p/2K/4K', 'Hỗ trợ ưu tiên 24/7'],
+      },
+    ],
+  },
+  {
+    id: 'fb-ai-video',
+    slug: 'ai-video',
+    name: 'Tạo video AI',
+    tagline: 'Tạo video chuyên nghiệp từ ý tưởng bằng AI',
+    icon: 'Sparkles',
+    isActive: true,
+    sortOrder: 1,
+    tiers: [
+      {
+        id: 'fb-ai-pro',
+        code: 'pro',
+        label: 'Pro',
+        tagline: 'Dành cho người chuyên nghiệp',
+        price: 450000,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: '450.000đ',
+        formattedOriginalPrice: null,
+        billingPeriod: 'monthly',
+        trialDays: 0,
+        machines: 1,
+        threads: 8,
+        resolution: '1080p/2K/4K',
+        badge: 'PHỔ BIẾN NHẤT',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 1,
+        features: ['Tạo video từ ý tưởng/hình ảnh', 'Mẫu video có sẵn', 'Hỗ trợ 24/7'],
+      },
+    ],
+  },
+];
+
 @Injectable()
 export class PricingService {
   constructor(private prisma: PrismaService) {}
@@ -11,29 +99,38 @@ export class PricingService {
    * Public GET: Lấy danh sách bảng giá các modules và tiers đã được normalize
    */
   async getPricing(moduleSlug?: string): Promise<PricingModuleDto[]> {
-    const whereCondition: any = { isActive: true };
-    if (moduleSlug && moduleSlug.trim() !== '') {
-      whereCondition.slug = moduleSlug.trim();
-    }
+    try {
+      const whereCondition: any = { isActive: true };
+      if (moduleSlug && moduleSlug.trim() !== '') {
+        whereCondition.slug = moduleSlug.trim();
+      }
 
-    const modules = await this.prisma.pricingModule.findMany({
-      where: whereCondition,
-      orderBy: { sortOrder: 'asc' },
-      include: {
-        tiers: {
-          where: { isActive: true },
-          orderBy: { sortOrder: 'asc' },
-          include: {
-            badge: true,
-            features: {
-              orderBy: { sortOrder: 'asc' },
+      const modules = await this.prisma.pricingModule.findMany({
+        where: whereCondition,
+        orderBy: { sortOrder: 'asc' },
+        include: {
+          tiers: {
+            where: { isActive: true },
+            orderBy: { sortOrder: 'asc' },
+            include: {
+              badge: true,
+              features: {
+                orderBy: { sortOrder: 'asc' },
+              },
             },
           },
         },
-      },
-    });
+      });
 
-    return modules.map(m => this.normalizeModule(m));
+      if (!modules || modules.length === 0) {
+        return FALLBACK_MODULES;
+      }
+
+      return modules.map(m => this.normalizeModule(m));
+    } catch (error) {
+      console.error('[PricingService] Error fetching pricing from Database, using fallback data:', error);
+      return FALLBACK_MODULES;
+    }
   }
 
   /**

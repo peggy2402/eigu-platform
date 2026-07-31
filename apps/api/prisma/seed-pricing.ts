@@ -4,7 +4,8 @@ import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config({ path: path.join(process.cwd(), 'apps/api/.env') });
+dotenv.config({ path: path.join(process.cwd(), '.env') });
 
 const url = process.env.DATABASE_URL || '';
 const isLocal = url.includes('localhost') || url.includes('127.0.0.1');

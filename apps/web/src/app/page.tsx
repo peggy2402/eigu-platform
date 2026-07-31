@@ -23,6 +23,222 @@ import PricingGrid from '../components/pricing/PricingGrid';
 import { pricingApi } from '../lib/api';
 import type { PricingModuleDto, PricingTierDto } from '@eigu-platform/shared';
 
+const FALLBACK_PRICING_MODULES: PricingModuleDto[] = [
+  {
+    id: 'fb-cut',
+    slug: 'cut',
+    name: 'Tự động cắt video',
+    tagline: 'Tự động phân đoạn video 1-20 phút và tối ưu 9:16',
+    icon: 'Scissors',
+    isActive: true,
+    sortOrder: 0,
+    tiers: [
+      {
+        id: 'fb-cut-trial',
+        code: 'trial',
+        label: 'Trial',
+        tagline: 'Gói trải nghiệm miễn phí 7 ngày',
+        price: 0,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: 'Miễn phí',
+        formattedOriginalPrice: null,
+        billingPeriod: 'trial',
+        trialDays: 7,
+        machines: 1,
+        threads: 2,
+        resolution: '720p',
+        badge: 'TRẢI NGHIỆM MIỄN PHÍ',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 0,
+        features: ['Cắt video 1-20 phút', 'Silence Detection', 'Tự chỉnh tỉ lệ khung hình 9:16', 'Xuất video cơ bản'],
+      },
+      {
+        id: 'fb-cut-pro',
+        code: 'pro',
+        label: 'Pro',
+        tagline: 'Dành cho Creator & Reuper chuyên nghiệp',
+        price: 350000,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: '350.000đ',
+        formattedOriginalPrice: null,
+        billingPeriod: 'monthly',
+        trialDays: 0,
+        machines: 1,
+        threads: 8,
+        resolution: '1080p/2K/4K',
+        badge: 'PHỔ BIẾN NHẤT',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 1,
+        features: ['Tối ưu GPU Hardware Render', 'Xuất chuẩn 1080p/2K/4K', 'Tạo phụ đề tự động', 'Hỗ trợ kỹ thuật ưu tiên 24/7'],
+      },
+    ],
+  },
+  {
+    id: 'fb-ai-video',
+    slug: 'ai-video',
+    name: 'Tạo video AI',
+    tagline: 'Tạo video ngắn viral chất lượng cao bằng AI',
+    icon: 'Sparkles',
+    isActive: true,
+    sortOrder: 1,
+    tiers: [
+      {
+        id: 'fb-ai-pro',
+        code: 'pro',
+        label: 'Pro',
+        tagline: 'Dành cho người tạo nội dung chuyên nghiệp',
+        price: 450000,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: '450.000đ',
+        formattedOriginalPrice: null,
+        billingPeriod: 'monthly',
+        trialDays: 0,
+        machines: 1,
+        threads: 8,
+        resolution: '1080p/2K/4K',
+        badge: 'PHỔ BIẾN NHẤT',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 1,
+        features: ['Sinh video AI từ ý tưởng/hình ảnh', 'Mẫu video viral có sẵn', 'Xuất độ phân giải cao', 'Hỗ trợ 24/7'],
+      },
+    ],
+  },
+  {
+    id: 'fb-ai-studio',
+    slug: 'ai-studio',
+    name: 'AI Video Studio',
+    tagline: 'Dựng phim, lồng tiếng AI & tạo phụ đề chuẩn xác',
+    icon: 'Clapperboard',
+    isActive: true,
+    sortOrder: 2,
+    tiers: [
+      {
+        id: 'fb-studio-pro',
+        code: 'pro',
+        label: 'Pro',
+        tagline: 'Gói Studio cao cấp cho Creator',
+        price: 500000,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: '500.000đ',
+        formattedOriginalPrice: null,
+        billingPeriod: 'monthly',
+        trialDays: 0,
+        machines: 1,
+        threads: 8,
+        resolution: '1080p/2K/4K',
+        badge: 'PHỔ BIẾN NHẤT',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 1,
+        features: ['Lồng tiếng AI đa ngôn ngữ', 'Auto Subtitles chuẩn xác', 'Dựng phim chuyên sâu', 'Hỗ trợ 24/7'],
+      },
+    ],
+  },
+  {
+    id: 'fb-reup',
+    slug: 'reup',
+    name: 'Tạo video reup',
+    tagline: 'Bypass thuật toán Content ID TikTok & Reels',
+    icon: 'RefreshCw',
+    isActive: true,
+    sortOrder: 3,
+    tiers: [
+      {
+        id: 'fb-reup-pro',
+        code: 'pro',
+        label: 'Pro',
+        tagline: 'Lách bản quyền tự động tốc độ cao',
+        price: 400000,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: '400.000đ',
+        formattedOriginalPrice: null,
+        billingPeriod: 'monthly',
+        trialDays: 0,
+        machines: 1,
+        threads: 8,
+        resolution: '1080p/2K/4K',
+        badge: 'PHỔ BIẾN NHẤT',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 1,
+        features: ['Noise Injection & Video Flip', '3D Audio Spatial Panning', 'Anti-Detect Fingerprint Engine', 'Hỗ trợ 24/7'],
+      },
+    ],
+  },
+  {
+    id: 'fb-hot-niche',
+    slug: 'hot-niche',
+    name: 'Tìm ngách hot',
+    tagline: 'Quét xu hướng thị trường và bóc tách đối thủ',
+    icon: 'TrendingUp',
+    isActive: true,
+    sortOrder: 4,
+    tiers: [
+      {
+        id: 'fb-niche-pro',
+        code: 'pro',
+        label: 'Pro',
+        tagline: 'Phân tích ngách viral tự động',
+        price: 300000,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: '300.000đ',
+        formattedOriginalPrice: null,
+        billingPeriod: 'monthly',
+        trialDays: 0,
+        machines: 1,
+        threads: 4,
+        resolution: '-',
+        badge: 'PHỔ BIẾN NHẤT',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 1,
+        features: ['Quét ngách xu hướng 24/7', 'Phân tích kênh đối thủ', 'Báo cáo từ khóa viral', 'Hỗ trợ 24/7'],
+      },
+    ],
+  },
+  {
+    id: 'fb-bulk',
+    slug: 'bulk-download',
+    name: 'Tải video hàng loạt',
+    tagline: 'Tải trọn bộ Kênh TikTok/YouTube không watermark',
+    icon: 'DownloadCloud',
+    isActive: true,
+    sortOrder: 5,
+    tiers: [
+      {
+        id: 'fb-bulk-pro',
+        code: 'pro',
+        label: 'Pro',
+        tagline: 'Tải hàng loạt tốc độ siêu nhanh',
+        price: 250000,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: '250.000đ',
+        formattedOriginalPrice: null,
+        billingPeriod: 'monthly',
+        trialDays: 0,
+        machines: 1,
+        threads: 10,
+        resolution: 'Original',
+        badge: 'PHỔ BIẾN NHẤT',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 1,
+        features: ['Tải không watermark logo', 'Tải trọn bộ kênh 1-click', 'Tốc độ đa luồng tối đa', 'Hỗ trợ 24/7'],
+      },
+    ],
+  },
+];
+
 export default function Home() {
   const router = useRouter();
   const { token, user, loading: authLoading } = useAuth();
@@ -36,8 +252,8 @@ export default function Home() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Pricing State
-  const [pricingModules, setPricingModules] = useState<PricingModuleDto[]>([]);
-  const [activeModuleSlug, setActiveModuleSlug] = useState<string>('ai-video');
+  const [pricingModules, setPricingModules] = useState<PricingModuleDto[]>(FALLBACK_PRICING_MODULES);
+  const [activeModuleSlug, setActiveModuleSlug] = useState<string>('cut');
   const [pricingLoading, setPricingLoading] = useState<boolean>(true);
   const [pricingError, setPricingError] = useState<string | null>(null);
 
@@ -50,17 +266,17 @@ export default function Home() {
     setPricingError(null);
     try {
       const res = await pricingApi.getPricing();
-      if (res && res.success && Array.isArray(res.data)) {
+      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
         setPricingModules(res.data);
-        if (res.data.length > 0 && !res.data.some((m: PricingModuleDto) => m.slug === activeModuleSlug)) {
+        if (!res.data.some((m: PricingModuleDto) => m.slug === activeModuleSlug)) {
           setActiveModuleSlug(res.data[0].slug);
         }
       } else {
-        throw new Error('Dữ liệu bảng giá không hợp lệ.');
+        setPricingModules(FALLBACK_PRICING_MODULES);
       }
     } catch (err: any) {
-      console.warn('Lỗi tải dữ liệu pricing:', err);
-      setPricingError(err.message || 'Không thể kết nối đến máy chủ bảng giá.');
+      console.warn('Lỗi tải dữ liệu pricing, sử dụng dữ liệu dự phòng:', err);
+      setPricingModules(FALLBACK_PRICING_MODULES);
     } finally {
       setPricingLoading(false);
     }
