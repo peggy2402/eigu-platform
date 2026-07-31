@@ -258,107 +258,369 @@ const ViewsComponent = `
   </div>
 </div>
 
-<!-- Placeholder Views -->
+<!-- View Tạo Video AI (nhanh) - Specification v2 Final -->
 <div id="view-ai-video" class="view">
   <div class="automation-container">
+    
+    <!-- Header Thông tin Module -->
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 16px; background: var(--bg-card); padding: 14px 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+      <div>
+        <h3 style="margin: 0 0 4px 0; font-size: 16px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+          <span data-icon="zap" style="color: var(--accent);"></span>
+          Tạo Video AI (nhanh)
+          <span style="font-size: 11px; background: rgba(99, 102, 241, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 12px; font-weight: 600;">v2.0 Spec</span>
+        </h3>
+        <p style="margin: 0; font-size: 12px; color: var(--text-muted);">
+          Sinh video hàng loạt bằng AI Provider (Veo, Gemini Omni, Kling) &bull; Xuất file .mp4 về máy local
+        </p>
+      </div>
+      <button class="btn-outline" onclick="openPricingModal()" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px;">
+        <span data-icon="tag" style="color: #f59e0b;"></span> Nâng cấp gói / Bảng giá
+      </button>
+    </div>
+
     <div class="automation-grid">
-      <div class="input-section">
+      <!-- CỘT BÊN TRÁI: INPUT SECTION & ACTION BUTTON -->
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="input-section">
         
-        <!-- Toggle Chế độ -->
-        <div style="display:flex; gap:8px; margin-bottom: 16px; background: var(--bg-primary); padding: 6px; border-radius: 8px; border: 1px solid var(--border-color);">
-          <button id="mode-copy-btn" class="btn-primary" style="flex:1; padding: 8px; border-radius: 6px; font-weight: 500;" onclick="switchAiVideoMode('copy')" data-i18n="ai_copy_video">Copy Video</button>
-          <button id="mode-idea-btn" class="btn-outline" style="flex:1; padding: 8px; border-radius: 6px; font-weight: 500;" onclick="switchAiVideoMode('idea')" data-i18n="ai_from_idea">Tạo từ Ý Tưởng</button>
+        <!-- Navigation 4 Modes Tab Bar -->
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 16px; background: var(--bg-primary); padding: 6px; border-radius: 10px; border: 1px solid var(--border-color);">
+          <button id="mode-copy-btn" class="btn-primary" style="padding: 8px 4px; font-size: 12px; font-weight: 600; white-space: nowrap;" onclick="switchAiVideoMode('copy')">1. Copy Video</button>
+          <button id="mode-idea-btn" class="btn-outline" style="padding: 8px 4px; font-size: 12px; font-weight: 600; white-space: nowrap;" onclick="switchAiVideoMode('idea')">2. Từ Ý Tưởng</button>
+          <button id="mode-image-btn" class="btn-outline" style="padding: 8px 4px; font-size: 12px; font-weight: 600; white-space: nowrap;" onclick="switchAiVideoMode('image')">3. Từ Ảnh</button>
+          <button id="mode-template-btn" class="btn-outline" style="padding: 8px 4px; font-size: 12px; font-weight: 600; white-space: nowrap;" onclick="switchAiVideoMode('template')">4. Theo Mẫu</button>
         </div>
 
-        <!-- Chế độ Copy (Dán link) -->
+        <!-- MODE 1: COPY VIDEO -->
         <div id="ai-video-copy-section">
-          <input type="text" id="ai-copy-url" class="yt-input" placeholder="Dán link TikTok/YouTube/Facebook..." autocomplete="off" data-i18n-placeholder="ai_paste_link_placeholder" />
-          <button id="ai-analyze-btn" class="btn-outline" style="width: 100%; margin-top: 8px; padding: 10px; font-weight: 500;" onclick="startAiVideoAnalysis()" data-i18n="ai_analyze_btn">Phân tích Video & Lấy Kịch bản</button>
+          <label style="display:block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Dán Link Video nguồn (TikTok / YouTube / Facebook):</label>
+          <input type="text" id="ai-copy-url" class="yt-input" placeholder="https://www.tiktok.com/@user/video/..." autocomplete="off" />
+          <button id="ai-analyze-btn" class="btn-outline" style="width: 100%; margin-top: 10px; padding: 10px; font-weight: 600;" onclick="startAiVideoAnalysis()">
+            <span data-icon="search" style="margin-right: 6px;"></span> Phân tích Video & Lấy Kịch bản
+          </button>
         </div>
 
-        <!-- Chế độ Ý tưởng (Nhập Text) -->
+        <!-- MODE 2: TẠO TỪ Ý TƯỞNG -->
         <div id="ai-video-idea-section" class="hidden">
-          <textarea id="ai-idea-text" placeholder="Nhập ý tưởng của bạn... VD: Một video kể về hành trình thám hiểm vũ trụ, có người ngoài hành tinh..." rows="4" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); resize: vertical; margin-bottom: 8px;" data-i18n-placeholder="ai_idea_placeholder"></textarea>
-          <button id="ai-generate-script-btn" class="btn-outline" style="width: 100%; padding: 10px; font-weight: 500;" onclick="startAiScriptGeneration()" data-i18n="ai_generate_script">Tạo Kịch bản chi tiết (Prompts)</button>
+          <label style="display:block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Mô tả Ý tưởng Video (Text):</label>
+          <textarea id="ai-idea-text" placeholder="Nhập ý tưởng của bạn... VD: Kể câu chuyện về một chú mèo thám tử điều tra vụ án mất tích thức ăn trong thành phố viễn tưởng..." rows="3" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); resize: vertical; margin-bottom: 10px;"></textarea>
+
+          <!-- Tùy chọn gợi ý thêm chi tiết -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+            <div>
+              <label style="font-size: 11px; color: var(--text-muted);">Phong cách (Style)</label>
+              <select id="ai-style-option" style="padding: 6px; font-size: 12px;">
+                <option value="cinematic">Cinematic (Điện ảnh)</option>
+                <option value="anime">3D Anime / Manga</option>
+                <option value="realistic">Hyper-Realistic 8K</option>
+                <option value="cyberpunk">Cyberpunk Neon</option>
+                <option value="vintage">Vintage Retro 90s</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: var(--text-muted);">Cảm xúc (Mood)</label>
+              <select id="ai-mood-option" style="padding: 6px; font-size: 12px;">
+                <option value="epic">Hào hùng / Kịch tính</option>
+                <option value="mysterious">Bí ẩn / Ly kỳ</option>
+                <option value="funny">Hài hước / Vui nhộn</option>
+                <option value="emotional">Sâu lắng / Cảm xúc</option>
+              </select>
+            </div>
+          </div>
+
+          <button id="ai-generate-script-btn" class="btn-outline" style="width: 100%; padding: 10px; font-weight: 600;" onclick="startAiScriptGeneration()">
+            <span data-icon="sparkles" style="margin-right: 6px;"></span> Tạo Kịch bản chi tiết (Prompts)
+          </button>
         </div>
 
-        <!-- Kết quả kịch bản phân cảnh -->
-        <div id="ai-script-result" class="hidden" style="margin-top: 16px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); padding: 12px;">
-          <h4 style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;" data-i18n="ai_script_result">Kịch bản Phân cảnh (Prompts)</h4>
-          <div id="ai-scenes-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
-             <!-- Render scene prompts here -->
+        <!-- MODE 3: TẠO TỪ ẢNH -->
+        <div id="ai-video-image-section" class="hidden">
+          <label style="display:block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Tải lên / Chọn danh sách Ảnh (1..N ảnh):</label>
+          <div id="ai-image-dropzone" style="border: 2px dashed var(--border-color); border-radius: 10px; padding: 20px; text-align: center; background: rgba(255,255,255,0.02); cursor: pointer;" onclick="document.getElementById('ai-image-file-input').click()">
+            <span data-icon="uploadCloud" style="font-size: 32px; color: var(--accent); display: block; margin-bottom: 6px;"></span>
+            <span style="font-size: 13px; color: var(--text-primary); font-weight: 600;">Kéo thả ảnh vào đây hoặc click để chọn</span>
+            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px;">Hỗ trợ .jpg, .png, .webp (Chọn nhiều ảnh cùng lúc)</span>
+            <input type="file" id="ai-image-file-input" multiple accept="image/*" class="hidden" onchange="handleAiImagesSelected(event)" />
+          </div>
+
+          <!-- Danh sách ảnh đã chọn -->
+          <div id="ai-images-preview-list" style="display: flex; gap: 8px; overflow-x: auto; margin-top: 12px; padding-bottom: 6px;">
+            <!-- Render Selected Image Thumbnails -->
+          </div>
+
+          <button id="ai-images-process-btn" class="btn-outline" style="width: 100%; margin-top: 10px; padding: 10px; font-weight: 600;" onclick="generatePromptsFromImages()">
+            <span data-icon="layers" style="margin-right: 6px;"></span> Tạo Prompt Chuyển Động từ Ảnh
+          </button>
+        </div>
+
+        <!-- MODE 4: TẠO THEO MẪU -->
+        <div id="ai-video-template-section" class="hidden">
+          <!-- Sub-mode Toggle -->
+          <div style="display: flex; gap: 8px; margin-bottom: 12px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <button id="submode-char-btn" class="btn-primary" style="flex: 1; padding: 6px; font-size: 11px; font-weight: 600;" onclick="switchTemplateSubmode('char')">Chế độ A: Ghép Nhân Vật</button>
+            <button id="submode-remake-btn" class="btn-outline" style="flex: 1; padding: 6px; font-size: 11px; font-weight: 600;" onclick="switchTemplateSubmode('remake')">Chế độ B: Full Remake</button>
+          </div>
+
+          <!-- Chế độ A: Ghép nhân vật (max 2 ảnh) -->
+          <div id="template-char-submode">
+            <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); padding: 8px 12px; border-radius: 8px; font-size: 11px; color: var(--accent); margin-bottom: 10px;">
+              ⚡ <strong>PoC Gemini Omni:</strong> Tải lên 1 Video mẫu + tối đa 2 Ảnh nhân vật để thay thế nhân vật gốc.
+            </div>
+            
+            <label style="font-size: 11px; color: var(--text-secondary);">1. Video Mẫu (.mp4):</label>
+            <div class="custom-file-picker" onclick="document.getElementById('template-video-input').click()">
+              <span data-icon="video" style="color: var(--accent);"></span>
+              <span id="template-video-label" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Bấm để chọn file Video Mẫu (.mp4)</span>
+              <input type="file" id="template-video-input" class="hidden" accept="video/mp4" onchange="document.getElementById('template-video-label').innerText = this.files[0]?.name || 'Bấm để chọn file Video Mẫu (.mp4)'" />
+            </div>
+
+            <label style="font-size: 11px; color: var(--text-secondary);">2. Ảnh Nhân Vật mới (Tối đa 2 ảnh):</label>
+            <div class="custom-file-picker" onclick="document.getElementById('template-char-input').click()">
+              <span data-icon="image" style="color: var(--accent);"></span>
+              <span id="template-char-label" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Bấm để chọn Ảnh Nhân Vật (1..2 ảnh)</span>
+              <input type="file" id="template-char-input" class="hidden" accept="image/*" multiple onchange="document.getElementById('template-char-label').innerText = Array.from(this.files).map(f => f.name).join(', ') || 'Bấm để chọn Ảnh Nhân Vật (1..2 ảnh)'" />
+            </div>
+          </div>
+
+          <!-- Chế độ B: Full Remake -->
+          <div id="template-remake-submode" class="hidden">
+            <label style="font-size: 11px; color: var(--text-secondary);">1. Video Mẫu (.mp4):</label>
+            <div class="custom-file-picker" onclick="document.getElementById('remake-video-input').click()">
+              <span data-icon="video" style="color: var(--accent);"></span>
+              <span id="remake-video-label" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Bấm để chọn file Video Mẫu (.mp4)</span>
+              <input type="file" id="remake-video-input" class="hidden" accept="video/mp4" onchange="document.getElementById('remake-video-label').innerText = this.files[0]?.name || 'Bấm để chọn file Video Mẫu (.mp4)'" />
+            </div>
+
+            <label style="font-size: 11px; color: var(--text-secondary);">2. Mô tả Nhân vật mới:</label>
+            <input type="text" id="remake-char-desc" placeholder="VD: Cô gái tóc vàng, mặc áo khoác da màu đỏ..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); margin-bottom: 8px; font-size: 12px;" />
+
+            <label style="font-size: 11px; color: var(--text-secondary);">3. Mô tả Bối cảnh mới:</label>
+            <input type="text" id="remake-env-desc" placeholder="VD: Bối cảnh bãi biển Hawaii lúc hoàng hôn..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); margin-bottom: 10px; font-size: 12px;" />
+          </div>
+
+          <button id="ai-template-process-btn" class="btn-outline" style="width: 100%; padding: 10px; font-weight: 600;" onclick="startTemplateAnalysis()">
+            <span data-icon="cpu" style="margin-right: 6px;"></span> Phân tích Mẫu & Phối cảnh AI
+          </button>
+        </div>
+
+        <!-- SCRIPT EDITOR (KỊCH BẢN PHÂN CẢNH SỬA ĐƯỢC) -->
+        <div id="ai-script-result" class="hidden" style="margin-top: 16px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-primary); padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 6px;">
+              <span data-icon="edit" style="color: var(--accent);"></span> Script Editor (Kịch bản Phân cảnh)
+            </h4>
+            <span style="font-size: 11px; color: var(--text-muted);">Có thể sửa trực tiếp text</span>
+          </div>
+          <div id="ai-scenes-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;">
+             <!-- Editable scene prompt items render here -->
           </div>
         </div>
         
+        </div>
+
+        <!-- ACTION BUTTON: BẮT ĐẦU RENDER HÀNG LOẠT (CỘT BÊN TRÁI — NẰM NGOÀI KHỐI INPUT) -->
+        <button id="ai-video-start-btn" class="btn-primary" style="width: 100%; padding: 14px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3); border-radius: 10px;" onclick="startAiVideoRender()">
+          <span data-icon="zap" style="margin-right: 6px; vertical-align: middle;"></span> ⚡ Bắt đầu Render Hàng loạt (Flat / Unlimited)
+        </button>
       </div>
 
-      <div class="settings-card">
-        <label data-i18n="ai_video_model">Mô hình tạo Video (Video Model)</label>
-        <select id="ai-video-model">
-          <option value="veo3">Veo 3 (8s/clip)</option>
-          <option value="runway">Runway Gen-3 Alpha</option>
+      <!-- KHU VỰC CẤU HÌNH AI (BÊN PHẢI — DÙNG CHUNG 4 MODE) -->
+      <div class="settings-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px;">
+        <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+          <span data-icon="sliders" style="color: var(--accent);"></span> Bảng Cấu Hình AI
+        </h4>
+
+        <!-- 1. Video Model -->
+        <label style="font-size: 11px; color: var(--text-secondary);">Mô hình tạo Video (Video Model)</label>
+        <select id="ai-video-model" style="margin-bottom: 10px; font-size: 12px;">
+          <option value="veo3">Veo 3 (Google Flow - 8s/clip)</option>
+          <option value="gemini-omni">Gemini Omni Flash (Multimodal Reference)</option>
+          <option value="kling">Kling AI v1.5 (High Motion)</option>
           <option value="luma">Luma Dream Machine</option>
-          <option value="kling">Kling AI</option>
+          <option value="runway">Runway Gen-3 Alpha</option>
         </select>
         
-        <label style="margin-top:8px;" data-i18n="ai_scenes_count">Số lượng phân cảnh (Scenes)</label>
-        <select id="ai-video-scenes-count">
-          <option value="auto" data-i18n="scenes_auto">Tự động (Dựa trên nội dung)</option>
+        <!-- 2. Số lượng phân cảnh -->
+        <label style="font-size: 11px; color: var(--text-secondary);">Số lượng phân cảnh (Scenes)</label>
+        <select id="ai-video-scenes-count" style="margin-bottom: 10px; font-size: 12px;">
+          <option value="auto">Tự động (Dựa trên nội dung)</option>
           <option value="3">3 Cảnh (~24s)</option>
           <option value="5">5 Cảnh (~40s)</option>
           <option value="8">8 Cảnh (~1 phút)</option>
         </select>
 
-        <label style="margin-top:8px;" data-i18n="ai_aspect_ratio">Tỉ lệ khung hình (Aspect Ratio)</label>
-        <select id="ai-video-ratio">
-          <option value="9:16">9:16 (TikTok, Shorts)</option>
-          <option value="16:9">16:9 (YouTube)</option>
-        </select>
-        
-        <hr />
-        
-        <label style="font-weight:600;color:#38bdf8;" data-i18n="ai_audio_voice">Âm thanh & Giọng nói</label>
-        <label class="checkbox-row"><input type="checkbox" id="ai-video-keep-audio" checked /><span data-i18n="ai_keep_audio">Giữ lại âm thanh gốc (Chỉ cho chế độ Copy)</span></label>
-        
-        <div id="ai-video-voice-options" class="hidden">
-          <label data-i18n="ai_dubbing">Lồng tiếng (AI Voice)</label>
-          <select id="ai-video-voice-engine">
-            <option value="elevenlabs">ElevenLabs</option>
-            <option value="omnivoice">Omni Voice API</option>
+        <!-- 3. Aspect Ratio & Duration Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+          <div>
+            <label style="font-size: 11px; color: var(--text-secondary);">Tỉ lệ khung hình</label>
+            <select id="ai-video-ratio" style="font-size: 12px;">
+              <option value="9:16">9:16 (TikTok, Shorts)</option>
+              <option value="16:9">16:9 (YouTube)</option>
+              <option value="1:1">1:1 (Instagram)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 11px; color: var(--text-secondary);">Thời lượng Clip</label>
+            <select id="ai-video-duration" style="font-size: 12px;">
+              <option value="auto">Auto (8s)</option>
+              <option value="8s">8 giây</option>
+              <option value="10s">10 giây</option>
+              <option value="15s">15 giây</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 4. Số luồng song song -->
+        <div style="margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="font-size: 11px; color: var(--text-secondary); margin: 0;">Số luồng song song:</label>
+            <span id="threads-badge" style="font-size: 11px; font-weight: 700; color: var(--accent);">4 luồng (Gói Basic)</span>
+          </div>
+          <input type="range" id="ai-video-threads" min="1" max="20" value="4" oninput="document.getElementById('threads-badge').innerText = this.value + ' luồng'" style="width: 100%;" />
+        </div>
+
+        <!-- 5. Quy tắc Watermark Provider -->
+        <div style="margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; font-weight: 600; color: var(--text-primary);">Watermark Provider (Veo/Kling):</span>
+            <label class="checkbox-row" style="margin: 0;"><input type="checkbox" id="ai-video-watermark-blur" checked /><span style="font-size: 11px;">Ẩn (Blur hậu kỳ)</span></label>
+          </div>
+          <span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">
+            * Thắt mốc flat fee 50.000 VNĐ / chu kỳ Subscription để mở khóa tính năng ẩn logo Provider.
+          </span>
+        </div>
+
+        <!-- 6. Âm thanh & Giọng nói -->
+        <div style="margin-bottom: 10px;">
+          <label class="checkbox-row"><input type="checkbox" id="ai-video-keep-audio" checked /><span style="font-size: 11px; font-weight: 600; color: #38bdf8;">Giữ lại âm thanh gốc (Mode Copy)</span></label>
+        </div>
+
+        <div id="ai-video-voice-options" class="hidden" style="margin-bottom: 10px;">
+          <label style="font-size: 11px; color: var(--text-secondary);">Lồng tiếng AI (Voice Engine)</label>
+          <select id="ai-video-voice-engine" style="font-size: 12px;">
+            <option value="elevenlabs">ElevenLabs TTS</option>
+            <option value="omnivoice">Omni Voice API (Inference.sh)</option>
+            <option value="selfhosted">Self-hosted Python TTS</option>
+          </select>
+        </div>
+
+        <!-- 7. Cấu hình tạo ảnh trung gian -->
+        <div style="border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 10px;">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Cấu hình tạo ảnh (Image Model)</label>
+          <select id="ai-image-model" style="font-size: 12px; margin-top: 4px;">
+            <option value="nano-banana">Nano Banana (Subject Consistency)</option>
+            <option value="midjourney">Midjourney v6 API</option>
+            <option value="sdxl">Stable Diffusion XL</option>
           </select>
         </div>
 
       </div>
     </div>
 
-    <!-- Action Buttons -->
-    <button id="ai-video-start-btn" class="btn-primary" style="margin-top:16px;" onclick="startAiVideoRender()"><span data-icon="zap" style="margin-right:6px;vertical-align:middle;"></span> <span data-i18n="ai_start_render">Bắt đầu Render Hàng loạt</span></button>
-    
-    <!-- Progress Bar -->
-    <div id="ai-video-progress-section" class="progress-section hidden" style="margin-top:16px;">
+    <!-- PROGRESS BAR SECTION -->
+    <div id="ai-video-progress-section" class="progress-section hidden" style="margin-top: 16px;">
       <div class="progress-header">
-        <span id="ai-video-status-text" data-i18n="status_preparing">Đang chuẩn bị...</span>
-        <div style="display:flex;gap:12px;align-items:center;">
-          <span id="ai-video-eta" style="color:var(--text-muted);font-size:12px;"></span>
-          <span id="ai-video-progress-percent">0%</span>
+        <span id="ai-video-status-text">Đang chuẩn bị luồng Render...</span>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <span id="ai-video-eta" style="color: var(--text-muted); font-size: 12px;">⏱ 00m 00s</span>
+          <span id="ai-video-progress-percent" style="font-weight: 700; color: var(--accent);">0%</span>
         </div>
       </div>
       <div class="progress-track"><div id="ai-video-progress-fill" class="progress-fill"></div></div>
     </div>
     
-    <!-- Preview Section -->
+    <!-- PREVIEW SECTION -->
     <div id="ai-video-preview-section" class="hidden" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
-      <h3 style="color: var(--text-primary); margin-bottom: 12px; font-size: 15px; display: flex; align-items: center;"><span data-icon="playCircle" style="margin-right: 6px;"></span> <span data-i18n="ai_preview_title">Preview Video Thành Phẩm</span></h3>
-      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center;">
-        <video id="ai-video-player" controls style="max-width: 100%; max-height: 400px; border-radius: 6px; background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.2);"></video>
-        <div style="margin-top: 12px; display: flex; justify-content: center; gap: 8px;">
-           <button class="btn-primary" onclick="openOutputFolder()"><span data-icon="folder" style="margin-right:4px;vertical-align:middle;"></span> <span data-i18n="open_output_folder">Mở thư mục chứa File</span></button>
+      <h3 style="color: var(--text-primary); margin-bottom: 12px; font-size: 15px; display: flex; align-items: center;">
+        <span data-icon="playCircle" style="margin-right: 6px; color: #10b981;"></span> Preview Video Thành Phẩm (.mp4)
+      </h3>
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; text-align: center;">
+        <video id="ai-video-player" controls style="max-width: 100%; max-height: 420px; border-radius: 8px; background: #000; box-shadow: 0 4px 16px rgba(0,0,0,0.4);"></video>
+        <div style="margin-top: 14px; display: flex; justify-content: center; gap: 10px;">
+          <button class="btn-primary" onclick="openOutputFolder()">
+            <span data-icon="folder" style="margin-right: 6px; vertical-align: middle;"></span> Mở thư mục chứa File (.mp4)
+          </button>
         </div>
       </div>
     </div>
-    
+
   </div>
 </div>
+
+<!-- MODAL BẢNG GIÁ & NÂNG CẤP TÍNH NĂNG (ENTITLEMENT POPUP) -->
+<div id="pricing-modal-overlay" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;" onclick="closePricingModal()">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 28px; max-width: 960px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);" onclick="event.stopPropagation()">
+    
+    <button onclick="closePricingModal()" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px;">✕</button>
+
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="font-size: 11px; background: rgba(99, 102, 241, 0.15); color: var(--accent); padding: 4px 12px; border-radius: 12px; font-weight: 700;">GÓI CƯỚC UNLIMITED RENDER</span>
+      <h2 style="font-size: 24px; color: var(--text-primary); font-weight: 800; margin: 8px 0 4px 0;">Bảng Giá Tạo Video AI (nhanh)</h2>
+      <p style="color: var(--text-muted); font-size: 13px;">Tạo video không giới hạn lượt trong thời hạn gói. Mở khóa toàn bộ 4 mode đỉnh cao.</p>
+    </div>
+
+    <!-- 4 Packages Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+      <!-- Basic -->
+      <div style="border: 1px solid var(--border-color); background: var(--bg-primary); padding: 18px; border-radius: 14px; display: flex; flex-direction: column;">
+        <h3 style="color: var(--text-primary); font-size: 18px; margin-bottom: 4px;">Basic</h3>
+        <div style="font-size: 20px; font-weight: 800; color: var(--accent); margin-bottom: 8px;">150.000đ <span style="font-size: 12px; color: var(--text-muted);">/ tháng</span></div>
+        <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 16px; margin-bottom: 16px; flex: 1;">
+          <li>Tối đa 4 luồng song song</li>
+          <li>Độ phân giải 720p</li>
+          <li>Mở 2 mode: Copy Video & Ý Tưởng</li>
+          <li>Dùng trên 1 máy</li>
+        </ul>
+        <button class="btn-outline" style="width: 100%;" onclick="alert('Đã chọn gói Basic')">Chọn gói Basic</button>
+      </div>
+
+      <!-- Pro (Highlight) -->
+      <div style="border: 2px solid #f59e0b; background: linear-gradient(180deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%); padding: 18px; border-radius: 14px; display: flex; flex-direction: column; position: relative;">
+        <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #f59e0b; color: #000; font-size: 10px; font-weight: 800; padding: 2px 10px; border-radius: 10px;">PHỔ BIẾN NHẤT</span>
+        <h3 style="color: #f59e0b; font-size: 18px; margin-bottom: 4px;">Pro</h3>
+        <div style="font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px;">450.000đ <span style="font-size: 12px; color: var(--text-muted);">/ tháng</span></div>
+        <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 16px; margin-bottom: 16px; flex: 1;">
+          <li>Tối đa 8 luồng song song</li>
+          <li>Độ phân giải 1080p / 2K / 4K</li>
+          <li>Full 4 mode (Copy, Ý tưởng, Ảnh, Mẫu)</li>
+          <li>Dùng trên 1 máy</li>
+        </ul>
+        <button class="btn-primary" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff;" onclick="alert('Đã chọn gói Pro')">Chọn gói Pro</button>
+      </div>
+
+      <!-- Team -->
+      <div style="border: 1px solid var(--border-color); background: var(--bg-primary); padding: 18px; border-radius: 14px; display: flex; flex-direction: column;">
+        <span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; width: fit-content; margin-bottom: 4px;">GIẢM ~40%</span>
+        <h3 style="color: var(--text-primary); font-size: 18px; margin-bottom: 4px;">Team</h3>
+        <div style="font-size: 20px; font-weight: 800; color: var(--accent); margin-bottom: 8px;">1.800.000đ <span style="font-size: 12px; color: var(--text-muted);">/ tháng</span></div>
+        <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 16px; margin-bottom: 16px; flex: 1;">
+          <li>Tối đa 20 luồng song song</li>
+          <li>Độ phân giải 1080p / 2K / 4K</li>
+          <li>Full 4 mode</li>
+          <li>Dùng đồng thời 5 máy</li>
+        </ul>
+        <button class="btn-outline" style="width: 100%;" onclick="alert('Đã chọn gói Team')">Chọn gói Team</button>
+      </div>
+
+      <!-- Enterprise -->
+      <div style="border: 1px solid var(--border-color); background: var(--bg-primary); padding: 18px; border-radius: 14px; display: flex; flex-direction: column;">
+        <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; width: fit-content; margin-bottom: 4px;">DOANH NGHIỆP</span>
+        <h3 style="color: var(--text-primary); font-size: 18px; margin-bottom: 4px;">Enterprise</h3>
+        <div style="font-size: 20px; font-weight: 800; color: var(--accent); margin-bottom: 8px;">5.400.000đ <span style="font-size: 12px; color: var(--text-muted);">/ tháng</span></div>
+        <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 16px; margin-bottom: 16px; flex: 1;">
+          <li>20 luồng trần tối đa</li>
+          <li>Độ phân giải 4K+</li>
+          <li>Full 4 mode</li>
+          <li>Dùng đồng thời 30 máy & 24/7 Priority Support</li>
+        </ul>
+        <button class="btn-outline" style="width: 100%;" onclick="alert('Đã chọn gói Enterprise')">Chọn gói Enterprise</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <div id="view-hot-niche" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="trendingUp" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="sub_hot_niche">Tìm ngách hot</h3><p style="color:var(--text-muted);" data-i18n="feature_developing">Tính năng đang phát triển</p></div>
