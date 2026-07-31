@@ -1,5 +1,6 @@
 import {
   Injectable,
+  OnModuleInit,
   BadRequestException,
   UnauthorizedException,
   InternalServerErrorException,
@@ -14,7 +15,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   private readonly logger = new Logger(AuthService.name);
   private transporter: nodemailer.Transporter | null = null;
 
@@ -24,6 +25,88 @@ export class AuthService {
     private usersService: UsersService,
   ) {
     this.initTransporter();
+  }
+
+  async onModuleInit() {
+    await this.seedDefaultUser();
+  }
+
+  private async seedDefaultUser() {
+    try {
+      const passwordHash = await bcrypt.hash('123456', 10);
+      
+      // Seed Admin User
+      const existingAdmin = await this.prisma.user.findFirst({
+        where: { OR: [{ email: 'admin@eigu.com' }, { username: 'admin' }] }
+      });
+      if (!existingAdmin) {
+        await this.prisma.user.create({
+          data: {
+            email: 'admin@eigu.com',
+            username: 'admin',
+            passwordHash,
+            isVerified: true,
+            role: 'admin',
+            balance: 1000000,
+          }
+        });
+        this.logger.log('Default admin user created: admin / 123456');
+      } else {
+        await this.prisma.user.update({
+          where: { id: existingAdmin.id },
+          data: { passwordHash, isVerified: true, role: 'admin' }
+        });
+      }
+
+      // Seed Staff User
+      const existingStaff = await this.prisma.user.findFirst({
+        where: { OR: [{ email: 'staff@eigu.com' }, { username: 'staff' }] }
+      });
+      if (!existingStaff) {
+        await this.prisma.user.create({
+          data: {
+            email: 'staff@eigu.com',
+            username: 'staff',
+            passwordHash,
+            isVerified: true,
+            role: 'staff',
+            balance: 500000,
+          }
+        });
+        this.logger.log('Default staff user created: staff / 123456');
+      } else {
+        await this.prisma.user.update({
+          where: { id: existingStaff.id },
+          data: { passwordHash, isVerified: true, role: 'staff' }
+        });
+      }
+
+      // Seed Demo User
+      const existingUser = await this.prisma.user.findFirst({
+        where: { OR: [{ email: 'user@eigu.com' }, { username: 'user' }] }
+      });
+      if (!existingUser) {
+        await this.prisma.user.create({
+          data: {
+            email: 'user@eigu.com',
+            username: 'user',
+            passwordHash,
+            isVerified: true,
+            role: 'user',
+            balance: 150000,
+          }
+        });
+        this.logger.log('Default demo user created: user / 123456');
+      } else {
+        await this.prisma.user.update({
+          where: { id: existingUser.id },
+          data: { passwordHash, isVerified: true, role: 'user' }
+        });
+      }
+
+    } catch (err: any) {
+      this.logger.error('Failed to seed default users:', err.message);
+    }
   }
 
   private async initTransporter() {

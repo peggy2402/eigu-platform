@@ -1,314 +1,321 @@
-# Module "Tạo Video AI" — Tài Liệu Thiết Kế Chi Tiết
+# PROMPT TRIỂN KHAI — Module "Tạo Video AI (nhanh)" — EIGU Platform (v2 — Final)
 
-> Tài liệu này mô tả chi tiết các chức năng, cấu hình, và luồng xử lý của module **Tạo Video AI**, dựa trên UI hiện tại và các đề xuất nâng cấp. Mục tiêu: dùng làm tài liệu tham chiếu để chỉnh sửa / nâng cấp module.
+> Đây là bản PROMPT hợp nhất, đã cập nhật toàn bộ quyết định mới nhất của Product Owner — **không còn câu hỏi mở**. Dùng tài liệu này làm **nguồn sự thật duy nhất (single source of truth)** để triển khai — không tham chiếu ngược lại các bản nháp/câu hỏi cũ trước đó.
+>
+> **Vai trò của bạn (AI/Dev):** Đọc kỹ toàn bộ tài liệu, sau đó triển khai module theo đúng kiến trúc, luồng xử lý, và các quy tắc nghiệp vụ được mô tả bên dưới. Nếu phát sinh câu hỏi nghiệp vụ mới ngoài phạm vi tài liệu này, cần hỏi lại Product Owner thay vì tự suy diễn.
 
 ---
 
-## 1. Tổng Quan Module
+## 0. Định Vị Sản Phẩm (Bối Cảnh Bắt Buộc Phải Hiểu Trước Khi Code)
 
-Module "Tạo Video AI" là màn hình trung tâm cho phép người dùng tạo video bằng AI theo **4 phương thức đầu vào (input mode)** khác nhau, cùng chia sẻ chung một **bảng cấu hình AI (AI Config Panel)** ở bên phải.
+- **EIGU không phải là một AI Video Provider** (như Veo, Kling, Runway) mà là **công cụ (tool)** giúp người dùng render video hàng loạt dựa trên các AI Provider có sẵn.
+- Module "Tạo Video AI (nhanh)" có phạm vi **đơn giản, có chủ đích**: `Input → Render → Xuất file .mp4 → Lưu tại máy local của khách hàng`.
+- **Không có khái niệm "Project" hay "Agent Memory"** trong module này — đây không phải một "AI Creative Studio" quản lý dự án dài hạn. Module không lưu trữ lịch sử hội thoại nhiều phiên, không cần bộ nhớ ngữ cảnh AI, không liên quan đến định dạng `.eigu`. Nếu tương lai EIGU phát triển module "AI Video Studio" đầy đủ có Project/Agent, đó là **phạm vi hoàn toàn khác**, không gộp vào đây.
 
-### 1.1. Các phương thức tạo video (Input Modes)
+---
 
-| # | Mode | Mô tả ngắn |
-|---|------|------------|
-| 1 | **Copy Video** | Dán link TikTok/YouTube/Facebook → phân tích video gốc → sinh Prompt → render video mới |
-| 2 | **Tạo từ Ý tưởng** | Người dùng nhập ý tưởng (text) → sinh Prompt → chuyển thành video |
-| 3 | **Tạo video từ hình ảnh** | Người dùng chọn 1 hoặc nhiều ảnh bất kỳ → chuyển hình ảnh thành video |
-| 4 | **Tạo theo Video mẫu** | Tải lên video mẫu + ảnh nhân vật → ghép nhân vật vào video mẫu, hoặc sao chép 100% cấu trúc video mẫu với nhân vật/bối cảnh khác |
-
-### 1.2. Cấu trúc màn hình
+## 1. Vị Trí Trong Điều Hướng (Navigation)
 
 ```
-┌────────────────────────────────┬────────────────────────────────┐
-│  KHU VỰC INPUT (trái)          │  KHU VỰC CẤU HÌNH AI (phải)    │
-│  - Tabs chọn Mode              │  - Video Model                 │
-│  - Form nhập theo từng Mode    │  - Số lượng phân cảnh          │
-│  - Nút hành động (Phân tích /  │  - Aspect Ratio                │
-│    Tạo Prompt / Preview)       │  - Thời lượng video            │
-│                                │  - Số luồng song song          │
-│                                │  - Bật/tắt watermark           │
-│                                │  - Âm thanh & Giọng nói        │
-│                                │  - Cấu hình tạo ảnh (Nano      │
-│                                │    Banana / model khác)        │
-└────────────────────────────────┴────────────────────────────────┘
-│                        [ ⚡ Bắt đầu Render ]                     │
-└─────────────────────────────────────────────────────────────────┘
+Công cụ
+   └── Tạo Video AI
+          ├── Copy Video
+          ├── Tạo Video Từ Ý Tưởng
+          ├── Tạo Video Từ Ảnh
+          └── Tạo Video Theo Mẫu
+```
+
+- Mỗi màn hình con = 1 route/state riêng (SPA routing hoặc IPC route riêng cho Desktop), lazy-load độc lập.
+- 4 màn hình dùng chung: **AI Config Panel** (bên phải), **Provider Router**, và cùng ghi vào **1 nhóm lịch sử "Video đã tạo"** duy nhất (bất kể tạo từ màn hình nào).
+- Dựng **Shared Layout Component** (khung ngoài: sidebar submenu + AI Config Panel + nút Render) — 4 màn hình con chỉ khác phần Input bên trái.
+- **Sidebar Navigation Component phải tổng quát, hỗ trợ N cấp submenu** — không hardcode riêng cho "Tạo Video AI", vì menu "Công cụ" sẽ chứa thêm các nhóm tính năng khác trong tương lai theo cùng mô hình.
+
+### Cấu trúc mỗi màn hình con
+
+```
+┌─────────────────────────────────┬─────────────────────────────┐
+│  KHU VỰC INPUT (trái)           │  KHU VỰC CẤU HÌNH AI (phải) │
+│  - Tabs chọn Mode               │  - Video Model              │
+│  - Form nhập theo từng Mode     │  - Số lượng phân cảnh       │
+│  - Nút hành động                │  - Aspect Ratio             │
+│                                 │  - Thời lượng video         │
+│                                 │  - Số luồng song song       │
+│                                 │  - Bật/tắt watermark        │
+│                                 │  - Âm thanh & Giọng nói     │
+│                                 │  - Cấu hình tạo ảnh         │
+└─────────────────────────────────┴─────────────────────────────┘
+│              [ ⚡ Bắt đầu Render Hàng loạt ]                   │
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 2. Chức Năng 1 — Copy Video
 
-### 2.1. Mục đích
-Cho phép người dùng sao chép ý tưởng / cấu trúc / kịch bản từ một video có sẵn trên mạng xã hội (TikTok, YouTube, Facebook), sau đó tái tạo lại thành video mới bằng AI.
-
-### 2.2. Input
-- Ô nhập: **"Dán link TikTok/YouTube/Facebook..."**
-- Nút: **"Phân tích Video & Lấy Kịch bản"**
-
-### 2.3. Luồng xử lý (Flow)
-
-```
-Người dùng dán Link
-      ↓
-Hệ thống validate Link (domain, format, tồn tại)
-      ↓
-Download / Extract video (qua service bên thứ 3 hoặc downloader nội bộ)
-      ↓
-Phân tích video:
-   - Tách audio → Speech-to-Text (lấy thoại/voice-over)
-   - Phân tích khung hình (scene detection, nhận diện nhân vật, bối cảnh, hành động, chuyển cảnh)
-   - Phân tích nhịp điệu / cắt dựng (pacing, số lượng cut, độ dài mỗi cảnh)
-      ↓
-Tổng hợp thành Kịch bản (Script) + Prompt chuẩn hoá cho Video Model
-      ↓
-Hiển thị Kịch bản cho người dùng xem / chỉnh sửa (editable)
-      ↓
-Người dùng bấm "Bắt đầu Render Hàng loạt"
-      ↓
-Gửi Prompt + Cấu hình AI (bên phải) → Provider Router → Video Model
-      ↓
-Render video mới theo từng Scene
-      ↓
-Ghép nối (nếu nhiều scene) → Xuất video hoàn chỉnh
-```
-
-### 2.4. Các thành phần kỹ thuật cần có
-
-- **Video Downloader Service**: hỗ trợ TikTok, YouTube, Facebook (cần tính đến rủi ro pháp lý bản quyền / ToS của các nền tảng, và giới hạn tốc độ / chống chặn IP)
-- **Video Analyzer Service**:
-  - Speech-to-Text (STT)
-  - Scene Detection / Shot Boundary Detection
-  - Vision-Language Model để mô tả nội dung từng cảnh (dùng chính AI Provider đã cấu hình, ví dụ Gemini)
-- **Prompt Builder**: chuẩn hoá kết quả phân tích thành Prompt template theo từng Video Model (vì mỗi model — Veo 3, Omni, ... — có cấu trúc prompt khác nhau)
-- **Script Editor UI**: cho phép người dùng sửa kịch bản trước khi render (rất quan trọng để tránh render sai ý)
-
-### 2.5. Lưu ý nghiệp vụ / rủi ro
-
-- Cần làm rõ ranh giới giữa "lấy cảm hứng / phân tích cấu trúc" và "sao chép nguyên bản nội dung có bản quyền" — nên có disclaimer và cơ chế người dùng tự chịu trách nhiệm nội dung.
-- Cần rate-limit / retry khi nền tảng nguồn (TikTok/YouTube/FB) thay đổi cấu trúc hoặc chặn tải video.
-- Âm thanh gốc: có tuỳ chọn **"Giữ lại âm thanh gốc (chỉ cho chế độ Copy)"** → cần pipeline tách và merge lại audio gốc vào video mới.
-
----
-
-## 3. Chức Năng 2 — Tạo Từ Ý Tưởng
-
-### 3.1. Mục đích
-Người dùng nhập ý tưởng bằng văn bản (text) → hệ thống sinh Prompt chi tiết → chuyển thành video.
-
-### 3.2. Luồng xử lý (Flow)
-
-```
-Người dùng nhập Ý tưởng (free text)
-      ↓
-(Tuỳ chọn) Hệ thống hỏi thêm chi tiết: phong cách, nhân vật, bối cảnh, cảm xúc, thể loại
-      ↓
-AI (LLM) sinh Kịch bản + Prompt chi tiết theo từng Scene
-      ↓
-Hiển thị Prompt cho người dùng review / chỉnh sửa
-      ↓
-Gửi Prompt + Cấu hình AI → Provider Router → Video Model
-      ↓
-Render theo số lượng Scene (manual hoặc tự động dựa trên nội dung)
-      ↓
-Xuất video hoàn chỉnh
-```
-
-### 3.3. Thành phần kỹ thuật
-
-- **Idea-to-Prompt Engine**: dùng LLM để mở rộng ý tưởng ngắn thành kịch bản đầy đủ (có thể tái sử dụng chung logic Prompt Builder với chức năng Copy Video)
-- **Scene Splitter**: nếu chọn "Tự động (Dựa trên nội dung)" → AI tự quyết định số lượng phân cảnh dựa trên độ dài & độ phức tạp nội dung
-- **Template Prompt theo Model**: mỗi Video Model có prompt schema riêng, cần lớp adapter chuyển đổi
-
----
-
-## 4. Chức Năng 3 — Tạo Video Từ Hình Ảnh
-
-### 4.1. Mục đích
-Người dùng chọn một hoặc nhiều hình ảnh bất kỳ (upload hoặc chọn từ thư viện) → AI chuyển hoá thành video (image-to-video).
-
-### 4.2. Input cần bổ sung trong UI
-
-- Khu vực upload / chọn nhiều ảnh (multi-select, drag & drop)
-- Sắp xếp thứ tự ảnh (nếu tạo video nhiều cảnh nối tiếp từ nhiều ảnh)
-- (Tuỳ chọn) Prompt bổ sung mô tả chuyển động / hành động mong muốn cho từng ảnh (ví dụ: "nhân vật quay đầu và mỉm cười", "camera zoom in chậm")
-
-### 4.3. Luồng xử lý (Flow)
-
-```
-Người dùng chọn 1..n ảnh
-      ↓
-(Tuỳ chọn) Nhập mô tả chuyển động / prompt bổ sung cho mỗi ảnh
-      ↓
-Hệ thống build Prompt (Image + Text) theo chuẩn của Video Model đã chọn
-      ↓
-Gửi tới Provider Router → Model hỗ trợ Image-to-Video (VD: Veo Frames-to-Video, Omni)
-      ↓
-Render từng clip theo từng ảnh
-      ↓
-Nếu nhiều ảnh: ghép nối các clip theo thứ tự → xuất video hoàn chỉnh
-```
-
-### 4.4. Thành phần kỹ thuật
-
-- **Image Upload & Storage**: lưu tạm ảnh gốc (local `.eigu` theo thiết kế đã thống nhất, kèm metadata trong DB)
-- **Image-to-Video Adapter**: một số Provider gọi là "Frames to Video" hoặc "Image to Video" — cần Provider Router map đúng model hỗ trợ tính năng này
-- **Multi-image Sequencing**: cơ chế nối nhiều clip (giữa các ảnh) mượt mà — có thể cần thêm transition effect
-
----
-
-## 5. Chức Năng 4 — Tạo Theo Video Mẫu
-
-Đây là tính năng **quan trọng và phức tạp nhất**, cần tách thành 2 chế độ con.
-
-### 5.1. Chế độ A — Ghép nhân vật vào Video mẫu (Character Replacement)
-
-**Mục đích:** Người dùng tải lên 1 video mẫu (mẫu chuyển động/kịch bản) + 1 ảnh nhân vật → AI thay thế nhân vật trong video mẫu bằng nhân vật mới, giữ nguyên chuyển động, bối cảnh, góc quay, nhịp điệu.
-
-**Input:**
-- Upload Video mẫu
-- Upload Ảnh nhân vật (1 hoặc nhiều góc mặt để tăng độ chính xác)
+**Input:** ô dán link TikTok/YouTube/Facebook + nút "Phân tích Video & Lấy Kịch bản".
 
 **Flow:**
 ```
-Upload Video mẫu + Ảnh nhân vật
-      ↓
-Phân tích Video mẫu: tách chuyển động (motion/pose tracking), bối cảnh, khung hình, timing
-      ↓
-Phân tích Ảnh nhân vật: đặc điểm khuôn mặt, ngoại hình
-      ↓
-Build Prompt / Reference Input cho Model hỗ trợ "Character/Reference-based Generation"
-   (ví dụ: Gemini Omni — "Create and edit videos from any input reference")
-      ↓
-Render video mới: giữ nguyên chuyển động/bối cảnh của video mẫu, nhân vật là ảnh mới
-      ↓
-Xuất video hoàn chỉnh
+Dán Link → Validate Link → Download/Extract video
+   → Phân tích: STT (audio→text) + Scene Detection + Vision-Language Model mô tả từng cảnh
+      + phân tích nhịp điệu/cắt dựng
+   → Tổng hợp Kịch bản (Script) + Prompt chuẩn hoá theo Video Model
+   → Hiển thị Script Editor (editable) cho người dùng xem/sửa
+   → Bấm "Bắt đầu Render Hàng loạt"
+   → Provider Router → Video Model render từng Scene
+   → Ghép nối (nếu nhiều scene) → Xuất .mp4
 ```
 
-### 5.2. Chế độ B — Sao chép 100% cấu trúc, đổi nhân vật & bối cảnh (Full Remake)
+**Thành phần kỹ thuật:** Video Downloader Service (TikTok/YouTube/FB — lưu ý rủi ro ToS/bản quyền, cần rate-limit/retry khi platform nguồn thay đổi cấu trúc/chặn IP); Video Analyzer Service (STT + Scene Detection + VLM); Prompt Builder (adapter theo từng Video Model); Script Editor UI.
 
-**Mục đích:** Sao chép toàn bộ cấu trúc kịch bản / chuyển động / nhịp cắt của video mẫu, nhưng nhân vật và bối cảnh hoàn toàn khác (không cần giữ nguyên bối cảnh cũ).
+**Riêng chức năng này có tuỳ chọn:** "Giữ lại âm thanh gốc" (checkbox, chỉ hiện ở mode Copy) → cần pipeline tách và merge lại audio gốc vào video mới.
+
+---
+
+## 3. Chức Năng 2 — Tạo Video Từ Ý Tưởng
+
+**Flow:**
+```
+Nhập Ý tưởng (free text)
+   → (Tuỳ chọn) hỏi thêm: phong cách, nhân vật, bối cảnh, cảm xúc, thể loại
+   → LLM sinh Kịch bản + Prompt chi tiết theo từng Scene
+   → Hiển thị Prompt để review/sửa
+   → Provider Router → Video Model
+   → Render theo số Scene (manual hoặc "Tự động" — AI tự quyết định dựa trên độ dài/độ phức tạp nội dung)
+   → Xuất .mp4
+```
+
+**Thành phần kỹ thuật:** Idea-to-Prompt Engine (dùng chung logic Prompt Builder với Copy Video); Scene Splitter; Template Prompt adapter theo từng Model.
+
+---
+
+## 4. Chức Năng 3 — Tạo Video Từ Ảnh
+
+**Input:** upload/chọn nhiều ảnh (multi-select, drag & drop) + sắp xếp thứ tự ảnh + (tuỳ chọn) mô tả chuyển động cho từng ảnh (VD: "camera zoom in chậm").
+
+**Flow:**
+```
+Chọn 1..n ảnh → (tuỳ chọn) nhập mô tả chuyển động cho mỗi ảnh
+   → Build Prompt (Image + Text) theo chuẩn Video Model đã chọn
+   → Provider Router → Model hỗ trợ Image-to-Video (VD: Veo Frames-to-Video, Omni)
+   → Render từng clip theo từng ảnh
+   → Nếu nhiều ảnh: ghép nối clip theo thứ tự (có thể cần transition effect) → Xuất .mp4
+```
+
+**Thành phần kỹ thuật:** Ảnh input chỉ cần **lưu tạm thời** (temp storage) để gửi lên Provider — không đóng gói theo định dạng riêng nào, không liên quan `.eigu`; Image-to-Video Adapter (Provider Router map đúng model hỗ trợ "Frames to Video"/"Image to Video"); Multi-image Sequencing.
+
+---
+
+## 5. Chức Năng 4 — Tạo Video Theo Mẫu
+
+Tính năng phức tạp nhất, gồm **2 chế độ con**.
+
+### 5.1. Chế độ A — Ghép Nhân Vật Vào Video Mẫu (Character Replacement)
+
+**Ví dụ thực tế:** Video mẫu là clip TikTok có sẵn (một cô gái nhảy theo trend) + 1 ảnh chân dung nhân vật mong muốn → hệ thống **thay thế nhân vật trong video gốc bằng nhân vật trong ảnh**, giữ nguyên chuyển động nhảy, góc quay, bối cảnh, nhạc nền.
+
+**Input (đã CHỐT):**
+- Upload Video mẫu
+- Upload Ảnh nhân vật — **tối đa 2 ảnh** (không giới hạn nhiều góc). **Lý do:** module phục vụ video ngắn theo trend (thường < 1 phút, dạng 1 nhân vật nữ nhảy đơn giản), không phải video dài/tuyển tập nhiều nhân vật. Giới hạn 2 ảnh giúp tăng độ chính xác nhận diện nhân vật, tránh trường hợp 1 ảnh chứa nhiều nhân vật gây nhầm lẫn cho Model.
+- **Provider PoC đầu tiên (đã CHỐT): Gemini Omni** — model hỗ trợ "tạo và chỉnh sửa video từ bất kỳ input tham chiếu nào". Làm PoC với Gemini Omni trước, sau đó mới xét mở rộng sang Provider khác (Kling, Runway...).
+
+**Flow:**
+```
+Upload Video mẫu + Ảnh nhân vật (tối đa 2 ảnh)
+   → Phân tích Video mẫu: motion/pose tracking, bối cảnh, khung hình, timing
+   → Phân tích Ảnh nhân vật: đặc điểm khuôn mặt, ngoại hình
+   → Build Prompt/Reference Input cho Gemini Omni
+   → Render video mới: giữ nguyên chuyển động/bối cảnh gốc, nhân vật là ảnh mới
+   → Xuất .mp4
+```
+
+### 5.2. Chế độ B — Sao Chép 100% Cấu Trúc, Đổi Nhân Vật & Bối Cảnh (Full Remake)
 
 **Flow:**
 ```
 Upload Video mẫu
-      ↓
-Phân tích cấu trúc: số cảnh, thời lượng mỗi cảnh, loại chuyển động camera,
-   bố cục, nhịp độ, transitions
-      ↓
-Người dùng nhập mô tả Nhân vật mới + Bối cảnh mới (text hoặc ảnh tham chiếu)
-      ↓
-Build Prompt kết hợp: [Cấu trúc từ video mẫu] + [Nhân vật/Bối cảnh mới từ người dùng]
-      ↓
-Render từng Scene theo cấu trúc gốc nhưng nội dung hình ảnh mới
-      ↓
-Ghép nối → Xuất video hoàn chỉnh
+   → Phân tích cấu trúc: số cảnh, thời lượng mỗi cảnh, loại chuyển động camera, bố cục, nhịp độ, transitions
+   → Người dùng nhập mô tả Nhân vật mới + Bối cảnh mới (text hoặc ảnh tham chiếu)
+   → Build Prompt kết hợp: [Cấu trúc video mẫu] + [Nhân vật/Bối cảnh mới]
+   → Render từng Scene theo cấu trúc gốc, nội dung hình ảnh mới
+   → Ghép nối → Xuất .mp4
 ```
 
-### 5.3. Thành phần kỹ thuật dùng chung cho Chức năng 4
+### 5.3. Thành phần kỹ thuật dùng chung
 
-- **Video Structure Analyzer**: trích xuất "khung sườn" của video mẫu (số cảnh, thời lượng, loại góc quay, chuyển động camera, nhịp cắt) — tương tự engine dùng ở Chức năng 1 (Copy Video) nhưng tập trung vào *cấu trúc* thay vì *nội dung*
-- **Character/Reference Injection Engine**: cần Provider hỗ trợ input dạng reference image kết hợp video/motion (hiện tại ví dụ thực tế: Gemini Omni của Google Flow hỗ trợ "tạo và chỉnh sửa video từ bất kỳ input tham chiếu nào — thật hoặc do AI tạo")
-- **Consistency Check**: đảm bảo nhân vật mới giữ được tính nhất quán (subject consistency) qua nhiều cảnh — đây là điểm quan trọng khi chọn Provider (một số model như Nano Banana được quảng bá mạnh ở khả năng "subject consistency")
-
-> ⚠️ Cần điều tra & quyết định: tính năng "ghép nhân vật vào video mẫu" đòi hỏi Provider có khả năng **video-to-video editing với reference input** — không phải Video Model nào cũng hỗ trợ. Cần đánh dấu rõ trong **Model Management** model nào hỗ trợ tính năng này (capability flag), để Provider Router chỉ route đúng các request loại này tới đúng model.
+- **Video Structure Analyzer**: trích xuất khung sườn video mẫu (số cảnh, thời lượng, góc quay, chuyển động camera, nhịp cắt) — tái dùng engine tương tự Chức năng 1 nhưng tập trung vào *cấu trúc* thay vì *nội dung*.
+- **Character/Reference Injection Engine**: cần Provider hỗ trợ reference image + video/motion (đầu tiên: Gemini Omni).
+- **Consistency Check**: đảm bảo nhân vật mới nhất quán qua nhiều cảnh (subject consistency) — là tiêu chí quan trọng khi đánh giá Provider mở rộng sau này.
+- **Model Management cần capability flag** đánh dấu rõ model nào hỗ trợ "video-to-video editing với reference input", để Provider Router chỉ route đúng loại request này tới đúng model.
 
 ---
 
-## 6. Cấu Hình AI (AI Config Panel) — Dùng Chung Cho Cả 4 Chức Năng
+## 6. Cấu Hình AI (AI Config Panel) — Dùng Chung 4 Chức Năng
 
 ### 6.1. Danh sách cấu hình
 
-| Cấu hình | Loại | Ví dụ giá trị | Ghi chú |
-|----------|------|----------------|---------|
-| **Mô hình tạo Video (Video Model)** | Dropdown | Veo 3 (8s/clip), Gemini Omni Flash, ... | Lấy động từ bảng `AIModelConfig`, không hardcode |
-| **Số lượng phân cảnh (Scenes)** | Dropdown / Số | Tự động (dựa trên nội dung), hoặc số cụ thể (1, 2, 3...) | Ảnh hưởng trực tiếp đến số Credit tiêu tốn |
-| **Tỉ lệ khung hình (Aspect Ratio)** | Dropdown | 16:9 (YouTube), 9:16 (TikTok/Reels), 1:1 (Instagram) | Phải theo danh sách ratio mà Model đã chọn hỗ trợ |
-| **Thời lượng video (Duration)** | Dropdown | Auto, 8s, 10s, ... | Phụ thuộc giới hạn của từng Model |
-| **Số luồng song song (Parallel Threads)** | Số | 1, 2, 3, 4 (tối đa 4) | Ảnh hưởng tốc độ render hàng loạt & tải hệ thống / rate-limit Provider |
-| **Watermark** | Toggle | Bật / Tắt | Có thể ràng buộc theo gói Subscription (VD: gói Free/Basic bắt buộc bật watermark) |
-| **Âm thanh & Giọng nói** | Checkbox | Giữ lại âm thanh gốc (chỉ cho chế độ Copy) | Chỉ hiển thị khi ở mode Copy Video |
+| Cấu hình | Loại | Ghi chú |
+|----------|------|---------|
+| Video Model | Dropdown | Lấy động từ `AIModelConfig`, không hardcode |
+| Số lượng phân cảnh | Dropdown/Số | "Tự động" hoặc số cụ thể |
+| Aspect Ratio | Dropdown | 16:9 / 9:16 / 1:1 — theo danh sách model đã chọn hỗ trợ |
+| Thời lượng video | Dropdown | Auto/8s/10s... theo giới hạn từng Model |
+| Số luồng song song | Số | **Khác nhau theo từng gói — xem bảng mục 10** (Basic 4 / Pro 8 / Team 20 / Enterprise cao nhất) |
+| Watermark (của Provider/Model) | Toggle | Xem quy tắc chi tiết mục 6.2 |
+| Âm thanh & Giọng nói | Checkbox | "Giữ âm thanh gốc" chỉ hiện ở mode Copy Video |
 
-### 6.2. Cấu hình tạo ảnh (Image Generation Config)
+### Cấu hình tạo ảnh (khi có bước sinh ảnh trung gian)
 
-Phần này xuất hiện khi luồng cần sinh ảnh trung gian (ví dụ: sinh ảnh nhân vật/bối cảnh trước khi tạo video, hoặc chức năng tạo ảnh độc lập trong studio).
+| Cấu hình | Loại |
+|----------|------|
+| Model tạo ảnh | Dropdown (VD: Nano Banana) |
+| Số lượng ảnh | Số |
+| Tỉ lệ ảnh | Dropdown |
 
-| Cấu hình | Loại | Ví dụ giá trị |
-|----------|------|----------------|
-| **Model tạo ảnh** | Dropdown | Nano Banana, hoặc model ảnh khác của Provider khác |
-| **Số lượng ảnh** | Số | 1, 2, 4, ... |
-| **Tỉ lệ ảnh (Aspect Ratio)** | Dropdown | 16:9, 9:16, 1:1, ... |
+**Nguyên tắc:** toàn bộ Model/Aspect Ratio/Duration khả dụng phải **lấy động** từ `AIModelConfig` theo Provider đang active — không hardcode Frontend. Mỗi Model cần metadata: aspect ratio hỗ trợ, duration hỗ trợ, hỗ trợ audio gốc không, hỗ trợ reference/character injection không, chi phí AI Budget quy đổi (nội bộ, xem mục 8.3), có hỗ trợ ẩn/hiện watermark không.
 
-### 6.3. Nguyên tắc thiết kế cấu hình
+### 6.2. Quy Tắc Watermark (3 loại — bắt buộc phân biệt rõ)
 
-- Toàn bộ danh sách Model, Aspect Ratio, Duration khả dụng **phải lấy động** từ `AIModelConfig` (theo Provider đang active), **không hardcode** trong Frontend.
-- Mỗi Model cần có metadata mô tả: aspect ratio hỗ trợ, duration hỗ trợ, có hỗ trợ audio gốc không, có hỗ trợ reference/character injection không, chi phí Credit quy đổi.
-- Số luồng song song tối đa nên là **cấu hình theo gói Subscription** (VD: Basic tối đa 1 luồng, Pro tối đa 2, Team/Enterprise tối đa 4) chứ không cố định cứng cho mọi user.
-- Watermark on/off nên gắn với **feature flag của Subscription**, không phải cấu hình tự do cho mọi khách hàng.
+| Loại | Là gì | Hiển thị trên video xuất? | Kiểm soát bởi |
+|------|-------|------------------------------|----------------|
+| **1. EIGU Watermark** | Logo/tên EIGU | **KHÔNG BAO GIỜ**, ở mọi gói kể cả Free/Trial | Cấm tuyệt đối |
+| **2. Watermark hiển thị của Provider** | Logo Model AI (VD: Veo) tự gắn khi render | Có thể **Ẩn/Hiện** — tuỳ có mua add-on hay không | EIGU xử lý bằng **blur/che toạ độ** ở hậu kỳ |
+| **3. SynthID (watermark ẩn)** | Thuỷ vân số vô hình, xác minh nội dung AI | **Luôn có mặt**, không thể tắt, mọi gói | Provider (Google) áp đặt — EIGU không can thiệp |
 
----
+**Lý do EIGU không gắn watermark riêng:** EIGU định vị là **công cụ (tool)**, không phải nền tảng/thương hiệu tạo video AI — gắn thương hiệu EIGU lên sản phẩm cuối có thể gây hiểu lầm về nguồn gốc nội dung. → Không có khái niệm "EIGU watermark" trong toàn hệ thống, trường "watermark" trong Model Management chỉ áp dụng cho Loại 2.
 
-## 7. Nghiên Cứu Tham Khảo: Tính Năng "Tác Nhân" (Agent) Trong Google Flow
+**Cơ chế xử lý watermark Provider (đã CHỐT — final):**
+- **Không bắt buộc gọi API ẩn watermark chính thức của Provider** (vì không phải Provider nào cũng hỗ trợ). Ưu tiên xử lý bằng **kỹ thuật hậu kỳ**: xác định toạ độ (x, y, width, height) vùng watermark theo từng Model → **blur/che vùng đó** trong Video Post-Processing Service, trước khi xuất `.mp4` cuối.
+- Giữ toggle "Ẩn/Hiện watermark" trong AI Config Panel.
+- **Cách tính phí:** flat fee cố định, nạp thêm 1 lần để mở khoá — VD **50.000 VNĐ** (số tiền cụ thể do Admin cấu hình, không hardcode). **Không tính theo Credit, không khác nhau theo Model/Provider** — mức phí đồng nhất cho toàn bộ hệ thống, bất kể dùng Model/Provider nào.
+- Đây là **add-on trả phí độc lập với Subscription Package**, giao dịch Billing/Payment riêng, tách khỏi Subscription chính.
+- **Chu kỳ mua (đã CHỐT):** add-on này **mua theo chu kỳ Subscription** (Tháng / Quý / 6 Tháng / Năm) — **không phải mua 1 lần dùng vĩnh viễn**. Khi Subscription hết hạn hoặc không gia hạn add-on ở chu kỳ tiếp theo, tính năng "Ẩn watermark" tự động tắt (video sau đó render sẽ hiện watermark của Provider trở lại) → cần trường `watermark_addon_expiry_date` gắn theo tài khoản, đồng bộ theo chu kỳ Billing của add-on.
 
-Người dùng có tham khảo Google Flow (labs.google/fx) và phát hiện tính năng **"Tác nhân"** với popup **"Hướng dẫn cho tác nhân"** (tạo nguyên tắc cho tác nhân). Dưới đây là kết quả tìm hiểu về bản chất tính năng này, dựa trên trang giới thiệu chính thức của Google Flow:
+**Hệ quả kiến trúc:**
+- Bảng `ModelWatermarkRegion` (`model_id`, `x`, `y`, `width`, `height` hoặc vùng động theo tỉ lệ khung hình) — Admin tự cấu hình, không hardcode toạ độ trong code.
+- **Video Post-Processing Service** (chạy sau Render, trước xuất file cuối): đọc cấu hình vùng watermark của Model đã dùng → nếu user đã mua add-on → blur/che vùng đó → xuất `.mp4` cuối.
 
-### 7.1. Bản chất tính năng Agent trong Google Flow
-
-Theo mô tả chính thức, Agent trong Google Flow được xây dựng trên nền tảng Gemini, đóng vai trò như một **đối tác sáng tạo thông minh** — nó hiểu ngữ cảnh của cả dự án, giúp người dùng khám phá và lặp lại (iterate) ý tưởng trong khi vẫn duy trì mạch sáng tạo (<cite index="2-1">Your agent in Google Flow is an intelligent, creative partner. It's built with Gemini's intelligence and a deep understanding of your project to help unlock some of your best work while you stay in the flow</cite>), và được mô tả với vai trò chính là hỗ trợ khám phá, lặp ý tưởng cùng người dùng trong giai đoạn lên kế hoạch (Plan).
-
-Trong cấu trúc trang, Agent nằm trong nhóm 3 năng lực cốt lõi của Flow:
-
-1. **Plan** – Gặp gỡ Agent, khám phá & lặp ý tưởng cùng Agent
-2. **Create** – Tạo hình ảnh/video độ nét cao từ text/ảnh/video (kết hợp Gemini Omni) hoặc xây dựng "custom tools"
-3. **Refine** – Dùng ngôn ngữ tự nhiên để chỉnh sửa lặp đi lặp lại (iterative edits), tinh chỉnh từng asset, và áp dụng thay đổi đó trên toàn dự án
-
-Ngoài ra, theo bảng giá, Agent là một **tính năng theo gói (tiered feature)**: gói miễn phí có "Agent" cơ bản, gói Plus có "Higher access to agent", gói Pro/Ultra có mức truy cập Agent cao hơn nữa — cho thấy Agent được giới hạn mức sử dụng (quota) theo Subscription tier, tương tự cách EIGU đang thiết kế Credit theo gói.
-
-### 7.2. Suy luận về nút "Hướng dẫn cho tác nhân" (System Instructions cho Agent)
-
-Popup **"Hướng dẫn cho tác nhân / tạo nguyên tắc cho tác nhân"** mà bạn thấy, về bản chất kỹ thuật, tương đương với cơ chế **System Prompt / Custom Instructions** cấp dự án (project-level system instructions) cho một AI Agent — cho phép người dùng định nghĩa:
-
-- Phong cách sáng tạo mong muốn xuyên suốt dự án (tone, art direction, nhân vật cố định, thế giới quan)
-- Các nguyên tắc/ràng buộc mà Agent phải tuân theo khi gợi ý ý tưởng, viết prompt, hoặc chỉnh sửa
-- Ngữ cảnh nền (background context) để Agent không cần người dùng lặp lại thông tin dự án mỗi lần hỏi
-
-Đây thực chất là một lớp "Agent Memory / Project Instructions", giúp Agent duy trì tính nhất quán khi hỗ trợ người dùng qua nhiều lượt tương tác trong cùng một dự án.
-
-### 7.3. Đề xuất áp dụng cho EIGU — Module "AI Creative Agent"
-
-Đề xuất bổ sung một tính năng tương tự vào module Tạo Video AI của EIGU:
-
-| Thành phần | Mô tả đề xuất |
-|------------|----------------|
-| **Project Agent Instructions** | Mỗi Project của người dùng có 1 vùng cấu hình "Nguyên tắc cho Agent": phong cách, nhân vật cố định, giới hạn nội dung, ngôn ngữ, tone giọng |
-| **Agent Chat Panel** | Một khung chat bên cạnh khu vực tạo video, cho phép người dùng trò chuyện với Agent để: gợi ý ý tưởng, chỉnh sửa Prompt, review kịch bản trước khi render |
-| **Agent = LLM Orchestrator** | Về kiến trúc, Agent chính là lớp gọi tới LLM (có thể là Gemini, GPT, Claude... tuỳ Provider cấu hình) kèm theo: system instructions của project + lịch sử hội thoại + ngữ cảnh project (kịch bản, ảnh, video hiện có) |
-| **Agent Access Tier** | Giới hạn số lượt tương tác Agent theo Subscription (giống cách Google Flow giới hạn "Higher access to agent" theo gói) — tiêu hao Credit riêng, tách khỏi Credit render video |
-| **Agent Actions** | Agent nên có khả năng gọi tới các chức năng khác trong hệ thống (ví dụ: tự động điền Prompt vào form Tạo từ Ý tưởng, tự đề xuất Aspect Ratio phù hợp với nền tảng đích mà người dùng nói ra) — tương tự khái niệm "tool calling" |
-
-> **Lưu ý kiến trúc:** Nếu triển khai, Agent nên đi qua cùng **Pricing Engine** và **Provider Router** đã thiết kế ở tài liệu tổng thể — không tạo một luồng gọi AI riêng biệt không qua Router, để đảm bảo tính nhất quán về billing, credit, và khả năng đổi Provider trong tương lai.
+**Quy tắc SynthID (Loại 3):** bắt buộc, mặc định, không thể tắt, áp dụng mọi gói kể cả cao cấp nhất. **Không hiển thị bất kỳ lựa chọn "ẩn SynthID" nào trong UI.**
 
 ---
 
-## 8. Tổng Hợp Yêu Cầu Kỹ Thuật Bổ Sung (So Với Bảng Hiện Tại)
+## 7. Output & Mô Hình Tính Phí
 
-| Hạng mục | Trạng thái hiện tại (theo UI) | Đề xuất bổ sung |
-|----------|-------------------------------|-------------------|
-| Copy Video | Đã có UI, cần rõ luồng phân tích + STT + Scene Detection | Xây Video Analyzer Service |
-| Tạo từ Ý tưởng | Chưa thấy UI trong ảnh, cần thiết kế thêm tab/form | Idea-to-Prompt Engine |
-| Tạo từ hình ảnh | Chưa có trong UI hiện tại | Thêm tab "Tạo từ hình ảnh", Image Upload multi-select |
-| Tạo theo Video mẫu | Chưa có trong UI hiện tại | Thêm tab mới, 2 chế độ con (Character Replacement / Full Remake) |
-| Cấu hình AI | Đã có Model, Scenes, Aspect Ratio; **thiếu**: Duration, Parallel Threads, Watermark toggle | Bổ sung 3 cấu hình này vào panel bên phải |
-| Cấu hình tạo ảnh | Chưa có trong UI | Thêm block "Cấu hình tạo ảnh" (model, số lượng, tỉ lệ) |
-| Agent / Tác nhân | Chưa có | Thiết kế mới: Project Agent Instructions + Agent Chat Panel |
+### 7.1. Output chuẩn
+- Video: `.mp4` (chuẩn cho cả 4 chức năng)
+- Ảnh trung gian (nếu có bước sinh ảnh): `.png`/`.jpg`
+- File tải về/xem trực tiếp trong app — **không đóng gói theo định dạng dự án riêng nào**; lưu trữ lâu dài kiểu "Project" (nếu có) là tính năng khác, ngoài phạm vi module này.
+
+### 7.2. Mô Hình Tính Phí (đã CHỐT — Final): KHÔNG dùng Credit — Flat/Unlimited theo gói
+
+> Module "Tạo Video AI (nhanh)" **không tính phí theo Credit trên mỗi lượt render**. Miễn tài khoản đã mua **bất kỳ gói Subscription trả phí nào** đang mở quyền module này, người dùng **tạo video không giới hạn số lượng** trong thời hạn gói. Mục tiêu: tạo cảm giác thoải mái, không lo đếm lượt render.
+
+**Nguyên tắc:**
+- Không trừ Credit khi render ở module này — bất kể Model, số Scene, Duration.
+- Điều kiện render duy nhất: **(1)** tài khoản có quyền truy cập module/màn hình đó (Entitlement — xem mục 10), **(2)** Subscription còn hiệu lực.
+- Ngoại lệ duy nhất phát sinh phí thêm: **add-on "Ẩn watermark"** (flat fee riêng, mục 6.2).
+
+> ✅ **Đã CHỐT (Product Owner xác nhận):** mô hình Flat/Unlimited này **chỉ áp dụng riêng cho module "Tạo Video AI (nhanh)"**, **không phải** định hướng chung cho toàn bộ EIGU Platform. Các module khác trong tương lai (VD: "AI Video Studio" đầy đủ) vẫn có thể theo mô hình Credit-metered. → Kiến trúc Billing **bắt buộc phải hỗ trợ song song 2 chế độ tính phí theo từng module**: `Subscription`/`Package`/`Module` cần có cờ `billing_mode` (`flat` | `credit`) gắn theo từng `module_key`, để Pricing Engine biết module nào bỏ qua Credit (chỉ kiểm tra Entitlement + Expiry) và module nào vẫn trừ Credit theo lượt.
+
+### 7.3. Giám sát AI Budget nội bộ (bắt buộc, không phải tính phí khách hàng)
+
+Vì không tính Credit theo lượt, **Admin AI Budget** (chi phí AI thật trả cho Provider) là **rủi ro vận hành chính**. Cần:
+- **Internal Usage Monitor** (ẩn với khách hàng, không ảnh hưởng trải nghiệm "không giới hạn"): theo dõi tài khoản nào tiêu tốn AI Budget bất thường so với mức trung bình của gói.
+- **Fair-Use Policy ẩn** (ngưỡng cảnh báo nội bộ, không công bố công khai là "giới hạn"): cơ sở để Admin xử lý lạm dụng cực đoan (VD: script tự động render hàng nghìn video/ngày).
+
+### 7.4. Luồng xử lý khi bấm Render
+
+```
+Bấm "Bắt đầu Render Hàng loạt"
+   → Kiểm tra Entitlement: tài khoản có quyền dùng màn hình này không? (mục 10)
+      (Không) → Chặn, hiển thị badge "Upgrade" → Popup "Bảng giá"
+      (Có) → Kiểm tra Subscription còn hiệu lực?
+         (Hết hạn) → Chặn, yêu cầu gia hạn
+         (Còn hiệu lực) → Provider Router → Render (không trừ Credit)
+   → Ghi Usage Log nội bộ (chỉ Admin giám sát — mục 7.3, KHÔNG trừ tiền khách)
+   → Nếu đã mua add-on "Ẩn watermark" → Video Post-Processing Service blur vùng watermark
+   → Xuất .mp4, lưu tại máy local khách hàng
+```
 
 ---
 
-## 9. Câu Hỏi Cần Làm Rõ Trước Khi Thiết Kế Chi Tiết Hơn
+## 8. Bảng Giá Chính Thức
 
-1. Chức năng "Tạo từ Ý tưởng", "Tạo từ hình ảnh", "Tạo theo Video mẫu" sẽ là các **tab riêng** trong cùng 1 màn hình (giống Copy Video / Tạo từ Ý tưởng hiện tại), hay là **màn hình riêng biệt**?
-2. Với "Ghép nhân vật vào video mẫu" — hệ thống có cần cho phép nhiều ảnh nhân vật (nhiều góc) để tăng độ chính xác không?
-3. Agent có cần lưu lịch sử hội thoại lâu dài theo từng Project (Agent Memory) hay chỉ theo phiên làm việc (session)?
-4. Số luồng song song tối đa (4) có áp dụng chung cho mọi gói Subscription, hay giới hạn theo từng gói như đề xuất ở mục 6.3?
-5. Watermark: có cho phép user trả thêm Credit để tắt watermark theo lượt (pay-per-use), hay chỉ gắn cứng theo gói Subscription?
+Chu kỳ thanh toán: Tháng / Quý / 6 Tháng / Năm.
+
+| Gói | Giá (VNĐ/tháng) | Số Video | Luồng song song tối đa | Độ phân giải | Màn hình được dùng | Số máy |
+|-----|------------------|----------|--------------------------|---------------|------------------------|---------|
+| **Basic** | 150.000 | Không giới hạn | 4 | 720p | Copy Video, Tạo từ Ý tưởng | 1 |
+| **Pro** | 450.000 | Không giới hạn | 8 | 1080p/2K | Full 4 màn hình | 1 |
+| **Team** | 1.800.000 | Không giới hạn | 20 | 1080p/2K/4K | Full 4 màn hình | 5 (giảm ~40%*, hỗ trợ nhanh) |
+| **Enterprise** | 5.400.000 | Không giới hạn | **20 (max)** | 4K+ | Full 4 màn hình | 30 (giảm ~40%*, hỗ trợ ưu tiên 24/7) |
+
+`*` **"Giảm ~40%" là một ưu đãi có sẵn, đi kèm mặc định của gói Team/Enterprise** — **không** gắn với/áp dụng cho bất kỳ điều kiện nào khác (không phải chiết khấu theo chu kỳ thanh toán hay điều kiện riêng gì cả). Hiển thị đơn thuần như một quyền lợi liệt kê trong gói, không cần logic tính toán riêng.
+
+**Số luồng song song KHÁC NHAU theo từng gói** (Basic 4 / Pro 8 / Team 20 / Enterprise 20 — **20 luồng là mức trần tối đa của toàn hệ thống**, Team và Enterprise dùng chung mức trần này) — đây là số liệu **chính thức, thay thế mọi quyết định "đồng nhất mọi gói" ở các bản nháp trước**.
+
+---
+
+## 9. Mô Hình Entitlement (Quyền Truy Cập) — ĐÃ CHỐT, ÁP DỤNG TOÀN PLATFORM
+
+> **Quyết định cuối cùng của Product Owner:** Đây là cơ chế entitlement **chung cho mọi module trong EIGU Platform**, không riêng module "Tạo Video AI":
+>
+> - **Mỗi module có badge "Upgrade" cạnh tab/menu của module đó.**
+> - Bấm vào badge (hoặc vào tính năng bị khoá) → hiển thị **Popup "Bảng giá"** (Basic/Pro/Team/Enterprise) → chọn gói phù hợp để mở khoá tính năng của module đó.
+
+### 9.1. Cơ chế Trial (7 ngày)
+
+- Tài khoản mới (**gói Trial**) được **sử dụng TẤT CẢ các module/màn hình** (không giới hạn theo tier) trong **7 ngày**.
+- **Sau 7 ngày**, nếu tài khoản **chưa nâng cấp** lên gói trả phí → mỗi module/màn hình hiển thị **badge "Upgrade"**; các màn hình vượt quyền của gói hiện tại bị khoá cho tới khi nâng cấp.
+- Khi nâng cấp và chọn gói → mở khoá đúng tập màn hình mà gói đó cho phép (theo bảng mục 8/9.2).
+
+### 9.2. Entitlement theo từng màn hình con (sau khi hết Trial)
+
+| Màn hình con | Basic | Pro | Team | Enterprise |
+|---------------|:-----:|:---:|:----:|:----------:|
+| Copy Video | ✅ | ✅ | ✅ | ✅ |
+| Tạo Video Từ Ý Tưởng | ✅ | ✅ | ✅ | ✅ |
+| Tạo Video Từ Ảnh | ❌ | ✅ | ✅ | ✅ |
+| Tạo Video Theo Mẫu | ❌ | ✅ | ✅ | ✅ |
+
+→ Basic chỉ mở 2/4 màn hình; từ Pro trở lên mở đủ 4/4.
+
+### 9.3. Nguyên tắc UX (đã CHỐT)
+
+- **Menu/màn hình LUÔN HIỂN THỊ** cho mọi tài khoản (Basic/Trial hết hạn...) — **không ẩn hẳn** menu khỏi giao diện.
+- Với màn hình vượt quyền gói hiện tại: hiển thị **badge "Upgrade"** trên chính tab/menu đó → bấm vào mở **Popup "Bảng giá"** để chọn gói.
+- Đây là hành vi **thống nhất cho toàn bộ EIGU Platform**, không chỉ riêng module Tạo Video AI.
+
+### 9.4. Hệ quả kiến trúc
+
+- `module_key` trong bảng `PackageModuleAccess` cần chi tiết **theo từng màn hình con**:
+  - `ai_video_copy`, `ai_video_idea`, `ai_video_image`, `ai_video_template`
+- Mỗi `module_key` map với danh sách gói được phép dùng — cấu hình động qua Admin Backoffice, **không hardcode**.
+- Bảng `TrialAccess` (hoặc field tương đương trên `Subscription`): `trial_start_date`, `trial_end_date` (mặc định +7 ngày), `trial_status`. Trong thời gian Trial, entitlement check **bỏ qua bảng `PackageModuleAccess`** và cho phép truy cập toàn bộ module.
+- Sau khi Trial hết hạn (`trial_end_date` < hiện tại) và chưa có Subscription trả phí active → entitlement check quay lại dùng `PackageModuleAccess` theo gói hiện tại (nếu chưa mua gói nào → coi như không có quyền màn hình nào, chỉ hiển thị badge Upgrade khắp nơi).
+
+---
+
+## 10. Yêu Cầu Kỹ Thuật Tổng Hợp Cần Triển Khai
+
+| Hạng mục | Yêu cầu |
+|----------|---------|
+| Routing | 4 route/screen riêng trong submenu "Tạo Video AI", dùng Shared Layout Component |
+| Copy Video | Video Downloader + Video Analyzer (STT/Scene Detection/VLM) + Script Editor |
+| Tạo Từ Ý Tưởng | Idea-to-Prompt Engine + Scene Splitter |
+| Tạo Từ Ảnh | Multi-image upload + Image-to-Video Adapter + Sequencing |
+| Tạo Theo Mẫu | 2 chế độ (Character Replacement tối đa 2 ảnh / Full Remake) + Video Structure Analyzer + Character/Reference Injection Engine (PoC: Gemini Omni) |
+| AI Config Panel | Model/Aspect Ratio/Duration lấy động từ `AIModelConfig`; số luồng song song theo gói (bảng mục 8) |
+| Watermark | 3 loại tách bạch: EIGU (cấm), Provider (blur hậu kỳ + add-on flat fee 50k, không phân biệt Model, **mua theo chu kỳ Tháng/Quý/6 Tháng/Năm — không phải 1 lần vĩnh viễn**), SynthID (luôn bật, ẩn khỏi UI) |
+| Billing | Flat/Unlimited theo gói — **chỉ áp dụng riêng module "Tạo Video AI (nhanh)"**, không phải toàn platform; cờ `billing_mode` (`flat`\|`credit`) gắn theo `module_key` để hỗ trợ song song nhiều module với mô hình tính phí khác nhau |
+| Entitlement | Trial 7 ngày full-access toàn platform → sau đó theo `PackageModuleAccess` per-screen; badge "Upgrade" luôn hiển thị, không ẩn menu |
+| Giám sát vận hành | Internal Usage Monitor + Fair-Use Policy ẩn (không hiển thị khách hàng) |
+| Loại trừ phạm vi | Không xây Project, không xây Agent Memory/Agent Chat cho module này |
+
+---
+
+## 11. Trạng Thái Tài Liệu
+
+✅ **Không còn câu hỏi mở.** Toàn bộ các điểm nghiệp vụ (bảng giá, số luồng song song, mô hình tính phí, chu kỳ add-on watermark, entitlement, giới hạn ảnh nhân vật, Provider ưu tiên PoC, cơ chế Trial/Upgrade) đã được Product Owner xác nhận và CHỐT trong tài liệu này. **Tài liệu này là bản đặc tả cuối cùng (final spec) — sẵn sàng để triển khai trực tiếp.**
+
+Nếu trong quá trình triển khai phát sinh thêm câu hỏi nghiệp vụ mới, cần quay lại xác nhận với Product Owner trước khi tự ý quyết định, thay vì suy diễn từ các quyết định đã có ở trên.
