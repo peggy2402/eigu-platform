@@ -7,7 +7,7 @@ export type Language = 'vi' | 'en';
 const DICTIONARY: Record<Language, Record<string, string>> = {
   vi: {
     // Navigation
-    nav_home: 'Trang chủ A',
+    nav_home: 'Trang chủ',
     nav_about: 'Giới thiệu',
     nav_pricing: 'Bảng giá',
     nav_news: 'Tin tức',
