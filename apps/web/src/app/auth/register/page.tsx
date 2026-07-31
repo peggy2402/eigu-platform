@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { authApi } from '../../../lib/api';
+import { useToast } from '../../../contexts/ToastContext';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -25,6 +26,7 @@ function getPasswordStrength(pw: string): Strength {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [step, setStep] = useState<'register' | 'otp'>('register');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -51,8 +53,12 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await authApi.register(username, email, password);
+      showToast('Gửi OTP thành công!', `Mã xác thực đã được gửi đến email ${email}`, 'success');
       setStep('otp');
-    } catch (err: any) { setError(err.message); }
+    } catch (err: any) {
+      setError(err.message);
+      showToast('Đăng ký không thành công', err.message || 'Vui lòng kiểm tra lại thông tin đăng ký', 'error');
+    }
     finally { setLoading(false); }
   };
 
@@ -74,8 +80,16 @@ export default function RegisterPage() {
       const data = await authApi.verifyEmail(email, code);
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
-      router.push('/');
-    } catch (err: any) { setError(err.message); }
+      sessionStorage.setItem('eigu_toast_notice', JSON.stringify({
+        title: 'Đăng ký tài khoản thành công!',
+        description: 'Tài khoản của bạn đã được xác thực và sẵn sàng sử dụng.',
+        type: 'success'
+      }));
+      window.location.href = '/';
+    } catch (err: any) {
+      setError(err.message);
+      showToast('Xác thực OTP thất bại', err.message || 'Mã OTP không hợp lệ hoặc đã hết hạn', 'error');
+    }
     finally { setLoading(false); }
   };
 

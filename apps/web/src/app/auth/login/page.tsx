@@ -5,8 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { authApi } from '../../../lib/api';
 
+import { useToast } from '../../../contexts/ToastContext';
+
 export default function LoginPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -33,9 +36,15 @@ export default function LoginPage() {
       } else {
         localStorage.removeItem('eigu_saved_email');
       }
+      sessionStorage.setItem('eigu_toast_notice', JSON.stringify({
+        title: 'Đăng nhập thành công!',
+        description: 'Chào mừng bạn quay trở lại EIGU Platform',
+        type: 'success'
+      }));
       window.location.href = '/';
     } catch (err: any) {
       setError(err.message || 'Đăng nhập thất bại');
+      showToast('Đăng nhập thất bại', err.message || 'Vui lòng kiểm tra lại thông tin đăng nhập', 'error');
     } finally {
       setLoading(false);
     }

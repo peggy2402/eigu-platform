@@ -96,4 +96,12 @@ export const API_ENDPOINTS = {
     SPEAKERS: '/voice/speakers',
     CONVERT: '/voice/convert',
   },
+  PRICING: {
+    BASE: '/pricing',
+    GET_INFO_PRICE: '/GetInfoPrice',
+    ADMIN: '/pricing/admin',
+    MODULES: '/pricing/modules',
+    TIERS: '/pricing/tiers',
+    BADGES: '/pricing/badges',
+  },
 } as const;

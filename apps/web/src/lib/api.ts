@@ -99,3 +99,11 @@ export const authApi = {
 
   logout: () => request(API_ENDPOINTS.AUTH.LOGOUT, { method: 'POST' }),
 };
+
+export const pricingApi = {
+  getPricing: (moduleSlug?: string) => {
+    const query = moduleSlug ? `?m=${encodeURIComponent(moduleSlug)}` : '';
+    return request(`${API_ENDPOINTS.PRICING.BASE}${query}`);
+  },
+};
+

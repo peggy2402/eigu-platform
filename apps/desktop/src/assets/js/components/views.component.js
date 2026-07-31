@@ -1167,6 +1167,25 @@ const ViewsComponent = `
         <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Đang kết nối Database để tổng hợp phân bổ thao tác...</div>
       </div>
     </div>
+<!-- Pricing Management View (Quản lý Bảng giá dành riêng cho Admin) -->
+<div id="view-pricing-management" class="view" style="width: 100%; box-sizing: border-box;">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; width: 100%; box-sizing: border-box;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+      <div>
+        <h3 style="margin-bottom:4px; display:flex; align-items:center; gap:8px;">
+          <span data-icon="tag" style="color:var(--accent);"></span> Quản lý Bảng giá (Dynamic Pricing Console)
+        </h3>
+        <p class="settings-hint">Cấu hình mô-đun, các gói dịch vụ, điều chỉnh giá bán và discount real-time đồng bộ trực tiếp lên Website.</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn-primary" onclick="loadAdminPricingData()" style="padding: 8px 16px; border-radius:8px; font-size:13px;"><span data-icon="refreshCw"></span> Tải lại</button>
+      </div>
+    </div>
+
+    {/* Dynamic Admin Pricing Container */}
+    <div id="admin-pricing-container">
+      <div style="text-align:center; padding:30px; color:var(--text-muted);">Đang tải dữ liệu Bảng giá từ Supabase Database...</div>
+    </div>
   </div>
 </div>
 `;

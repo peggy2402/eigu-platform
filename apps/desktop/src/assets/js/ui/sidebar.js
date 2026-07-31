@@ -53,6 +53,7 @@ function switchView(view, navEl, sub, e) {
     'create-notification': lang === 'en' ? ['Broadcast Notification', 'Send system-wide broadcast alerts'] : ['Tạo thông báo', 'Phát thông báo tới hệ thống máy trạm'],
     'feedback': lang === 'en' ? ['Submit Feedback', 'Send bug reports and feedback to dev team'] : ['Góp ý / Báo lỗi', 'Gửi báo cáo lỗi kèm hình ảnh đính kèm tới đội ngũ phát triển'],
     'feedback-management': lang === 'en' ? ['Feedback Management', 'Monitor and resolve user reports'] : ['Quản lý Feedback', 'Theo dõi và xử lý các báo cáo góp ý từ người dùng'],
+    'pricing-management': lang === 'en' ? ['Pricing Management', 'Dynamic pricing engine console'] : ['Quản lý Bảng giá', 'Cấu hình mô-đun công cụ, giá bán và discount thời gian thực'],
     'user-activity-logs': lang === 'en' ? ['Activity Logs', 'System user access & action trail'] : ['Nhật ký hoạt động', 'Theo dõi lịch sử thao tác của các tài khoản hệ thống'],
   };
   const [t, s] = titles[view] || ['', ''];
@@ -99,6 +100,10 @@ function switchView(view, navEl, sub, e) {
 
   if (view === 'analytics-reports' && typeof loadAnalyticsReportsData === 'function') {
     loadAnalyticsReportsData();
+  }
+
+  if (view === 'pricing-management' && typeof loadAdminPricingData === 'function') {
+    loadAdminPricingData();
   }
 
   // Load Real Chat Console if entering Chat Support view

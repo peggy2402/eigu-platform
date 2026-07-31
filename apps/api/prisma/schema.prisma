@@ -34,6 +34,8 @@ model User {
   passwordResetToken   String?
   passwordResetExpires DateTime?
 
+  balance              Decimal    @default(0.00) @db.Decimal(14, 2)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
@@ -200,4 +202,64 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
 }
+
+model PricingModule {
+  id          String        @id @default(uuid())
+  slug        String        @unique // "cut", "ai-video", "ai-studio", "reup", "hot-niche", "bulk-download"
+  name        String
+  tagline     String
+  icon        String
+  isActive    Boolean       @default(true)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  tiers       PricingTier[]
+}
+
+model PricingTier {
+  id            String               @id @default(uuid())
+  moduleId      String
+  module        PricingModule        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  code          String               // "trial", "basic", "pro", "team", "enterprise"
+  label         String
+  tagline       String
+  price         Decimal              @db.Decimal(14, 2)
+  originalPrice Decimal              @default(0.00) @db.Decimal(14, 2)
+  discount      Int                  @default(0)
+  machines      Int                  @default(1)
+  threads       Int                  @default(4)
+  resolution    String               @default("1080p")
+  billingPeriod String               @default("monthly")
+  trialDays     Int                  @default(0)
+  badgeId       String?
+  badge         PricingBadge?        @relation(fields: [badgeId], references: [id], onDelete: SetNull)
+  isActive      Boolean              @default(true)
+  sortOrder     Int                  @default(0)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  features      PricingTierFeature[]
+
+  @@unique([moduleId, code])
+}
+
+model PricingBadge {
+  id          String        @id @default(uuid())
+  code        String        @unique
+  name        String
+  colorConfig String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  tiers       PricingTier[]
+}
+
+model PricingTierFeature {
+  id        String      @id @default(uuid())
+  tierId    String
+  tier      PricingTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+  text      String
+  sortOrder Int         @default(0)
+  createdAt DateTime    @default(now())
+}
+
 

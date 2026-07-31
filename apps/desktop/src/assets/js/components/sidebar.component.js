@@ -83,6 +83,10 @@ const SidebarComponent = `
       <span class="nav-icon" data-icon="helpCircle"></span>
       <span class="nav-label" data-i18n="feedback_management">Quản lý Feedback</span>
     </div>
+    <div class="nav-item admin-only hidden" data-view="pricing-management" onclick="switchView('pricing-management', this, null, event)">
+      <span class="nav-icon" data-icon="tag"></span>
+      <span class="nav-label" data-i18n="pricing_management">Quản lý Bảng giá</span>
+    </div>
 
     <div class="nav-item" data-view="tiep-thi" onclick="switchView('tiep-thi', this, null, event)">
       <span class="nav-icon" data-icon="link"></span>

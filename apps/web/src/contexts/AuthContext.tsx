@@ -9,6 +9,7 @@ interface User {
   username?: string;
   role: string;
   isVerified: boolean;
+  balance?: number;
   createdAt: string;
 }
 

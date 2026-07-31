@@ -271,7 +271,7 @@ export class AuthService {
   async getProfile(userId: string, clientIp?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, username: true, role: true, isVerified: true, isBanned: true, bannedUntil: true, banReason: true, createdAt: true, hiddenTabs: true },
+      select: { id: true, email: true, username: true, role: true, isVerified: true, isBanned: true, bannedUntil: true, banReason: true, createdAt: true, hiddenTabs: true, balance: true },
     });
     if (!user) throw new UnauthorizedException('User not found');
 
@@ -314,6 +314,7 @@ export class AuthService {
 
     return {
       ...user,
+      balance: Number(user.balance || 0),
       tabPermissions: tabPerms.map(tp => ({ tabKey: tp.tabKey, visible: tp.visible })),
     };
   }
@@ -331,7 +332,7 @@ export class AuthService {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: { refreshToken },
-      select: { hiddenTabs: true },
+      select: { hiddenTabs: true, balance: true },
     });
 
     // Lấy tab permissions (merge với ALL_TABS để có default visible=true)
@@ -345,6 +346,7 @@ export class AuthService {
         email,
         role,
         username,
+        balance: Number(user.balance || 0),
         hiddenTabs: user.hiddenTabs,
         tabPermissions: tabPerms.map(tp => ({ tabKey: tp.tabKey, visible: tp.visible })),
       },

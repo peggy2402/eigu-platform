@@ -65,6 +65,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    try {
+      const pending = sessionStorage.getItem('eigu_toast_notice');
+      if (pending) {
+        sessionStorage.removeItem('eigu_toast_notice');
+        const parsed = JSON.parse(pending);
+        if (parsed && parsed.title) {
+          showToast(parsed.title, parsed.description, parsed.type || 'success');
+        }
+      }
+    } catch (e) {}
+
     const handleOnline = () => showToast(t('toast_network_online_title'), t('toast_network_online_desc'), 'success');
     const handleOffline = () => showToast(t('toast_network_offline_title'), t('toast_network_offline_desc'), 'error');
     window.addEventListener('online', handleOnline);
@@ -78,22 +89,25 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div id="toast-container" style={{ position: 'fixed', top: 20, right: 20, zIndex: 99999, display: 'flex', flexDirection: 'column', gap: 12, pointerEvents: 'none' }}>
+      <div id="toast-container" style={{ position: 'fixed', top: 24, right: 24, zIndex: 999999, display: 'flex', flexDirection: 'column', gap: 12, pointerEvents: 'none' }}>
         {toasts.map(t => (
           <div key={t.id} className={`toast toast-${t.type} ${t.leaving ? 'out' : ''}`}>
             <div className="toast-icon-wrapper">
-              {t.type === 'success' && <Check size={18} />}
-              {t.type === 'error' && <X size={18} />}
-              {t.type === 'warning' && <AlertTriangle size={18} />}
-              {t.type === 'info' && <Info size={18} />}
+              {t.type === 'success' && <Check size={18} strokeWidth={2.5} />}
+              {t.type === 'error' && <X size={18} strokeWidth={2.5} />}
+              {t.type === 'warning' && <AlertTriangle size={18} strokeWidth={2.5} />}
+              {t.type === 'info' && <Info size={18} strokeWidth={2.5} />}
             </div>
             <div className="toast-content">
               <div className="toast-title">{t.title}</div>
               {t.description && <div className="toast-desc">{t.description}</div>}
             </div>
             <button className="toast-close" onClick={() => dismiss(t.id)}>
-              <X size={18} />
+              <X size={16} />
             </button>
+            <div className="toast-progress">
+              <div className="toast-progress-fill" />
+            </div>
           </div>
         ))}
       </div>
