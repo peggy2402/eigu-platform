@@ -32,19 +32,19 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
         {/* Brand Logo & Title */}
         <div
           onClick={() => onNavigate('/')}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
         >
           <img
             src="/logo.png"
             alt="EIGU Logo"
             style={{
-              width: 34,
-              height: 34,
+              width: 32,
+              height: 32,
               objectFit: 'contain',
               filter: 'drop-shadow(0 0 10px var(--accent, rgba(245, 158, 11, 0.6)))',
             }}
           />
-          <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
+          <span className="header-brand-title" style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
             EIGU Platform
           </span>
         </div>
@@ -66,7 +66,7 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
         </nav>
 
         {/* Right Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="header-right-controls" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <ThemeToggle />
           <LanguageSwitcher />
 

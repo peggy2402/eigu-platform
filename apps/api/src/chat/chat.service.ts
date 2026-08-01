@@ -17,7 +17,7 @@ export class ChatService implements OnModuleInit {
   private readonly logger = new Logger(ChatService.name);
   private cleanupTimer: NodeJS.Timeout | null = null;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   onModuleInit() {
     // Chạy dọn dẹp tin nhắn cũ hơn 24 giờ tự động mỗi 1 giờ
@@ -28,7 +28,7 @@ export class ChatService implements OnModuleInit {
     }, 60 * 60 * 1000); // 1 hour
 
     // Chạy dọn dẹp 1 lần ngay khi khởi động
-    this.autoCleanupOldMessages().catch(() => {});
+    this.autoCleanupOldMessages().catch(() => { });
   }
 
   async saveMessage(dto: CreateChatMessageDto) {
@@ -124,7 +124,7 @@ export class ChatService implements OnModuleInit {
       },
     });
     if (result.count > 0) {
-      this.logger.log(`🧹 Đã tự động xóa ${result.count} tin nhắn chat cũ hơn 24 giờ để tối ưu dung lượng Supabase.`);
+      this.logger.log(`🧹 Đã tự động xóa ${result.count} tin nhắn chat cũ hơn 24 giờ để tối ưu dung lượng.`);
     }
     return result;
   }

@@ -41,13 +41,14 @@ export default function UserDropdown({ onOpenSettings, onOpenFeedback, onNavigat
       {/* Trigger Button */}
       <button
         onClick={() => setOpen(!open)}
+        className="user-dropdown-btn"
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
+          gap: 6,
           background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
-          padding: '8px 14px',
+          padding: '8px 12px',
           borderRadius: 20,
           color: 'var(--text-primary)',
           fontSize: 13,
@@ -56,8 +57,11 @@ export default function UserDropdown({ onOpenSettings, onOpenFeedback, onNavigat
           transition: 'all 0.2s',
         }}
       >
-        <span>{t('user_hello')}, <strong style={{ color: 'var(--accent)' }}>{displayName}</strong></span>
-        <ChevronDown size={14} style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+        <span className="user-greeting-label">
+          <span className="user-greeting-prefix">{t('user_hello')}, </span>
+          <strong style={{ color: 'var(--accent)' }}>{displayName}</strong>
+        </span>
+        <ChevronDown size={14} style={{ flexShrink: 0, transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
       </button>
 
       {/* Dropdown Content */}

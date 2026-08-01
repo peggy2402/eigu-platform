@@ -56,7 +56,7 @@ export default function Footer({ onNavigate }: FooterProps) {
         <div>
           <h4 style={{ color: 'var(--text-primary)', fontSize: 15, fontWeight: 700, marginBottom: 14 }}>{t('footer_security')}</h4>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            Anti-Detect Fingerprint Engine & PostgreSQL Supabase Security Standard.
+            Anti-Detect Fingerprint Engine & Data Security Standard.
           </p>
         </div>
       </div>

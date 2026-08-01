@@ -1048,7 +1048,7 @@ input[type="submit"]:active {
   white-space: nowrap !important;
   gap: 12px;
   position: relative;
-  overflow: hidden !important; /* CRITICAL FIX: Clip skewed shine line to round navbar bounds */
+  overflow: visible !important; /* Allow UserDropdown menu to pop out without clipping */
 }
 
 [data-theme="light"] .apple-nav {
@@ -1199,14 +1199,66 @@ input[type="submit"]:active {
 /* Mobile & Tablet Responsive Layout Media Queries */
 @media (max-width: 768px) {
   .apple-nav-wrapper {
-    width: 96%;
-    top: 0.75rem;
+    width: calc(100% - 20px) !important;
+    top: 0.5rem !important;
   }
   .apple-nav {
-    padding: 0.6rem 1rem;
+    padding: 0.5rem 0.75rem !important;
+    gap: 6px !important;
   }
   .apple-nav nav {
     display: none !important;
+  }
+  .header-right-controls {
+    gap: 6px !important;
+  }
+  .header-brand-title {
+    font-size: 15px !important;
+  }
+  .user-greeting-prefix {
+    display: none !important;
+  }
+  .user-dropdown-btn {
+    padding: 6px 10px !important;
+    max-width: 140px !important;
+  }
+  .user-greeting-label strong {
+    max-width: 85px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+  }
+}
+
+@media (max-width: 480px) {
+  .apple-nav-wrapper {
+    width: calc(100% - 16px) !important;
+    top: 0.4rem !important;
+  }
+  .apple-nav {
+    padding: 0.4rem 0.6rem !important;
+    gap: 4px !important;
+  }
+  .header-brand-title {
+    font-size: 14px !important;
+  }
+  .btn-header-login, .btn-header-register {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+  .user-dropdown-btn {
+    padding: 5px 8px !important;
+    max-width: 110px !important;
+  }
+  .user-greeting-label strong {
+    max-width: 65px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
   }
 }
 

@@ -1070,7 +1070,7 @@ const ViewsComponent = `
           </tr>
         </thead>
         <tbody id="user-mgmt-table-body">
-          <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">Đang kết nối tới Supabase Database để tải dữ liệu thật...</td></tr>
+          <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">Đang kết nối...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1164,7 +1164,7 @@ const ViewsComponent = `
           </tr>
         </thead>
         <tbody id="admin-notif-table-body">
-          <tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">Đang nạp Lịch sử Thông báo từ Supabase Database...</td></tr>
+          <tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">Đang nạp Lịch sử Thông báo...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1260,7 +1260,7 @@ const ViewsComponent = `
           </tr>
         </thead>
         <tbody id="feedback-mgmt-table-body">
-          <tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">Đang kết nối tới Supabase Database để tải dữ liệu Feedback thực...</td></tr>
+          <tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">Đang kết nối...</td></tr>
         </tbody>
       </table>
     </div>
