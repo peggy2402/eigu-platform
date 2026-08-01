@@ -1389,26 +1389,9 @@ input[type="submit"]:active {
     inset 0 1.5px 1px rgba(255, 255, 255, 0.50);
 }
 
-/* Ambient Shine Sweep Animation */
+/* Ambient Shine Sweep Animation (Disabled) */
 .apple-nav::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -150%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-  transform: skewX(-20deg);
-  animation: liquid-shine 8s infinite;
-  pointer-events: none;
-  border-radius: 9999px;
-  z-index: 0;
-}
-
-@keyframes liquid-shine {
-  0% { left: -150%; }
-  15% { left: 200%; }
-  100% { left: 200%; }
+  display: none !important;
 }
 
 .apple-nav > * {
