@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "postinstall": "prisma generate --schema=apps/api/prisma/schema.prisma""build": "nx build web",
+    "postinstall": "prisma generate --schema=apps/api/prisma/schema.prisma",
     "build": "nx build web",
     "vercel-build": "nx build web"
   },
