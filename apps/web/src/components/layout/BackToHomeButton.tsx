@@ -2,9 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Home } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface BackToHomeButtonProps {
-  /** Text label. Defaults to 'Trang chủ' */
+  /** Optional custom text label */
   label?: string;
   /** Destination path. Defaults to '/' */
   href?: string;
@@ -13,21 +14,24 @@ interface BackToHomeButtonProps {
 }
 
 export default function BackToHomeButton({
-  label = 'Trang chủ',
+  label,
   href = '/',
   variant = 'top-left',
 }: BackToHomeButtonProps) {
   const router = useRouter();
+  const { language } = useLanguage();
+  const defaultLabel = language === 'en' ? 'Home' : 'Trang chủ';
+  const displayLabel = label || defaultLabel;
 
   const btn = (
     <button
       onClick={() => router.push(href)}
       className="back-to-home-btn"
-      aria-label={label}
+      aria-label={displayLabel}
     >
       <ArrowLeft size={15} strokeWidth={2.5} />
       <Home size={13} strokeWidth={2} style={{ opacity: 0.75 }} />
-      <span>{label}</span>
+      <span>{displayLabel}</span>
     </button>
   );
 

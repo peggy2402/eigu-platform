@@ -1602,6 +1602,45 @@ input[type="submit"]:active {
   color: var(--text-muted) !important;
 }
 
+/* Light Mode Overrides for Auth Page Left Banner */
+[data-theme="light"] .auth-split-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 0 30px rgba(245, 158, 11, 0.12) !important;
+}
+
+[data-theme="light"] .auth-left-banner {
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.94) 0%, rgba(241, 245, 249, 0.98) 100%),
+              url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200') center/cover no-repeat !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .auth-left-banner::before {
+  background: radial-gradient(circle at 30% 30%, rgba(245, 158, 11, 0.18) 0%, transparent 60%) !important;
+  opacity: 0.8 !important;
+}
+
+[data-theme="light"] .auth-banner-header span,
+[data-theme="light"] .auth-banner-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .auth-banner-badge {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  color: #d97706 !important;
+}
+
+[data-theme="light"] .auth-banner-desc {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .auth-banner-footer {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+
 /* Light Mode Text Contrast & Form Item Overrides */
 [data-theme="light"] {
   --bg-primary: #f8fafc;

@@ -4,10 +4,12 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, Eye, EyeOff, Mail, Lock, KeyRound, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
 import { authApi } from '../../../lib/api';
+import { useLanguage } from '../../../contexts/LanguageContext';
 import BackToHomeButton from '../../../components/layout/BackToHomeButton';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const { language } = useLanguage();
   const [step, setStep] = useState<'email' | 'reset' | 'done'>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -22,7 +24,10 @@ export default function ForgotPasswordPage() {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!email) { setError('Vui lòng nhập email'); return; }
+    if (!email) {
+      setError(language === 'en' ? 'Please enter your email' : 'Vui lòng nhập email');
+      return;
+    }
     setLoading(true);
     try {
       await authApi.forgotPassword(email);
@@ -44,7 +49,10 @@ export default function ForgotPasswordPage() {
   const handleReset = async () => {
     const code = otp.join('');
     setError('');
-    if (code.length !== 6 || !newPassword) { setError('Nhập đủ OTP và mật khẩu mới'); return; }
+    if (code.length !== 6 || !newPassword) {
+      setError(language === 'en' ? 'Please enter 6-digit OTP and new password' : 'Nhập đủ OTP và mật khẩu mới');
+      return;
+    }
     setLoading(true);
     try {
       await authApi.resetPassword(email, code, newPassword);
@@ -67,14 +75,25 @@ export default function ForgotPasswordPage() {
           <div className="auth-banner-body">
             <div className="auth-banner-badge">
               <KeyRound size={15} />
-              <span>Khôi Phục Mật Khẩu An Toàn</span>
+              <span>{language === 'en' ? 'Secure Password Recovery' : 'Khôi Phục Mật Khẩu An Toàn'}</span>
             </div>
             <h2 className="auth-banner-title">
-              Bảo Mật Tài Khoản <br />
-              & Khôi Phục Nhanh Chóng
+              {language === 'en' ? (
+                <>
+                  Account Security <br />
+                  & Fast Recovery
+                </>
+              ) : (
+                <>
+                  Bảo Mật Tài Khoản <br />
+                  & Khôi Phục Nhanh Chóng
+                </>
+              )}
             </h2>
             <p className="auth-banner-desc">
-              Nhập email đăng ký để nhận mã OTP xác thực và đặt lại mật khẩu mới chỉ trong vài bước đơn giản.
+              {language === 'en'
+                ? 'Enter registered email to receive OTP code and reset new password in simple steps.'
+                : 'Nhập email đăng ký để nhận mã OTP xác thực và đặt lại mật khẩu mới chỉ trong vài bước đơn giản.'}
             </p>
           </div>
 
@@ -84,10 +103,10 @@ export default function ForgotPasswordPage() {
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>
-                Hỗ Trợ Tự Động 24/7
+                {language === 'en' ? '24/7 Automated Support' : 'Hỗ Trợ Tự Động 24/7'}
               </div>
               <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
-                Mã xác thực mã hóa gửi trực tiếp về email cá nhân
+                {language === 'en' ? 'Encrypted verification code sent directly to personal email' : 'Mã xác thực mã hóa gửi trực tiếp về email cá nhân'}
               </div>
             </div>
           </div>
@@ -97,14 +116,18 @@ export default function ForgotPasswordPage() {
         <div className="auth-right-form">
           <div style={{ marginBottom: 28 }}>
             <h1 style={{ fontSize: 28, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8 }}>
-              {step === 'email' ? 'Quên Mật Khẩu' : step === 'reset' ? 'Đặt Lại Mật Khẩu' : 'Thành Công'}
+              {step === 'email'
+                ? (language === 'en' ? 'Forgot Password' : 'Quên Mật Khẩu')
+                : step === 'reset'
+                ? (language === 'en' ? 'Reset Password' : 'Đặt Lại Mật Khẩu')
+                : (language === 'en' ? 'Success' : 'Thành Công')}
             </h1>
             <p style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 500 }}>
               {step === 'email'
-                ? 'Nhập email đã đăng ký tài khoản EIGU Platform'
+                ? (language === 'en' ? 'Enter your registered EIGU Platform email' : 'Nhập email đã đăng ký tài khoản EIGU Platform')
                 : step === 'reset'
-                ? `Nhập mã OTP gửi tới ${email} và mật khẩu mới`
-                : 'Mật khẩu của bạn đã được cập nhật'}
+                ? (language === 'en' ? `Enter OTP code sent to ${email} and new password` : `Nhập mã OTP gửi tới ${email} và mật khẩu mới`)
+                : (language === 'en' ? 'Your password has been updated' : 'Mật khẩu của bạn đã được cập nhật')}
             </p>
           </div>
 
@@ -115,7 +138,7 @@ export default function ForgotPasswordPage() {
               <div className="form-group">
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Mail size={14} style={{ color: 'var(--accent)' }} />
-                  <span>Email xác thực</span>
+                  <span>{language === 'en' ? 'Verification Email' : 'Email xác thực'}</span>
                 </label>
                 <input
                   type="email"
@@ -127,12 +150,18 @@ export default function ForgotPasswordPage() {
               </div>
 
               <button type="submit" className="auth-btn" disabled={loading} style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800, marginTop: 8 }}>
-                <span>{loading ? 'Đang gửi mã OTP...' : 'Gửi Mã OTP'}</span>
+                <span>
+                  {loading
+                    ? (language === 'en' ? 'Sending OTP...' : 'Đang gửi mã OTP...')
+                    : (language === 'en' ? 'Send OTP Code' : 'Gửi Mã OTP')}
+                </span>
                 <ArrowRight size={18} />
               </button>
 
               <div className="auth-link" style={{ marginTop: 20 }}>
-                <a href="/auth/login" style={{ fontWeight: 700 }}>Quay lại trang Đăng nhập</a>
+                <a href="/auth/login" style={{ fontWeight: 700 }}>
+                  {language === 'en' ? 'Back to Login page' : 'Quay lại trang Đăng nhập'}
+                </a>
               </div>
             </form>
           )}
@@ -151,7 +180,7 @@ export default function ForgotPasswordPage() {
               <div className="form-group">
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Lock size={14} style={{ color: 'var(--accent)' }} />
-                  <span>Mật khẩu mới</span>
+                  <span>{language === 'en' ? 'New Password' : 'Mật khẩu mới'}</span>
                 </label>
                 <div className="pw-wrapper">
                   <input type={showPw ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" required />
@@ -160,12 +189,18 @@ export default function ForgotPasswordPage() {
               </div>
 
               <button className="auth-btn" onClick={handleReset} disabled={loading} style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800, marginTop: 12 }}>
-                <span>{loading ? 'Đang xử lý...' : 'Cập Nhật Mật Khẩu'}</span>
+                <span>
+                  {loading
+                    ? (language === 'en' ? 'Processing...' : 'Đang xử lý...')
+                    : (language === 'en' ? 'Update Password' : 'Cập Nhật Mật Khẩu')}
+                </span>
                 <ArrowRight size={18} />
               </button>
 
               <div className="auth-link" style={{ marginTop: 20 }}>
-                <a href="/auth/login" style={{ fontWeight: 700 }}>Quay lại trang Đăng nhập</a>
+                <a href="/auth/login" style={{ fontWeight: 700 }}>
+                  {language === 'en' ? 'Back to Login page' : 'Quay lại trang Đăng nhập'}
+                </a>
               </div>
             </div>
           )}
@@ -176,17 +211,19 @@ export default function ForgotPasswordPage() {
                 <CheckCircle2 size={36} />
               </div>
               <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8, color: 'var(--text-primary)' }}>
-                Đặt Lại Mật Khẩu Thành Công!
+                {language === 'en' ? 'Password Reset Successful!' : 'Đặt Lại Mật Khẩu Thành Công!'}
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 28, fontWeight: 500 }}>
-                Mật khẩu của bạn đã được cập nhật thành công. Hãy đăng nhập lại bằng mật khẩu mới.
+                {language === 'en'
+                  ? 'Your password has been updated successfully. Please sign in again with your new password.'
+                  : 'Mật khẩu của bạn đã được cập nhật thành công. Hãy đăng nhập lại bằng mật khẩu mới.'}
               </p>
               <a
                 href="/auth/login"
                 className="auth-btn"
                 style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               >
-                <span>Đăng Nhập Ngay</span>
+                <span>{language === 'en' ? 'Sign In Now' : 'Đăng Nhập Ngay'}</span>
                 <ArrowRight size={18} />
               </a>
             </div>
