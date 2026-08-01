@@ -86,7 +86,19 @@ export const metadata: Metadata = {
 };
 
 const themeScript = `
-(function(){try{var t=localStorage.getItem('eigu_theme')||'system',e=t==='system'?(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):t;document.documentElement.setAttribute('data-theme',e)}catch(e){}})()
+(function(){try{
+  var t=localStorage.getItem('eigu_theme')||'system';
+  var e=t==='system'?(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):t;
+  document.documentElement.setAttribute('data-theme',e);
+  var season=localStorage.getItem('eigu_season');
+  if(season) document.documentElement.setAttribute('data-season',season);
+  var accent=localStorage.getItem('eigu_accent');
+  var accentHover=localStorage.getItem('eigu_accent_hover');
+  var accentGlow=localStorage.getItem('eigu_accent_glow');
+  if(accent) document.documentElement.style.setProperty('--accent',accent);
+  if(accentHover) document.documentElement.style.setProperty('--accent-hover',accentHover);
+  if(accentGlow) document.documentElement.style.setProperty('--accent-glow',accentGlow);
+}catch(e){}})()
 `;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
 import { authApi } from '../../../lib/api';
 import { useToast } from '../../../contexts/ToastContext';
 
@@ -94,67 +94,147 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-logo">
-          <img src="/logo.png" alt="EIGU Logo" style={{ width: 56, height: 56, objectFit: 'contain', marginBottom: 16, borderRadius: 12 }} />
-          <h1>EIGU Platform</h1>
-          <p>Anti-Detect Automation Engine</p>
+    <div className="auth-split-wrapper">
+      <div className="auth-split-card">
+        {/* Left Hero Banner Side */}
+        <div className="auth-left-banner">
+          <div className="auth-banner-header" onClick={() => router.push('/')}>
+            <img src="/logo.png" alt="EIGU Logo" />
+            <span>EIGU Platform</span>
+          </div>
+
+          <div className="auth-banner-body">
+            <div className="auth-banner-badge">
+              <Sparkles size={15} />
+              <span>Gia Nhập Cộng Đồng 100,000+ Creators</span>
+            </div>
+            <h2 className="auth-banner-title">
+              Tạo Tài Khoản Trải Nghiệm <br />
+              Miễn Phí 7 Ngày Full Tính Năng
+            </h2>
+            <p className="auth-banner-desc">
+              Khám phá sức mạnh tự động cắt dựng video ngắn, bypass bản quyền và nhân bản quy mô kênh nhanh chóng.
+            </p>
+          </div>
+
+          <div className="auth-banner-footer">
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <ShieldCheck size={22} />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>
+                Không Cần Thẻ Thanh Toán
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
+                Kích hoạt ngay trong 30 giây qua xác thực Email OTP
+              </div>
+            </div>
+          </div>
         </div>
 
-        {step === 'register' ? (
-          <form className="auth-form" onSubmit={handleRegister}>
-            <div className={`auth-error ${error ? 'show' : ''}`}>{error}</div>
-            <div className="form-group">
-              <label>Tên đăng nhập</label>
-              <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="VD: haruki2402" autoComplete="username" />
-            </div>
-            <div className="form-group">
-              <label>Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" />
-            </div>
-            <div className="form-group">
-              <label>Mật khẩu</label>
-              <div className="pw-wrapper">
-                <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="new-password" />
-                <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex={-1}>{showPw ? <EyeOff size={18} /> : <Eye size={18} />}</button>
-              </div>
-            </div>
-            {password && (
-              <div className="password-strength">
-                <div className="password-strength-bar"><div className="password-strength-fill" style={{ width: `${strength.pct}%`, background: strength.color }}></div></div>
-                <div className="password-strength-label">{strength.label}</div>
-              </div>
-            )}
-            <div className="form-group">
-              <label>Nhập lại mật khẩu</label>
-              <div className="pw-wrapper">
-                <input type={showPw ? 'text' : 'password'} value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder="••••••••" autoComplete="new-password" />
-              </div>
-            </div>
-            <button type="submit" className="auth-btn" disabled={loading}>
-              {loading ? 'Đang đăng ký...' : 'Đăng ký'}
-            </button>
-            <div className="auth-link">Đã có tài khoản? <a href="/auth/login">Đăng nhập</a></div>
-          </form>
-        ) : (
-          <div className="auth-form">
-            <div className={`auth-error ${error ? 'show' : ''}`}>{error}</div>
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14, marginBottom: 16 }}>
-              Nhập mã OTP gửi đến<br /><strong style={{ color: 'var(--text-primary)' }}>{email}</strong>
+        {/* Right Form Side */}
+        <div className="auth-right-form">
+          <div style={{ marginBottom: 28 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8 }}>
+              {step === 'register' ? 'Đăng Ký Tài Khoản' : 'Xác Thực Mã OTP'}
+            </h1>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 500 }}>
+              {step === 'register' ? 'Điền thông tin bên dưới để khởi tạo tài khoản EIGU' : `Mã 6 số đã được gửi tới email ${email}`}
             </p>
-            <div className="otp-inputs">
-              {otp.map((d, i) => (
-                <input key={i} ref={el => { otpRefs.current[i] = el; }} type="text" maxLength={1} value={d}
-                  onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} />
-              ))}
-            </div>
-            <button className="auth-btn" style={{ marginTop: 16 }} onClick={handleVerify} disabled={loading}>
-              {loading ? 'Đang xác thực...' : 'Xác thực'}
-            </button>
-            <div className="auth-link"><a href="/auth/login">Quay lại đăng nhập</a></div>
           </div>
-        )}
+
+          {step === 'register' ? (
+            <form className="auth-form" onSubmit={handleRegister}>
+              {error && <div className="auth-error show">{error}</div>}
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <User size={14} style={{ color: 'var(--accent)' }} />
+                  <span>Tên đăng nhập</span>
+                </label>
+                <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="VD: haruki2402" autoComplete="username" required />
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Mail size={14} style={{ color: 'var(--accent)' }} />
+                  <span>Email</span>
+                </label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" required />
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Lock size={14} style={{ color: 'var(--accent)' }} />
+                  <span>Mật khẩu</span>
+                </label>
+                <div className="pw-wrapper">
+                  <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="new-password" required />
+                  <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex={-1}>{showPw ? <EyeOff size={18} /> : <Eye size={18} opacity={0.8} />}</button>
+                </div>
+              </div>
+
+              {password && (
+                <div className="password-strength" style={{ '--ps-color': strength.color } as React.CSSProperties}>
+                  <div className="password-strength-track">
+                    <div className="password-strength-fill" style={{ width: `${strength.pct}%`, background: strength.color }} />
+                  </div>
+                  <div className="password-strength-meta">
+                    <div className="password-strength-dots">
+                      {[1, 2, 3, 4].map(l => (
+                        <div key={l} className={`password-strength-dot ${strength.level >= l ? 'active' : ''}`} />
+                      ))}
+                    </div>
+                    <span className="password-strength-label">{strength.label}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Lock size={14} style={{ color: 'var(--accent)' }} />
+                  <span>Nhập lại mật khẩu</span>
+                </label>
+                <div className="pw-wrapper">
+                  <input type={showPw ? 'text' : 'password'} value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder="••••••••" autoComplete="new-password" required />
+                </div>
+              </div>
+
+              <button type="submit" className="auth-btn" disabled={loading} style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800, marginTop: 4 }}>
+                <span>{loading ? 'Đang gửi mã OTP...' : 'Đăng Ký Tài Khoản'}</span>
+                <ArrowRight size={18} />
+              </button>
+
+              <div className="auth-link" style={{ marginTop: 16 }}>
+                Đã có tài khoản? <a href="/auth/login" style={{ fontWeight: 700 }}>Đăng nhập</a>
+              </div>
+            </form>
+          ) : (
+            <div className="auth-form">
+              {error && <div className="auth-error show">{error}</div>}
+
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14, marginBottom: 16 }}>
+                Vui lòng kiểm tra hòm thư và nhập 6 số xác thực:
+              </p>
+
+              <div className="otp-inputs">
+                {otp.map((d, i) => (
+                  <input key={i} ref={el => { otpRefs.current[i] = el; }} type="text" maxLength={1} value={d}
+                    onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} />
+                ))}
+              </div>
+
+              <button className="auth-btn" style={{ marginTop: 24, height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800 }} onClick={handleVerify} disabled={loading}>
+                <span>{loading ? 'Đang xác thực...' : 'Xác Thực & Đăng Nhập'}</span>
+                <ArrowRight size={18} />
+              </button>
+
+              <div className="auth-link" style={{ marginTop: 16 }}>
+                <a href="/auth/login" style={{ fontWeight: 700 }}>Quay lại trang Đăng nhập</a>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -343,6 +343,7 @@ export default function Home() {
           setThemeConfig(cfg);
           if (cfg.season) {
             document.documentElement.setAttribute('data-season', cfg.season);
+            localStorage.setItem('eigu_season', cfg.season);
           }
           if (cfg.bgStyle) {
             document.documentElement.setAttribute('data-bg-style', cfg.bgStyle);
@@ -350,6 +351,12 @@ export default function Home() {
           if (cfg.primaryColor) {
             document.documentElement.style.setProperty('--accent', cfg.primaryColor);
             document.documentElement.style.setProperty('--accent-glow', `${cfg.primaryColor}33`);
+            localStorage.setItem('eigu_accent', cfg.primaryColor);
+            localStorage.setItem('eigu_accent_glow', `${cfg.primaryColor}33`);
+            // Derive hover color (slightly darker)
+            const accentHover = cfg.accentHover || cfg.primaryColor;
+            document.documentElement.style.setProperty('--accent-hover', accentHover);
+            localStorage.setItem('eigu_accent_hover', accentHover);
           }
         }
       } catch (e) {

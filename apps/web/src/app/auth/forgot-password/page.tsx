@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { CheckCircle2, Eye, EyeOff, Mail, Lock, KeyRound, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
 import { authApi } from '../../../lib/api';
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
   const [step, setStep] = useState<'email' | 'reset' | 'done'>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -51,62 +53,143 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-logo">
-          <img src="/logo.png" alt="EIGU Logo" style={{ width: 56, height: 56, objectFit: 'contain', marginBottom: 16, borderRadius: 12 }} />
-          <h1>EIGU Platform</h1>
-          <p>Anti-Detect Automation Engine</p>
-        </div>
+    <div className="auth-split-wrapper">
+      <div className="auth-split-card">
+        {/* Left Hero Banner Side */}
+        <div className="auth-left-banner">
+          <div className="auth-banner-header" onClick={() => router.push('/')}>
+            <img src="/logo.png" alt="EIGU Logo" />
+            <span>EIGU Platform</span>
+          </div>
 
-        {step === 'email' && (
-          <form className="auth-form" onSubmit={handleSendOtp}>
-            <div className={`auth-error ${error ? 'show' : ''}`}>{error}</div>
-            <div className="form-group">
-              <label>Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" />
+          <div className="auth-banner-body">
+            <div className="auth-banner-badge">
+              <KeyRound size={15} />
+              <span>Khôi Phục Mật Khẩu An Toàn</span>
             </div>
-            <button type="submit" className="auth-btn" disabled={loading}>
-              {loading ? 'Đang gửi...' : 'Gửi OTP'}
-            </button>
-            <div className="auth-link"><a href="/auth/login">Quay lại đăng nhập</a></div>
-          </form>
-        )}
+            <h2 className="auth-banner-title">
+              Bảo Mật Tài Khoản <br />
+              & Khôi Phục Nhanh Chóng
+            </h2>
+            <p className="auth-banner-desc">
+              Nhập email đăng ký để nhận mã OTP xác thực và đặt lại mật khẩu mới chỉ trong vài bước đơn giản.
+            </p>
+          </div>
 
-        {step === 'reset' && (
-          <div className="auth-form">
-            <div className={`auth-error ${error ? 'show' : ''}`}>{error}</div>
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14, marginBottom: 16 }}>Nhập OTP và mật khẩu mới</p>
-            <div className="otp-inputs" style={{ marginBottom: 16 }}>
-              {otp.map((d, i) => (
-                <input key={i} ref={el => { otpRefs.current[i] = el; }} type="text" maxLength={1} value={d}
-                  onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} />
-              ))}
+          <div className="auth-banner-footer">
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <ShieldCheck size={22} />
             </div>
-            <div className="form-group">
-              <label>Mật khẩu mới</label>
-              <div className="pw-wrapper">
-                <input type={showPw ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" />
-                <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex={-1}>{showPw ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>
+                Hỗ Trợ Tự Động 24/7
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
+                Mã xác thực mã hóa gửi trực tiếp về email cá nhân
               </div>
             </div>
-            <button className="auth-btn" onClick={handleReset} disabled={loading}>
-              {loading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
-            </button>
-            <div className="auth-link"><a href="/auth/login">Quay lại đăng nhập</a></div>
           </div>
-        )}
+        </div>
 
-        {step === 'done' && (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ marginBottom: 16 }}><CheckCircle2 size={48} color="var(--success)" /></div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Đặt lại mật khẩu thành công!</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Bạn có thể đăng nhập với mật khẩu mới.</p>
-            <a href="/auth/login" className="auth-btn" style={{ display: 'inline-flex', marginTop: 24, width: 'auto', padding: '12px 32px', textDecoration: 'none' }}>
-              Đăng nhập
-            </a>
+        {/* Right Form Side */}
+        <div className="auth-right-form">
+          <div style={{ marginBottom: 28 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8 }}>
+              {step === 'email' ? 'Quên Mật Khẩu' : step === 'reset' ? 'Đặt Lại Mật Khẩu' : 'Thành Công'}
+            </h1>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 500 }}>
+              {step === 'email'
+                ? 'Nhập email đã đăng ký tài khoản EIGU Platform'
+                : step === 'reset'
+                ? `Nhập mã OTP gửi tới ${email} và mật khẩu mới`
+                : 'Mật khẩu của bạn đã được cập nhật'}
+            </p>
           </div>
-        )}
+
+          {step === 'email' && (
+            <form className="auth-form" onSubmit={handleSendOtp}>
+              {error && <div className="auth-error show">{error}</div>}
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Mail size={14} style={{ color: 'var(--accent)' }} />
+                  <span>Email xác thực</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
+
+              <button type="submit" className="auth-btn" disabled={loading} style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800, marginTop: 8 }}>
+                <span>{loading ? 'Đang gửi mã OTP...' : 'Gửi Mã OTP'}</span>
+                <ArrowRight size={18} />
+              </button>
+
+              <div className="auth-link" style={{ marginTop: 20 }}>
+                <a href="/auth/login" style={{ fontWeight: 700 }}>Quay lại trang Đăng nhập</a>
+              </div>
+            </form>
+          )}
+
+          {step === 'reset' && (
+            <div className="auth-form">
+              {error && <div className="auth-error show">{error}</div>}
+
+              <div className="otp-inputs" style={{ marginBottom: 20 }}>
+                {otp.map((d, i) => (
+                  <input key={i} ref={el => { otpRefs.current[i] = el; }} type="text" maxLength={1} value={d}
+                    onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} />
+                ))}
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Lock size={14} style={{ color: 'var(--accent)' }} />
+                  <span>Mật khẩu mới</span>
+                </label>
+                <div className="pw-wrapper">
+                  <input type={showPw ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" required />
+                  <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex={-1}>{showPw ? <EyeOff size={18} /> : <Eye size={18} opacity={0.8} />}</button>
+                </div>
+              </div>
+
+              <button className="auth-btn" onClick={handleReset} disabled={loading} style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800, marginTop: 12 }}>
+                <span>{loading ? 'Đang xử lý...' : 'Cập Nhật Mật Khẩu'}</span>
+                <ArrowRight size={18} />
+              </button>
+
+              <div className="auth-link" style={{ marginTop: 20 }}>
+                <a href="/auth/login" style={{ fontWeight: 700 }}>Quay lại trang Đăng nhập</a>
+              </div>
+            </div>
+          )}
+
+          {step === 'done' && (
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#22c55e' }}>
+                <CheckCircle2 size={36} />
+              </div>
+              <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8, color: 'var(--text-primary)' }}>
+                Đặt Lại Mật Khẩu Thành Công!
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 28, fontWeight: 500 }}>
+                Mật khẩu của bạn đã được cập nhật thành công. Hãy đăng nhập lại bằng mật khẩu mới.
+              </p>
+              <a
+                href="/auth/login"
+                className="auth-btn"
+                style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              >
+                <span>Đăng Nhập Ngay</span>
+                <ArrowRight size={18} />
+              </a>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
