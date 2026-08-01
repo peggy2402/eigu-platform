@@ -9,18 +9,35 @@ export async function syncApiPrefixFromBootstrap(): Promise<string> {
 
   syncPromise = (async () => {
     try {
-      const port = process.env.NEXT_PUBLIC_API_PORT || '3001';
-      const host = typeof window !== 'undefined'
-        ? window.location.origin.replace(/:3000$/, `:${port}`).replace(/:3001$/, `:${port}`)
-        : `http://localhost:${port}`;
-      const baseUrl = host.includes('localhost') || host.includes('127.0.0.1') ? `http://localhost:${port}` : host;
+      let backendHost = '';
+      const envApiUrl = process.env.NEXT_PUBLIC_API_URL || getApiBaseUrl();
+      if (envApiUrl && (envApiUrl.startsWith('http://') || envApiUrl.startsWith('https://'))) {
+        try {
+          const parsed = new URL(envApiUrl);
+          backendHost = parsed.origin;
+        } catch {
+          // ignore
+        }
+      }
 
-      const res = await fetch(`${baseUrl}/api/bootstrap`);
+      if (!backendHost && typeof window !== 'undefined') {
+        const port = process.env.NEXT_PUBLIC_API_PORT || '3001';
+        const origin = window.location.origin;
+        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+          backendHost = `http://localhost:${port}`;
+        } else {
+          backendHost = origin;
+        }
+      }
+
+      if (!backendHost) backendHost = 'http://localhost:3001';
+
+      const res = await fetch(`${backendHost}/api/bootstrap`);
       if (res.ok) {
         const data = await res.json();
         if (data && data.apiPrefix) {
           const cleanPrefix = data.apiPrefix.replace(/^\//, '').replace(/\/$/, '');
-          const fullUrl = `${baseUrl}/${cleanPrefix}`;
+          const fullUrl = `${backendHost}/${cleanPrefix}`;
           (window as any).__EIGU_ACTIVE_API_URL__ = fullUrl;
           return fullUrl;
         }
