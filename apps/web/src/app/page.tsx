@@ -988,16 +988,24 @@ export default function Home() {
               </h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
                 <div>
-                  <div style={{ fontSize: 36, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>6 Mô-đun</div>
-                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>Công cụ chuyên sâu hoạt động độc lập</div>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>
+                    {language === 'en' ? '6 Modules' : '6 Mô-đun'}
+                  </div>
+                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {language === 'en' ? 'Specialized tools operating independently' : 'Công cụ chuyên sâu hoạt động độc lập'}
+                  </div>
                 </div>
                 <div>
                   <div style={{ fontSize: 36, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>100,000+</div>
-                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>Người dùng tin tưởng lựa chọn</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {language === 'en' ? 'Users who trust & choose us' : 'Người dùng tin tưởng lựa chọn'}
+                  </div>
                 </div>
                 <div>
                   <div style={{ fontSize: 36, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>24/7</div>
-                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>Hỗ trợ dành cho gói Team & Enterprise</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {language === 'en' ? 'Support for Team & Enterprise plans' : 'Hỗ trợ dành cho gói Team & Enterprise'}
+                  </div>
                 </div>
               </div>
             </div>

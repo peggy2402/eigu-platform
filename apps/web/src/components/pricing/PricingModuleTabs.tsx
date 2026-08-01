@@ -3,6 +3,9 @@
 import { Sparkles, Scissors, Clapperboard, RefreshCw, TrendingUp, DownloadCloud, Box } from 'lucide-react';
 import type { PricingModuleDto } from '@eigu-platform/shared';
 
+import { useLanguage } from '../../contexts/LanguageContext';
+import { translatePricingText } from '../../lib/pricingTranslations';
+
 const iconMap: Record<string, React.ReactNode> = {
   'Sparkles': <Sparkles size={18} />,
   'Scissors': <Scissors size={18} />,
@@ -19,11 +22,27 @@ interface PricingModuleTabsProps {
 }
 
 export default function PricingModuleTabs({ modules, activeSlug, onSelectModule }: PricingModuleTabsProps) {
+  const { language } = useLanguage();
+
   return (
-    <div style={{ display: 'flex', gap: 10, overflowX: 'auto', padding: '10px 12px', marginBottom: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
+    <div
+      className="pricing-module-tabs-bar"
+      style={{
+        display: 'flex',
+        gap: 8,
+        overflowX: 'auto',
+        padding: '10px 4px',
+        marginBottom: 28,
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexWrap: 'nowrap',
+        width: '100%',
+      }}
+    >
       {modules.map(mod => {
         const isActive = mod.slug === activeSlug;
-        const icon = iconMap[mod.icon] || <Box size={18} />;
+        const icon = iconMap[mod.icon] || <Box size={17} />;
+        const translatedName = translatePricingText(mod.name, language);
 
         return (
           <button
@@ -33,17 +52,18 @@ export default function PricingModuleTabs({ modules, activeSlug, onSelectModule 
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 8,
-              padding: '12px 20px',
+              gap: 7,
+              padding: '10px 15px',
               borderRadius: 'var(--radius)',
-              fontSize: 14,
+              fontSize: 13.5,
               fontWeight: isActive ? 700 : 500,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
           >
             {icon}
-            <span>{mod.name}</span>
+            <span>{translatedName}</span>
           </button>
         );
       })}

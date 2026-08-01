@@ -1546,6 +1546,62 @@ input[type="submit"]:active {
   transform: scale(0.96) !important;
 }
 
+/* Enterprise Horizontal Card Styling (Dark & Light Theme Adaptability) */
+.enterprise-horizontal-card {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(20, 24, 38, 0.95) 0%, rgba(14, 16, 26, 0.98) 100%);
+  border: 1.5px solid rgba(239, 68, 68, 0.35);
+  border-radius: 24px;
+  padding: 28px 36px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.enterprise-horizontal-card .enterprise-title,
+.enterprise-horizontal-card .enterprise-price {
+  color: #ffffff;
+}
+
+.enterprise-horizontal-card .enterprise-subtitle,
+.enterprise-horizontal-card .enterprise-price-sub {
+  color: var(--text-secondary);
+}
+
+.enterprise-horizontal-card .enterprise-feat-item {
+  color: #e2e8f0;
+}
+
+.enterprise-horizontal-card .enterprise-orig-price {
+  color: var(--text-muted);
+}
+
+/* Light Mode Overrides for Enterprise Horizontal Card */
+[data-theme="light"] .enterprise-horizontal-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  border: 1.5px solid rgba(239, 68, 68, 0.45) !important;
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.08),
+    0 0 24px rgba(239, 68, 68, 0.12) !important;
+}
+
+[data-theme="light"] .enterprise-horizontal-card .enterprise-title,
+[data-theme="light"] .enterprise-horizontal-card .enterprise-price {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .enterprise-horizontal-card .enterprise-subtitle,
+[data-theme="light"] .enterprise-horizontal-card .enterprise-price-sub {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .enterprise-horizontal-card .enterprise-feat-item {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .enterprise-horizontal-card .enterprise-orig-price {
+  color: var(--text-muted) !important;
+}
+
 /* Light Mode Text Contrast & Form Item Overrides */
 [data-theme="light"] {
   --bg-primary: #f8fafc;

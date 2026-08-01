@@ -11,7 +11,12 @@ interface PricingGridProps {
   onSelectTier: (tier: PricingTierDto, moduleSlug: string) => void;
 }
 
+import { useLanguage } from '../../contexts/LanguageContext';
+import { translatePricingText } from '../../lib/pricingTranslations';
+
 export default function PricingGrid({ moduleData, loading, error, onRetry, onSelectTier }: PricingGridProps) {
+  const { language } = useLanguage();
+
   if (loading) {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24, maxWidth: 1200, margin: '0 auto' }}>
@@ -76,38 +81,60 @@ export default function PricingGrid({ moduleData, loading, error, onRetry, onSel
   // Calculate max threads for calculating relative progress percentage
   const maxThreads = Math.max(...moduleData.tiers.map(t => t.threads), 1);
 
+  const isEnterpriseCode = (code: string, label: string) =>
+    code === 'enterprise' ||
+    code.includes('enterprise') ||
+    label.toLowerCase().includes('enterprise') ||
+    label.toLowerCase().includes('doanh nghiệp');
+
+  const standardTiers = moduleData.tiers.filter(t => !isEnterpriseCode(t.code, t.label));
+  const enterpriseTiers = moduleData.tiers.filter(t => isEnterpriseCode(t.code, t.label));
+
   return (
-    <div>
+    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
       {/* Module Title & Tagline Header */}
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
         <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>
-          {moduleData.name}
+          {translatePricingText(moduleData.name, language)}
         </h2>
         <p style={{ fontSize: 15, color: 'var(--text-secondary)' }}>
-          {moduleData.tagline}
+          {translatePricingText(moduleData.tagline, language)}
         </p>
       </div>
 
-      {/* Responsive Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: 24,
-          maxWidth: 1200,
-          margin: '0 auto',
-        }}
-      >
-        {moduleData.tiers.map(tier => (
-          <PricingCard
-            key={tier.id}
-            tier={tier}
-            moduleSlug={moduleData.slug}
-            maxThreads={maxThreads}
-            onSelectTier={selectedTier => onSelectTier(selectedTier, moduleData.slug)}
-          />
-        ))}
-      </div>
+      {/* Responsive Standard Vertical Cards Grid */}
+      {standardTiers.length > 0 && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: 24,
+            marginBottom: enterpriseTiers.length > 0 ? 24 : 0,
+          }}
+        >
+          {standardTiers.map(tier => (
+            <PricingCard
+              key={tier.id}
+              tier={tier}
+              moduleSlug={moduleData.slug}
+              maxThreads={maxThreads}
+              onSelectTier={selectedTier => onSelectTier(selectedTier, moduleData.slug)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Full-Width Horizontal Enterprise Card(s) */}
+      {enterpriseTiers.map(tier => (
+        <PricingCard
+          key={tier.id}
+          tier={tier}
+          moduleSlug={moduleData.slug}
+          maxThreads={maxThreads}
+          isHorizontal={true}
+          onSelectTier={selectedTier => onSelectTier(selectedTier, moduleData.slug)}
+        />
+      ))}
     </div>
   );
 }
