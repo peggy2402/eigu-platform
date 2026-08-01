@@ -23,28 +23,25 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
+      className="theme-toggle-btn"
       style={{
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
         width: 36,
         height: 36,
+        padding: 0,
         borderRadius: '50%',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-color)',
-        color: 'var(--text-primary)',
         cursor: 'pointer',
-        transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+        flexShrink: 0,
       }}
-      className="theme-toggle-btn"
       title={theme === 'dark' ? 'Chuyển sang Chế độ Sáng' : 'Chuyển sang Chế độ Tối'}
       aria-label="Toggle theme"
     >
       {theme === 'dark' ? (
-        <Sun size={17} style={{ color: '#f59e0b' }} />
+        <Sun size={18} style={{ color: '#f59e0b', flexShrink: 0 }} />
       ) : (
-        <Moon size={17} style={{ color: '#6366f1' }} />
+        <Moon size={18} style={{ color: '#818cf8', flexShrink: 0 }} />
       )}
     </button>
   );

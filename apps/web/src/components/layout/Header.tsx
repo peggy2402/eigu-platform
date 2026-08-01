@@ -7,6 +7,7 @@ import ThemeToggle from './ThemeToggle';
 import UserDropdown from './UserDropdown';
 import { useEffect, useState } from 'react';
 import { Menu, X, Home, Info, CreditCard, Newspaper, HelpCircle, Mail } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface HeaderProps {
   activePath?: string;
@@ -75,11 +76,19 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
         className={`apple-nav-wrapper${scrolled ? ' nav-scrolled' : ''}`}
         style={{ zIndex: 9999 }}
       >
-        <header className="apple-nav">
+        <motion.header
+          className="apple-nav"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+        >
           {/* Brand Logo & Title */}
-          <div
+          <motion.div
             onClick={() => handleNav('/')}
             style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           >
             <img
               src="/logo.png"
@@ -94,20 +103,48 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
             <span className="header-brand-title" style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
               EIGU Platform
             </span>
-          </div>
+          </motion.div>
 
-          {/* Desktop Nav Links */}
-          <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Desktop Nav Links with Sliding Active Glass Pill */}
+          <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 4, position: 'relative' }}>
             {navItems.map(item => {
               const isActive = activePath === item.path;
               return (
-                <span
+                <motion.button
                   key={item.path}
                   onClick={() => handleNav(item.path)}
                   className={`header-nav-item ${isActive ? 'active' : ''}`}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                  style={{ position: 'relative', WebkitFontSmoothing: 'antialiased' }}
                 >
-                  {item.label}
-                </span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeGlassPill"
+                      className="active-glass-pill"
+                      transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: 9999,
+                        zIndex: 0,
+                      }}
+                    />
+                  )}
+                  <span
+                    style={{
+                      position: 'relative',
+                      zIndex: 1,
+                      color: isActive ? '#ffffff' : undefined,
+                      fontWeight: isActive ? 700 : 500,
+                      transform: 'translateZ(0)',
+                      display: 'inline-block',
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </motion.button>
               );
             })}
           </nav>
@@ -126,31 +163,40 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
               />
             ) : (
               <div className="desktop-auth-btns" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <button
+                <motion.button
                   onClick={() => handleNav('/auth/login')}
                   className="btn-header-login"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 >
                   {t('nav_login')}
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={() => handleNav('/auth/register')}
                   className="btn-header-register"
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 >
                   {t('nav_register')}
-                </button>
+                </motion.button>
               </div>
             )}
 
             {/* Hamburger — mobile only */}
-            <button
+            <motion.button
               className="mobile-menu-btn"
               onClick={() => setMobileOpen(v => !v)}
               aria-label="Mở menu"
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            </motion.button>
           </div>
-        </header>
+        </motion.header>
       </div>
 
       {/* Mobile Nav Drawer */}
