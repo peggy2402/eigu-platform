@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "postinstall": "prisma generate --schema=apps/api/prisma/schema.prisma"
+    "postinstall": "prisma generate --schema=apps/api/prisma/schema.prisma""build": "nx build web",
+    "build": "nx build web",
+    "vercel-build": "nx build web"
   },
   "allowScripts": {
     "@parcel/watcher": true,

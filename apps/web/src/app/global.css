@@ -1209,7 +1209,7 @@ input[type="submit"]:active {
   position: fixed;
   inset: 0;
   z-index: 2;
-  pointer-events: none;
+  pointer-events: none !important;
   overflow: hidden;
 }
 
@@ -1223,6 +1223,7 @@ input[type="submit"]:active {
   opacity: 0.45;
   filter: drop-shadow(0 0 8px var(--accent-glow));
   animation: seasonalParticleDrift 18s linear infinite;
+  pointer-events: none !important;
 }
 
 /* Autumn Leaf Shape */
@@ -1275,13 +1276,67 @@ input[type="submit"]:active {
   transition: top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Scroll state: nav becomes more compact & opaque */
 .apple-nav-wrapper.nav-scrolled {
   top: 0.5rem;
   width: 96%;
   max-width: 1100px;
 }
 
+:root {
+  --nav-top-offset: 1.25rem;
+  --nav-height: 56px;
+  --nav-buffer: 40px;
+  --nav-clearance: calc(var(--nav-top-offset) + var(--nav-height) + var(--nav-buffer)); /* 116px */
+}
+
+/* Single Global Layout Wrapper for All Page Routes */
+.site-main-container {
+  flex: 1;
+  position: relative;
+  z-index: 10;
+  padding-top: var(--nav-clearance);
+}
+
+/* Scroll Edge Dissolve Effect (Soft gradient dissolve behind floating navbar) */
+.nav-scroll-dissolve-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, var(--bg-primary) 0%, rgba(18, 16, 14, 0.4) 60%, transparent 100%);
+  pointer-events: none !important;
+  z-index: 9990;
+  transition: opacity 0.3s ease;
+}
+
+[data-theme="light"] .nav-scroll-dissolve-mask {
+  background: linear-gradient(to bottom, var(--bg-primary) 0%, rgba(255, 255, 255, 0.5) 60%, transparent 100%);
+  pointer-events: none !important;
+}
+
+/* ==========================================================================
+   Apple Liquid Glass Header & Navigation Architecture (WWDC25 Material Spec)
+   ========================================================================== */
+
+.apple-nav-wrapper {
+  position: fixed;
+  top: var(--nav-top-offset);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 1080px;
+  z-index: 99999 !important;
+  transition: top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.apple-nav-wrapper.nav-scrolled {
+  top: 0.5rem;
+  width: 96%;
+  max-width: 1100px;
+}
+
+/* Translucent Apple Liquid Glass 3D Material (WWDC25 Specification) */
 .apple-nav {
   position: relative;
   display: flex;
@@ -1289,23 +1344,27 @@ input[type="submit"]:active {
   align-items: center;
   gap: 12px;
   padding: 0.65rem 1.25rem;
-  border-radius: 32px;
+  border-radius: 9999px;
   white-space: nowrap !important;
   flex-wrap: nowrap !important;
   overflow: visible !important;
 
-  /* Low Opacity Translucent Glass (15-25%) with Deep Blur */
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(25px) saturate(180%);
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  /* Layer 1: Curved Gradient Glass Base (75%-85% Opacity Tint Blocks Text Bleed while Preserving Glass Glow) */
+  background: linear-gradient(135deg, rgba(35, 30, 25, 0.78) 0%, rgba(15, 12, 10, 0.85) 100%);
+  backdrop-filter: blur(40px) saturate(180%) contrast(105%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%) contrast(105%);
 
-  /* Refractive Specular Top Edge & Depth Shadow */
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  /* Layer 2: Refractive Specular Highlight Rim */
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-top: 1px solid rgba(255, 255, 255, 0.50);
+  border-left: 1px solid rgba(255, 255, 255, 0.30);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+
+  /* Layer 3: Refraction Depth Inset Shadow */
   box-shadow:
-    inset 0 1.5px 1px rgba(255, 255, 255, 0.35),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.3),
-    0 20px 48px -10px rgba(0, 0, 0, 0.5);
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.55),
+    0 24px 60px -10px rgba(0, 0, 0, 0.75);
 
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1313,29 +1372,21 @@ input[type="submit"]:active {
 /* Fallback for browsers without backdrop-filter support */
 @supports not (backdrop-filter: blur(1px)) {
   .apple-nav {
-    background: rgba(18, 20, 28, 0.95) !important;
-  }
-  .glass-button,
-  .header-nav-item,
-  .btn-header-login,
-  .btn-header-register,
-  .theme-toggle-btn,
-  .lang-switcher-btn,
-  .user-dropdown-btn {
-    background: rgba(40, 44, 58, 0.9) !important;
+    background: rgba(18, 16, 14, 0.95) !important;
   }
 }
 
 /* Scrolled Navbar State */
 .nav-scrolled .apple-nav {
-  padding: 0.5rem 1.1rem;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(35px) saturate(200%);
-  -webkit-backdrop-filter: blur(35px) saturate(200%);
-  border-color: rgba(255, 255, 255, 0.25);
+  padding: 0.55rem 1.15rem;
+  background: linear-gradient(135deg, rgba(25, 20, 16, 0.88) 0%, rgba(8, 6, 5, 0.92) 100%);
+  backdrop-filter: blur(48px) saturate(200%);
+  -webkit-backdrop-filter: blur(48px) saturate(200%);
+  border-color: rgba(255, 255, 255, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.60);
   box-shadow:
-    inset 0 1.5px 1px rgba(255, 255, 255, 0.45),
-    0 24px 60px -8px rgba(0, 0, 0, 0.7);
+    0 32px 64px -8px rgba(0, 0, 0, 0.85),
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.50);
 }
 
 /* Ambient Shine Sweep Animation */
@@ -1346,12 +1397,11 @@ input[type="submit"]:active {
   left: -150%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   transform: skewX(-20deg);
   animation: liquid-shine 8s infinite;
   pointer-events: none;
-  border-radius: 32px;
-  clip-path: inset(0 round 32px);
+  border-radius: 9999px;
   z-index: 0;
 }
 
@@ -1367,7 +1417,7 @@ input[type="submit"]:active {
   flex-shrink: 0;
 }
 
-/* 2. Reusable Glass Button System & Nav Item Buttons */
+/* Reusable Glass Button System & Nav Item Buttons */
 .glass-button,
 .header-nav-item,
 .btn-header-login,
@@ -1382,33 +1432,33 @@ input[type="submit"]:active {
   justify-content: center;
   gap: 8px;
   padding: 7px 16px;
-  border-radius: 9999px !important; /* Capsule Pill Shape */
+  border-radius: 9999px !important;
   cursor: pointer;
   user-select: none;
   white-space: nowrap !important;
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 
-  /* Translucent Liquid Glass Fill */
+  /* iOS Inner Glass Pill */
   background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-
-  /* Thin Refractive Border & Top Specular Highlight */
   border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.3),
-    0 4px 14px rgba(0, 0, 0, 0.2);
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.15);
 
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.theme-toggle-btn {
+.theme-toggle-btn,
+.mobile-menu-btn {
   padding: 0 !important;
   width: 36px !important;
   height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
   border-radius: 50% !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -1416,7 +1466,31 @@ input[type="submit"]:active {
   flex-shrink: 0 !important;
 }
 
-/* Hover State: Scale UP (1.05), Glass Blur & Opacity Boost */
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none !important;
+  }
+}
+
+.mobile-menu-btn {
+  color: var(--text-primary) !important;
+}
+
+.mobile-menu-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  stroke: var(--text-primary) !important;
+  fill: none !important;
+  stroke-width: 2.5px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  flex-shrink: 0 !important;
+  display: block !important;
+}
+
+/* Hover State: Glass Glow & Specular Highlight Boost */
 .glass-button:hover,
 .header-nav-item:hover,
 .btn-header-login:hover,
@@ -1424,15 +1498,17 @@ input[type="submit"]:active {
 .lang-switcher-btn:hover,
 .user-dropdown-btn:hover,
 .mobile-menu-btn:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.32);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.35);
+  border-top-color: rgba(255, 255, 255, 0.6);
   box-shadow:
-    inset 0 1.5px 1px rgba(255, 255, 255, 0.45),
-    0 8px 24px rgba(0, 0, 0, 0.3);
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.50),
+    0 6px 20px rgba(0, 0, 0, 0.30);
+  transform: translateY(-1px);
 }
 
-/* Active Sliding Liquid Glass Pill Background (Framer Motion Target) */
+/* Active Sliding Liquid Glass Pill Background */
 .active-glass-pill {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.4) !important;
@@ -1442,13 +1518,16 @@ input[type="submit"]:active {
   transform: translateZ(0);
 }
 
-/* Nav Item when Active */
+/* Nav Item when Active (Liquid Glass Accent Pill) */
 .header-nav-item.active {
   color: #ffffff !important;
   font-weight: 700 !important;
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.75) !important;
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.65),
+    0 6px 20px var(--accent-glow) !important;
 }
 
 /* CTA Primary Glass Button (Register) */
@@ -1457,10 +1536,11 @@ input[type="submit"]:active {
   font-weight: 700;
   color: #ffffff !important;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.75) !important;
   box-shadow:
     0 6px 20px var(--accent-glow),
-    inset 0 1px 1px rgba(255, 255, 255, 0.6) !important;
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.65) !important;
 }
 
 .btn-header-register:hover,
@@ -1484,27 +1564,27 @@ input[type="submit"]:active {
   background: rgba(255, 255, 255, 0.25) !important;
 }
 
-/* Light Mode Adaptability — Ultra Transparent Crystal Glass */
+/* Light Mode Adaptability — Translucent Crystal Glass (85% White Tint) */
 [data-theme="light"] .apple-nav {
-  background: rgba(255, 255, 255, 0.28) !important;
-  backdrop-filter: blur(25px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.9) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(245, 242, 238, 0.88) 100%) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(220, 215, 210, 0.9) !important;
+  border-top: 1px solid rgba(255, 255, 255, 1) !important;
   box-shadow:
-    inset 0 1.5px 1px rgba(255, 255, 255, 0.8),
-    0 12px 36px rgba(0, 0, 0, 0.06),
-    0 0 20px rgba(245, 158, 11, 0.15) !important;
+    inset 0 1.5px 1px #ffffff,
+    0 16px 40px rgba(0, 0, 0, 0.10),
+    0 0 24px rgba(245, 158, 11, 0.15) !important;
 }
 
 [data-theme="light"] .nav-scrolled .apple-nav {
-  background: rgba(255, 255, 255, 0.45) !important;
-  backdrop-filter: blur(35px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
-  border-color: rgba(255, 255, 255, 0.75) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(245, 242, 238, 0.95) 100%) !important;
+  backdrop-filter: blur(48px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(200%) !important;
+  border-color: rgba(200, 195, 190, 0.95) !important;
   box-shadow:
     inset 0 1.5px 1px #ffffff,
-    0 16px 44px rgba(0, 0, 0, 0.08) !important;
+    0 20px 48px rgba(0, 0, 0, 0.14) !important;
 }
 
 [data-theme="light"] .glass-button,
@@ -1514,12 +1594,10 @@ input[type="submit"]:active {
 [data-theme="light"] .lang-switcher-btn,
 [data-theme="light"] .user-dropdown-btn,
 [data-theme="light"] .mobile-menu-btn {
-  background: rgba(255, 255, 255, 0.25) !important;
-  backdrop-filter: blur(16px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.7), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: inset 0 1px 1px #ffffff, 0 2px 6px rgba(0, 0, 0, 0.03) !important;
   color: var(--text-primary) !important;
 }
 
@@ -1530,9 +1608,9 @@ input[type="submit"]:active {
 [data-theme="light"] .lang-switcher-btn:hover,
 [data-theme="light"] .user-dropdown-btn:hover,
 [data-theme="light"] .mobile-menu-btn:hover {
-  background: rgba(255, 255, 255, 0.55) !important;
-  border-color: rgba(255, 255, 255, 0.9) !important;
-  box-shadow: inset 0 1.5px 1px #ffffff, 0 6px 18px rgba(0, 0, 0, 0.06) !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(0, 0, 0, 0.14) !important;
+  box-shadow: inset 0 1.5px 1px #ffffff, 0 4px 14px rgba(0, 0, 0, 0.06) !important;
 }
 
 [data-theme="light"] .glass-button:active,
@@ -1696,7 +1774,7 @@ input[type="submit"]:active {
   }
   /* Show hamburger button on mobile */
   .mobile-menu-btn {
-    display: flex !important;
+    display: inline-flex !important;
   }
   .header-right-controls {
     gap: 6px !important;
