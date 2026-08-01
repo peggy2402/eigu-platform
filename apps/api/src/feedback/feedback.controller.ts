@@ -18,6 +18,15 @@ export class FeedbackController {
     return this.feedbackService.submitFeedback(req.user.userId || req.user.id, message, image);
   }
 
+  @Post('public')
+  async submitPublicContact(
+    @Body('name') name: string,
+    @Body('email') email: string,
+    @Body('message') message: string,
+  ) {
+    return this.feedbackService.submitPublicContact(name, email, message);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Query('q') q?: string) {

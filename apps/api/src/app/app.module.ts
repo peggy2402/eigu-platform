@@ -16,6 +16,7 @@ import { ObfuscationPrefixMiddleware } from '../common/obfuscation/obfuscation-p
 import { SecurityCenterModule } from '../security-center/security-center.module';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { PricingModule } from '../pricing/pricing.module';
+import { ThemeEventModule } from '../theme-event/theme-event.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { PricingModule } from '../pricing/pricing.module';
     SecurityCenterModule,
     AuditLogsModule,
     PricingModule,
+    ThemeEventModule,
   ],
   controllers: [AppController],
   providers: [

@@ -335,6 +335,9 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (typeof closeTabConfigModal === 'function') closeTabConfigModal();
     if (typeof closeBanModal === 'function') closeBanModal();
+    if (typeof closePricingModuleModal === 'function') closePricingModuleModal();
+    if (typeof closePricingTierModal === 'function') closePricingTierModal();
+    if (typeof closePricingBadgeModal === 'function') closePricingBadgeModal();
 
     const chatBox = document.getElementById('live-chat-box');
     if (chatBox && !chatBox.classList.contains('hidden')) {

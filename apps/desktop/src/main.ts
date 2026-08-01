@@ -87,6 +87,16 @@ function createWindow() {
     mainWindow = null;
   });
 
+  // Enable F12 & CmdOrCtrl+Shift+I to toggle DevTools
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type === 'keyDown') {
+      if (input.key === 'F12' || (input.key.toLowerCase() === 'i' && (input.control || input.meta) && input.shift)) {
+        mainWindow?.webContents.toggleDevTools();
+        event.preventDefault();
+      }
+    }
+  });
+
   // Kích hoạt chuyển tiếp Log
   if (mainWindow) {
     redirectLogsToUI(mainWindow);

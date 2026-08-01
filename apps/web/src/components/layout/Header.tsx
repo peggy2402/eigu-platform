@@ -3,6 +3,7 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import LanguageSwitcher from './LanguageSwitcher';
+import ThemeToggle from './ThemeToggle';
 import UserDropdown from './UserDropdown';
 
 interface HeaderProps {
@@ -26,7 +27,7 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
   ];
 
   return (
-    <div className="apple-nav-wrapper">
+    <div className="apple-nav-wrapper" style={{ zIndex: 9999 }}>
       <header className="apple-nav">
         {/* Brand Logo & Title */}
         <div
@@ -40,10 +41,10 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
               width: 34,
               height: 34,
               objectFit: 'contain',
-              filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.6))',
+              filter: 'drop-shadow(0 0 10px var(--accent, rgba(245, 158, 11, 0.6)))',
             }}
           />
-          <span style={{ fontSize: 17, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.3px' }}>
+          <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
             EIGU Platform
           </span>
         </div>
@@ -65,7 +66,8 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
         </nav>
 
         {/* Right Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <ThemeToggle />
           <LanguageSwitcher />
 
           {!loading && token ? (

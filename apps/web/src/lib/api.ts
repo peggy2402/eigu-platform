@@ -107,3 +107,13 @@ export const pricingApi = {
   },
 };
 
+export const themeEventApi = {
+  getConfig: () => request('/theme-event'),
+  updateConfig: (data: any) => request('/theme-event', { method: 'PATCH', body: JSON.stringify(data) }),
+};
+
+export const contactApi = {
+  submitContact: (data: { name: string; email: string; message: string }) =>
+    request('/feedback/public', { method: 'POST', body: JSON.stringify(data) }),
+};
+

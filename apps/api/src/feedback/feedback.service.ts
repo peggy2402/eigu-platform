@@ -63,6 +63,46 @@ export class FeedbackService {
     return { success: true, message: 'Cảm ơn bạn đã góp ý!' };
   }
 
+  async submitPublicContact(name: string, email: string, message: string) {
+    if (!name || !email || !message) {
+      throw new Error('Vui lòng điền đầy đủ họ tên, email và nội dung cần hỗ trợ.');
+    }
+
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    const formattedContent = `📩 **YÊU CẦU LIÊN HỆ MỚI (WEB CONTACT FORM)** 📩\n` +
+      `👤 **Họ và tên:** ${name}\n` +
+      `📧 **Email liên hệ:** ${email}\n` +
+      `📝 **Nội dung:**\n> ${message.replace(/\n/g, '\n> ')}\n` +
+      `⏰ **Thời gian gửi:** <t:${Math.floor(Date.now() / 1000)}:F>`;
+
+    if (webhookUrl) {
+      try {
+        await axios.post(webhookUrl, { content: formattedContent });
+      } catch (e: any) {
+        console.warn('Failed to send contact notification to Discord:', e.message);
+      }
+    }
+
+    try {
+      const user = await this.prisma.user.findUnique({ where: { email } });
+      if (user) {
+        await this.prisma.feedback.create({
+          data: {
+            userId: user.id,
+            content: `[Liên hệ từ Web Site] ${message}`,
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('Could not associate contact request with DB user:', err);
+    }
+
+    return {
+      success: true,
+      message: 'Cảm ơn bạn đã gửi liên hệ! Yêu cầu hỗ trợ của bạn đã được tiếp nhận và lưu vào hệ thống.'
+    };
+  }
+
   async findAll(q?: string) {
     const where: any = {};
     if (q) {

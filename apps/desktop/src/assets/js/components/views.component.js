@@ -1429,6 +1429,9 @@ const ViewsComponent = `
         <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Đang kết nối Database để tổng hợp phân bổ thao tác...</div>
       </div>
     </div>
+  </div>
+</div>
+
 <!-- Pricing Management View (Quản lý Bảng giá dành riêng cho Admin) -->
 <div id="view-pricing-management" class="view" style="width: 100%; box-sizing: border-box;">
   <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; width: 100%; box-sizing: border-box;">
@@ -1439,15 +1442,224 @@ const ViewsComponent = `
         </h3>
         <p class="settings-hint">Cấu hình mô-đun, các gói dịch vụ, điều chỉnh giá bán và discount real-time đồng bộ trực tiếp lên Website.</p>
       </div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn-primary" onclick="loadAdminPricingData()" style="padding: 8px 16px; border-radius:8px; font-size:13px;"><span data-icon="refreshCw"></span> Tải lại</button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn-outline" onclick="openPricingModuleModal()" style="padding: 8px 14px; border-radius:8px; font-size:13px; margin:0;">
+          Thêm Mô-đun Mới
+        </button>
+        <button class="btn-outline" onclick="openPricingBadgeModal()" style="padding: 8px 14px; border-radius:8px; font-size:13px; margin:0;">
+          Tạo Badge Khuyến Mãi
+        </button>
+        <button class="btn-primary" onclick="loadAdminPricingData()" style="padding: 8px 16px; border-radius:8px; font-size:13px; width:auto; display:inline-flex; align-items:center; gap:6px;">
+          <span data-icon="refreshCw"></span> Tải lại
+        </button>
       </div>
     </div>
 
-    {/* Dynamic Admin Pricing Container */}
+    <!-- Module Search & Dynamic Filter Bar -->
+    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px; background:var(--bg-primary); padding:14px; border-radius:10px; border:1px solid var(--border-color);">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <input type="text" id="pricing-search-input" placeholder="Tìm kiếm theo tên mô-đun, mã gói hoặc tính năng..." style="flex:1; min-width:240px; padding:9px 14px; border-radius:8px; background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:13px; outline:none;" onkeyup="filterAdminPricingModules()" />
+        <select id="pricing-module-filter-select" style="width:200px; padding:9px 12px; border-radius:8px; background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:13px; outline:none;" onchange="filterAdminPricingModules()">
+          <option value="all">Tất cả Mô-đun</option>
+        </select>
+        <button class="btn-outline" onclick="filterAdminPricingModules()" style="padding:9px 16px; border-radius:8px; font-size:13px; margin:0;">Lọc</button>
+      </div>
+
+      <!-- Quick Dynamic Filter Pills -->
+      <div id="pricing-module-pills" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px;">
+        <button type="button" class="chat-filter-pill active" onclick="setPricingModulePill('all', this)">Tất cả Mô-đun</button>
+      </div>
+    </div>
+
+    <!-- Dynamic Admin Pricing Container -->
     <div id="admin-pricing-container">
       <div style="text-align:center; padding:30px; color:var(--text-muted);">Đang tải dữ liệu Bảng giá từ Supabase Database...</div>
     </div>
+  </div>
+</div>
+
+<!-- Theme & Event Management View (Quản lý Giao diện Bốn Mùa & Sự kiện Popup dành riêng cho Admin) -->
+<div id="view-theme-event-management" class="view" style="width: 100%; box-sizing: border-box;">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; width: 100%; box-sizing: border-box;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+      <div>
+        <h3 style="margin-bottom:4px; display:flex; align-items:center; gap:8px;">
+          <span data-icon="sun" style="color:var(--accent);"></span> Quản lý Giao diện & Sự kiện (Theme & Event Console)
+        </h3>
+        <p class="settings-hint">Cấu hình chủ đề giao diện bốn mùa (Xuân, Hạ, Thu, Đông) và cài đặt Popup sự kiện hiển thị trên Website phía User.</p>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn-primary" onclick="loadAdminThemeEventData()" style="padding: 8px 16px; border-radius:8px; font-size:13px; width:auto; display:inline-flex; align-items:center; gap:6px;">
+          <span data-icon="refreshCw"></span> Tải lại cấu hình
+        </button>
+      </div>
+    </div>
+
+    <!-- Dynamic Admin Theme & Event Container -->
+    <div id="admin-theme-event-container">
+      <div style="text-align:center; padding:30px; color:var(--text-muted);">Đang tải dữ liệu Cấu hình Giao diện & Sự kiện từ Database...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 1: Tạo / Sửa Mô-đun Bảng Giá -->
+<div id="pricing-module-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px; width: 480px; max-width: 92%; box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
+    <h3 id="pricing-module-modal-title" style="margin-bottom: 8px; font-size:17px; color:var(--text-primary);">Tạo Mô-đun Bảng giá Mới</h3>
+    <p class="settings-hint" style="margin-bottom: 16px;">Điền thông tin mô-đun công cụ hiển thị trên Bảng giá Website.</p>
+
+    <form id="pricing-module-form" onsubmit="handleSavePricingModule(event); return false;" style="display:flex; flex-direction:column; gap:14px;">
+      <input type="hidden" id="pm-id" value="" />
+      <div>
+        <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">TÊN MÔ-ĐUN *</label>
+        <input type="text" id="pm-name" placeholder="Ví dụ: Tự động cắt video" required style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">SLUG * (Mã định danh)</label>
+          <input type="text" id="pm-slug" placeholder="Ví dụ: cut" required style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">ICON (Lucide Icon)</label>
+          <input type="text" id="pm-icon" placeholder="Scissors, Sparkles..." style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">SLOGAN / TAGLINE</label>
+        <input type="text" id="pm-tagline" placeholder="Ví dụ: Tự động phân đoạn video 1-20 phút và tối ưu 9:16" style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+      </div>
+      <div style="display:flex; alignItems:center; gap:20px;">
+        <label style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text-primary); cursor:pointer;">
+          <input type="checkbox" id="pm-is-active" checked style="accent-color:var(--accent); width:16px; height:16px;" />
+          Kích hoạt Mô-đun
+        </label>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <label style="font-size:12px; color:var(--text-muted);">Thứ tự:</label>
+          <input type="number" id="pm-sort-order" value="0" min="0" style="width:70px; padding:6px 8px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:13px;" />
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top:10px;">
+        <button type="button" class="btn-outline" style="padding: 8px 16px; font-size:13px; border-radius:6px; margin:0;" onclick="closePricingModuleModal()">Hủy</button>
+        <button type="submit" class="btn-primary" style="padding: 8px 20px; width: auto; font-size:13px; border-radius:6px;">Lưu Mô-đun</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal 2: Tạo / Sửa Gói Dịch Vụ Tier -->
+<div id="pricing-tier-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px; width: 560px; max-width: 94%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
+    <h3 id="pricing-tier-modal-title" style="margin-bottom: 8px; font-size:17px; color:var(--text-primary);">Cấu hình Gói Dịch vụ (Tier)</h3>
+    <p class="settings-hint" style="margin-bottom: 16px;">Điều chỉnh thông số gói, giá bán, discount và các tính năng nổi bật.</p>
+
+    <form id="pricing-tier-form" onsubmit="handleSavePricingTier(event); return false;" style="display:flex; flex-direction:column; gap:14px;">
+      <input type="hidden" id="pt-id" value="" />
+      <input type="hidden" id="pt-module-id" value="" />
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">MÃ GÓI (Code) *</label>
+          <input type="text" id="pt-code" placeholder="trial, pro, enterprise..." required style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">TÊN GÓI (Label) *</label>
+          <input type="text" id="pt-label" placeholder="Dùng thử, Pro, Doanh nghiệp..." required style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">MÔ TẢ NGẮN (Tagline)</label>
+        <input type="text" id="pt-tagline" placeholder="Ví dụ: Dành cho Creator & Reuper chuyên nghiệp" style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+      </div>
+
+      <!-- Khối Giá Bán & Discount -->
+      <div style="background:var(--bg-primary); padding:14px; border-radius:10px; border:1px solid var(--border-color); display:flex; flex-direction:column; gap:12px;">
+        <div style="font-size:12px; font-weight:700; color:var(--accent);">CẤU HÌNH GIÁ BÁN & GIẢM GIÁ</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">GIÁ BÁN (VNĐ) *</label>
+            <input type="number" id="pt-price" placeholder="350000" required min="0" style="width:100%; padding:8px 10px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:13px;" oninput="autoCalculatePricing()" />
+          </div>
+          <div>
+            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">DISCOUNT %</label>
+            <input type="number" id="pt-discount" placeholder="40" min="0" max="100" style="width:100%; padding:8px 10px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:13px;" oninput="autoCalculatePricing()" />
+          </div>
+          <div>
+            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">GIÁ GỐC (TỰ ĐỘNG)</label>
+            <input type="number" id="pt-original-price" placeholder="0" min="0" style="width:100%; padding:8px 10px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; color:var(--text-secondary); font-size:13px;" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Khối Cấu Hình Giới Hạn Phần Cứng -->
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+        <div>
+          <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">SỐ MÁY DÙNG</label>
+          <input type="number" id="pt-machines" value="1" min="0" style="width:100%; padding:8px 10px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:13px;" />
+        </div>
+        <div>
+          <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">SỐ LUỒNG XỬ LÝ</label>
+          <input type="number" id="pt-threads" value="4" min="0" style="width:100%; padding:8px 10px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:13px;" />
+        </div>
+        <div>
+          <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">ĐỘ PHÂN GIẢI</label>
+          <input type="text" id="pt-resolution" value="1080p" style="width:100%; padding:8px 10px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:13px;" />
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">BADGE NHÃN KHUYẾN MÃI</label>
+        <select id="pt-badge-id" style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;">
+          <option value="">-- Không sử dụng Badge --</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">DANH SÁCH TÍNH NĂNG (Mỗi dòng 1 tính năng)</label>
+        <textarea id="pt-features-text" rows="4" placeholder="Cắt video 1-20 phút&#10;Silence Detection&#10;Định dạng 9:16" style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:12px; outline:none; resize:vertical; font-family:var(--font-mono);"></textarea>
+      </div>
+
+      <div style="display:flex; alignItems:center; gap:20px;">
+        <label style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text-primary); cursor:pointer;">
+          <input type="checkbox" id="pt-is-active" checked style="accent-color:var(--accent); width:16px; height:16px;" />
+          Kích hoạt Gói này
+        </label>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <label style="font-size:12px; color:var(--text-muted);">Thứ tự:</label>
+          <input type="number" id="pt-sort-order" value="0" min="0" style="width:70px; padding:6px 8px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:13px;" />
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top:10px;">
+        <button type="button" class="btn-outline" style="padding: 8px 16px; font-size:13px; border-radius:6px; margin:0;" onclick="closePricingTierModal()">Hủy</button>
+        <button type="submit" class="btn-primary" style="padding: 8px 20px; width: auto; font-size:13px; border-radius:6px;">Lưu Gói</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal 3: Tạo Badge Khuyến Mãi -->
+<div id="pricing-badge-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px; width: 440px; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
+    <h3 style="margin-bottom: 8px; font-size:17px; color:var(--text-primary);">Tạo Badge Khuyến Mãi Mới</h3>
+    <p class="settings-hint" style="margin-bottom: 16px;">Tạo các nhãn nổi bật đính kèm trên góc thẻ gói dịch vụ (Ví dụ: POPULAR, BEST_VALUE...)</p>
+
+    <form id="pricing-badge-form" onsubmit="handleSavePricingBadge(event); return false;" style="display:flex; flex-direction:column; gap:14px;">
+      <div>
+        <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">MÃ BADGE (Code) *</label>
+        <input type="text" id="pb-code" placeholder="popular, best_value..." required style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+      </div>
+      <div>
+        <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">TÊN NHÃN HIỂN THỊ *</label>
+        <input type="text" id="pb-name" placeholder="PHỔ BIẾN NHẤT, TIẾT KIỆM KHUYÊN DÙNG..." required style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top:10px;">
+        <button type="button" class="btn-outline" style="padding: 8px 16px; font-size:13px; border-radius:6px; margin:0;" onclick="closePricingBadgeModal()">Hủy</button>
+        <button type="submit" class="btn-primary" style="padding: 8px 20px; width: auto; font-size:13px; border-radius:6px;">Tạo Badge</button>
+      </div>
+    </form>
   </div>
 </div>
 `;

@@ -87,6 +87,10 @@ const SidebarComponent = `
       <span class="nav-icon" data-icon="tag"></span>
       <span class="nav-label" data-i18n="pricing_management">Quản lý Bảng giá</span>
     </div>
+    <div class="nav-item admin-only hidden" data-view="theme-event-management" onclick="switchView('theme-event-management', this, null, event)">
+      <span class="nav-icon" data-icon="sun"></span>
+      <span class="nav-label" data-i18n="theme_event_management">Giao diện & Sự kiện</span>
+    </div>
 
     <div class="nav-item" data-view="tiep-thi" onclick="switchView('tiep-thi', this, null, event)">
       <span class="nav-icon" data-icon="link"></span>

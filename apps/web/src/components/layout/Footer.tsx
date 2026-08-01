@@ -13,11 +13,14 @@ export default function Footer({ onNavigate }: FooterProps) {
   return (
     <footer
       style={{
-        background: 'var(--bg-secondary)',
+        position: 'relative',
+        zIndex: 10,
+        background: 'var(--bg-card)',
         borderTop: '1px solid var(--border-color)',
         padding: '48px 24px 24px',
         color: 'var(--text-secondary)',
         fontSize: 14,
+        boxShadow: '0 -10px 30px rgba(0,0,0,0.15)',
       }}
     >
       <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 32, marginBottom: 40 }}>
@@ -27,7 +30,7 @@ export default function Footer({ onNavigate }: FooterProps) {
             <img src="/logo.png" alt="EIGU Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
             <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>EIGU Platform</span>
           </div>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, lineHeight: 1.6 }}>
             {t('footer_tagline')}
           </p>
         </div>
@@ -55,13 +58,13 @@ export default function Footer({ onNavigate }: FooterProps) {
         {/* Security / Legal */}
         <div>
           <h4 style={{ color: 'var(--text-primary)', fontSize: 15, fontWeight: 700, marginBottom: 14 }}>{t('footer_security')}</h4>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, lineHeight: 1.6 }}>
             Anti-Detect Fingerprint Engine & PostgreSQL Supabase Security Standard.
           </p>
         </div>
       </div>
 
-      <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: 24, textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+      <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: 24, textAlign: 'center', fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
         {t('footer_rights')}
       </div>
     </footer>

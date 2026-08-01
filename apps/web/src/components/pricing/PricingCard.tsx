@@ -41,7 +41,7 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, onSelectTier
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        boxShadow: isPopular ? '0 12px 32px rgba(99, 102, 241, 0.25)' : '0 4px 16px rgba(0,0,0,0.2)',
+        boxShadow: isPopular ? '0 12px 32px var(--accent-glow)' : '0 4px 16px rgba(0,0,0,0.2)',
         transition: 'transform 0.2s, box-shadow 0.2s',
       }}
     >
@@ -52,7 +52,7 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, onSelectTier
             position: 'absolute',
             top: -12,
             right: 20,
-            background: isPopular ? 'linear-gradient(135deg, #6366f1, #818cf8)' : 'linear-gradient(135deg, #f59e0b, #d97706)',
+            background: 'var(--accent)',
             color: '#fff',
             fontSize: 11,
             fontWeight: 800,
@@ -110,10 +110,10 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, onSelectTier
           fontWeight: 700,
           cursor: 'pointer',
           border: isPopular ? 'none' : '1px solid var(--accent)',
-          background: isPopular ? 'var(--accent)' : 'rgba(99, 102, 241, 0.1)',
+          background: isPopular ? 'var(--accent)' : 'var(--accent-glow)',
           color: isPopular ? '#fff' : 'var(--accent)',
           transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-          boxShadow: isPopular ? '0 4px 16px rgba(99, 102, 241, 0.4)' : 'none',
+          boxShadow: isPopular ? '0 4px 16px var(--accent-glow)' : 'none',
           marginBottom: 24,
           display: 'flex',
           alignItems: 'center',
@@ -147,7 +147,7 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, onSelectTier
               style={{
                 height: '100%',
                 width: `${threadPercentage}%`,
-                background: isPopular ? 'linear-gradient(90deg, #6366f1, #a855f7)' : 'var(--accent)',
+                background: 'var(--accent)',
                 borderRadius: 4,
                 transition: 'width 0.4s ease',
               }}

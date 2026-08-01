@@ -733,7 +733,7 @@ input[type="submit"]:active {
   background: #5558e6 !important;
   color: #ffffff !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5) !important;
+  box-shadow: 0 8px 24px var(--accent-glow) !important;
 }
 
 /* --- Pricing Cards Hover --- */
@@ -743,13 +743,13 @@ input[type="submit"]:active {
 
 .pricing-card:hover {
   transform: translateY(-6px) scale(1.015);
-  box-shadow: 0 20px 44px -8px rgba(99, 102, 241, 0.4), 0 0 0 1.5px rgba(99, 102, 241, 0.6) !important;
-  border-color: rgba(99, 102, 241, 0.6) !important;
+  box-shadow: 0 20px 44px -8px var(--accent-glow), 0 0 0 1.5px var(--accent) !important;
+  border-color: var(--accent) !important;
 }
 
 /* --- Dropdown Items Hover --- */
 .dropdown-item:hover {
-  background: rgba(99, 102, 241, 0.16) !important;
+  background: var(--accent-glow) !important;
   color: #ffffff !important;
   transform: translateX(6px) translateY(-1px);
 }
@@ -787,8 +787,8 @@ input[type="submit"]:active {
 }
 
 .footer-link:hover {
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--accent) !important;
+  background: var(--bg-card-hover);
   transform: translateX(4px);
 }
 
@@ -806,6 +806,22 @@ input[type="submit"]:active {
   opacity: 0.95;
 }
 
+[data-theme="light"] footer {
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .footer-link {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .footer-link:hover {
+  color: var(--accent) !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
 /* --- Pricing Module Tabs Hover System --- */
 .pricing-module-tab {
   position: relative;
@@ -820,11 +836,11 @@ input[type="submit"]:active {
 
 .pricing-module-tab:hover {
   z-index: 10;
-  background: rgba(99, 102, 241, 0.14) !important;
-  border-color: rgba(99, 102, 241, 0.6) !important;
+  background: var(--accent-glow) !important;
+  border-color: var(--accent) !important;
   color: #ffffff !important;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3) !important;
+  box-shadow: 0 6px 20px var(--accent-glow) !important;
 }
 
 .pricing-module-tab.active {
@@ -832,16 +848,16 @@ input[type="submit"]:active {
   background: var(--accent) !important;
   color: #ffffff !important;
   border-color: var(--accent) !important;
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 6px 20px var(--accent-glow) !important;
   transform: translateY(-2px);
 }
 
 .pricing-module-tab.active:hover {
   z-index: 10;
-  background: #5558e6 !important;
-  border-color: #5558e6 !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5) !important;
+  box-shadow: 0 8px 24px var(--accent-glow) !important;
 }
 
 /* ==========================================================================
@@ -850,22 +866,154 @@ input[type="submit"]:active {
 
 /* Nền Pattern chấm bi tinh tế */
 .bg-pattern {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-image: radial-gradient(var(--accent-glow) 1px, transparent 1px);
   background-size: 32px 32px;
   position: fixed;
   inset: 0;
   z-index: -2;
-  opacity: 0.4;
+  opacity: 0.35;
   pointer-events: none;
 }
 
-/* Đèn nền (Glow) */
-.glow-circle {
+/* 4-Season Dynamic Ambient Background Layers & Particle Engine */
+.season-backdrop {
   position: fixed;
-  border-radius: 50%;
-  filter: blur(120px);
-  z-index: -1;
+  inset: 0;
+  z-index: 1;
   pointer-events: none;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Custom Background Image Layer */
+.custom-bg-image-layer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  z-index: 2;
+  opacity: 0.85;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.custom-bg-image-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(12, 10, 9, 0.25) 0%, rgba(12, 10, 9, 0.75) 100%);
+  pointer-events: none;
+}
+
+[data-theme="light"] .custom-bg-image-layer {
+  opacity: 0.65;
+}
+
+/* Autumn Season Background (Amber Gold) */
+[data-season="autumn"] .season-backdrop,
+.autumn-season-bg {
+  background: 
+    radial-gradient(ellipse at 50% -10%, var(--accent-glow) 0%, rgba(217, 119, 6, 0.15) 45%, var(--bg-primary) 85%),
+    radial-gradient(circle at 15% 45%, var(--accent-glow) 0%, transparent 45%),
+    radial-gradient(circle at 85% 75%, var(--accent-glow) 0%, transparent 45%);
+}
+
+/* Spring Season Background (Cherry Blossom Pink) */
+[data-season="spring"] .season-backdrop {
+  background: 
+    radial-gradient(ellipse at 50% -10%, rgba(236, 72, 153, 0.3) 0%, rgba(219, 39, 119, 0.15) 45%, var(--bg-primary) 85%),
+    radial-gradient(circle at 15% 45%, rgba(244, 114, 182, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 85% 75%, rgba(236, 72, 153, 0.12) 0%, transparent 45%);
+}
+
+/* Summer Season Background (Cyan Ocean) */
+[data-season="summer"] .season-backdrop {
+  background: 
+    radial-gradient(ellipse at 50% -10%, rgba(6, 182, 212, 0.3) 0%, rgba(14, 165, 233, 0.15) 45%, var(--bg-primary) 85%),
+    radial-gradient(circle at 15% 45%, rgba(34, 211, 238, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 85% 75%, rgba(6, 182, 212, 0.12) 0%, transparent 45%);
+}
+
+/* Winter Season Background (Frost Ice Blue) */
+[data-season="winter"] .season-backdrop {
+  background: 
+    radial-gradient(ellipse at 50% -10%, rgba(59, 130, 246, 0.3) 0%, rgba(99, 102, 241, 0.15) 45%, var(--bg-primary) 85%),
+    radial-gradient(circle at 15% 45%, rgba(147, 197, 253, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 85% 75%, rgba(59, 130, 246, 0.12) 0%, transparent 45%);
+}
+
+/* High-Tech Grid Matrix Background Overlay */
+.tech-grid-pattern {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, var(--accent-glow) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--accent-glow) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.15;
+}
+
+/* Floating Seasonal Particles Engine */
+.season-particles-container {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.seasonal-particle {
+  position: absolute;
+  top: -40px;
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  opacity: 0.45;
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+  animation: seasonalParticleDrift 18s linear infinite;
+}
+
+/* Autumn Leaf Shape */
+[data-season="autumn"] .seasonal-particle {
+  border-radius: 2px 12px 2px 12px;
+}
+/* Spring Blossom Shape */
+[data-season="spring"] .seasonal-particle {
+  background: #f472b6;
+  border-radius: 12px 2px 12px 2px;
+}
+/* Summer Wave Shape */
+[data-season="summer"] .seasonal-particle {
+  background: #22d3ee;
+  border-radius: 50%;
+}
+/* Winter Snowflake Shape */
+[data-season="winter"] .seasonal-particle {
+  background: #93c5fd;
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+
+@keyframes seasonalParticleDrift {
+  0% {
+    transform: translateY(0) rotate(0deg) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(105vh) rotate(540deg) translateX(140px);
+    opacity: 0;
+  }
 }
 
 /* Thanh Nav lơ lửng - Hiệu ứng Liquid Glass */
@@ -884,7 +1032,7 @@ input[type="submit"]:active {
   background: linear-gradient(135deg, rgba(40, 36, 32, 0.6) 0%, rgba(18, 16, 14, 0.85) 100%);
   backdrop-filter: blur(40px) saturate(160%);
   -webkit-backdrop-filter: blur(40px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-color);
   border-top: 1px solid rgba(255, 255, 255, 0.35);
   border-left: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 9999px;
@@ -892,15 +1040,24 @@ input[type="submit"]:active {
     0 30px 60px -10px rgba(0, 0, 0, 0.6), 
     inset 0 2px 20px rgba(255, 255, 255, 0.05),
     inset 0 -1px 0 rgba(0, 0, 0, 0.5);
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+  gap: 12px;
   position: relative;
-  overflow: visible !important;
+  overflow: hidden !important; /* CRITICAL FIX: Clip skewed shine line to round navbar bounds */
 }
 
-/* Hiệu ứng vệt sáng lướt qua của liquid glass */
+[data-theme="light"] .apple-nav {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 244, 0.96) 100%);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 0 20px var(--accent-glow);
+}
+
+/* Hiệu ứng vệt sáng lướt qua của liquid glass - Clipped strictly with round navbar */
 .apple-nav::before {
   content: '';
   position: absolute;
@@ -908,11 +1065,12 @@ input[type="submit"]:active {
   left: -150%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
   transform: skewX(-20deg);
   animation: liquid-shine 8s infinite;
   pointer-events: none;
   border-radius: 9999px;
+  clip-path: inset(0 round 9999px); /* CRITICAL FIX: Zero sharp square edges */
   z-index: 0;
 }
 
@@ -925,17 +1083,19 @@ input[type="submit"]:active {
 .apple-nav > * {
   position: relative;
   z-index: 10;
+  flex-shrink: 0;
 }
 
-/* Header Nav Items - Sleek Autumn Amber Apple Liquid Glass Pill */
+/* Header Nav Items - Sleek Apple Liquid Glass Pill */
 .header-nav-item {
   position: relative;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
-  color: #a8a29e;
-  padding: 8px 18px;
+  color: var(--text-secondary);
+  padding: 6px 14px;
   border-radius: 9999px;
   cursor: pointer;
+  white-space: nowrap !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid transparent;
   user-select: none;
@@ -943,49 +1103,89 @@ input[type="submit"]:active {
 
 /* Hover Effect: Soft translucent frosted glow */
 .header-nav-item:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
+  border-color: var(--border-color);
   transform: translateY(-1px);
 }
 
-/* Active State: Clean Frosted Amber Liquid Glass Pill */
+/* Active State: Dynamic Theme Amber/Gold Liquid Glass Pill */
 .header-nav-item.active {
   color: #ffffff !important;
   font-weight: 700 !important;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0.18) 100%) !important;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(253, 230, 138, 0.4) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid var(--accent) !important;
   box-shadow: 
-    0 4px 16px -2px rgba(245, 158, 11, 0.35),
+    0 4px 18px var(--accent-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
   transform: translateY(-1px);
 }
 
-/* Pressed / Click Effect: Subtle Apple spring press */
-.header-nav-item:active {
-  transform: scale(0.96) !important;
-  opacity: 0.9 !important;
-  transition: all 0.1s ease !important;
+/* Light Mode Text Contrast & Form Item Overrides */
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-elevated: #ffffff;
+  --border-color: #cbd5e1;
+  --border-light: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
 }
 
-/* Nút Tải xuống Chính (Windows - Autumn Amber/Gold Gradient) */
-.btn-primary-download {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  box-shadow: 0 4px 16px 0 rgba(245, 158, 11, 0.4);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+[data-theme="light"] .dropdown-item {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .dropdown-item:hover {
+  background: #f1f5f9 !important;
+  color: var(--accent) !important;
+}
+
+[data-theme="light"] .pricing-module-tab {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .pricing-module-tab:hover {
+  background: #f1f5f9 !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+[data-theme="light"] .pricing-module-tab.active {
+  background: var(--accent) !important;
   color: #ffffff !important;
-}
-.btn-primary-download:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.55);
-  background: linear-gradient(135deg, #fbbf24, #b45309);
+  border-color: var(--accent) !important;
 }
 
-/* Testimonial Marquee Column Animations (Continuous Infinite Scroll) */
+/* Continuous Infinite Scroll Marquee Columns & Blur Mask */
+.marquee-mask-container {
+  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
+  height: 440px;
+  overflow: hidden;
+  position: relative;
+}
+
+.marquee-col-down {
+  animation: marquee-down 24s linear infinite !important;
+}
+
+.marquee-col-up {
+  animation: marquee-up 24s linear infinite !important;
+}
+
+/* Ensure Continuous Loop Never Stops On Hover */
+.marquee-col-down:hover, .marquee-col-up:hover {
+  animation-play-state: running !important;
+}
+
 @keyframes marquee-down {
   0% { transform: translateY(0); }
   100% { transform: translateY(-50%); }
@@ -996,32 +1196,48 @@ input[type="submit"]:active {
   100% { transform: translateY(0); }
 }
 
-.marquee-col-down {
-  animation: marquee-down 22s linear infinite;
+/* Mobile & Tablet Responsive Layout Media Queries */
+@media (max-width: 768px) {
+  .apple-nav-wrapper {
+    width: 96%;
+    top: 0.75rem;
+  }
+  .apple-nav {
+    padding: 0.6rem 1rem;
+  }
+  .apple-nav nav {
+    display: none !important;
+  }
 }
 
-.marquee-col-up {
-  animation: marquee-up 22s linear infinite;
+/* Nút Tải xuống Chính (Windows - Dynamic Season Accent Gradient) */
+.btn-primary-download {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
+  box-shadow: 0 6px 20px var(--accent-glow) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  color: #ffffff !important;
+}
+.btn-primary-download:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 10px 30px var(--accent-glow) !important;
+  filter: brightness(1.1) !important;
 }
 
-.marquee-mask-container {
-  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-}
-
-/* Nút Tải xuống Phụ (macOS - Glass) */
+/* Nút Tải xuống Phụ (macOS - Glass Accent Border) */
 .btn-secondary-download {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  color: #e2e8f0 !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  backdrop-filter: blur(12px) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  color: var(--text-primary) !important;
 }
 .btn-secondary-download:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-3px);
-  color: #ffffff !important;
+  background: var(--bg-card-hover) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 6px 20px var(--accent-glow) !important;
 }
 
 /* Nút Đăng nhập & Đăng ký Header */
@@ -1032,25 +1248,32 @@ input[type="submit"]:active {
   color: var(--text-primary);
   font-size: 14px;
   font-weight: 600;
-  border: none;
+  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 .btn-header-login:hover {
-  color: #ffffff;
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-glow);
 }
 
 .btn-header-register {
   padding: 8px 20px;
   border-radius: 9999px;
-  background: #ffffff;
-  color: #0f172a;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  color: #ffffff !important;
   font-size: 14px;
   font-weight: 700;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 16px var(--accent-glow);
   cursor: pointer;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
+}
+.btn-header-register:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px var(--accent-glow);
+  filter: brightness(1.1);
 }
 .btn-header-register:hover {
   background: #f1f5f9;

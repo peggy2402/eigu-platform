@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Sparkles, Scissors, Clapperboard, RefreshCw, TrendingUp, DownloadCloud,
   ArrowRight, Check, Shield, Zap, Play, HelpCircle, Mail, Globe, Wallet,
-  User, Link as LinkIcon, Tag, History, BookOpen, ChevronRight, X, AlertCircle, ShoppingCart, Star, Gift
+  User, Link as LinkIcon, Tag, History, BookOpen, ChevronRight, ChevronDown, X, AlertCircle, ShoppingCart, Star, Gift
 } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
@@ -20,7 +20,8 @@ import GuideView from '../components/guide/GuideView';
 import ProfileView from '../components/profile/ProfileView';
 import PricingModuleTabs from '../components/pricing/PricingModuleTabs';
 import PricingGrid from '../components/pricing/PricingGrid';
-import { pricingApi } from '../lib/api';
+import EventPopupModal from '../components/event/EventPopupModal';
+import { pricingApi, themeEventApi, contactApi } from '../lib/api';
 import type { PricingModuleDto, PricingTierDto } from '@eigu-platform/shared';
 
 const TESTIMONIALS_COL1 = [
@@ -278,6 +279,17 @@ export default function Home() {
   // Selected Checkout State
   const [selectedCheckout, setSelectedCheckout] = useState<{ tier: PricingTierDto; moduleSlug: string } | null>(null);
 
+  // FAQ Accordion State
+  const [openFaqId, setOpenFaqId] = useState<number | null>(null);
+
+  // Contact Form Real Submission State
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [contactLoading, setContactLoading] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState<string | null>(null);
+  const [contactError, setContactError] = useState<string | null>(null);
+
   // Fetch Pricing Data
   const fetchPricing = useCallback(async () => {
     setPricingLoading(true);
@@ -319,6 +331,44 @@ export default function Home() {
     setEventPopupOpen(false);
   };
 
+  // Theme & Background Config State
+  const [themeConfig, setThemeConfig] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadTheme() {
+      try {
+        const res = await themeEventApi.getConfig();
+        if (res && res.success && res.data) {
+          const cfg = res.data;
+          setThemeConfig(cfg);
+          if (cfg.season) {
+            document.documentElement.setAttribute('data-season', cfg.season);
+          }
+          if (cfg.bgStyle) {
+            document.documentElement.setAttribute('data-bg-style', cfg.bgStyle);
+          }
+          if (cfg.primaryColor) {
+            document.documentElement.style.setProperty('--accent', cfg.primaryColor);
+            document.documentElement.style.setProperty('--accent-glow', `${cfg.primaryColor}33`);
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi nạp Theme Config:', e);
+      }
+    }
+    loadTheme();
+  }, []);
+
+  const resolveBgImage = (url?: string): string => {
+    const fallback = 'https://genzshop.vn/assets/images/background.png';
+    if (!url) return fallback;
+    const clean = url.trim();
+    if (clean.includes('motionelements.com') || clean.includes('stock-image') || (!clean.match(/\.(jpeg|jpg|gif|png|webp|svg)/i) && !clean.includes('genzshop') && !clean.includes('unsplash') && !clean.includes('cdn') && !clean.includes('static'))) {
+      return fallback;
+    }
+    return clean;
+  };
+
   useEffect(() => {
     fetchPricing();
   }, [fetchPricing]);
@@ -349,8 +399,41 @@ export default function Home() {
     );
   }
 
+  const currentBgStyle = themeConfig?.bgStyle || 'particles';
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)' }}>
+    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Strict 4-Mode Seasonal Background Engine */}
+      {currentBgStyle === 'custom-image' ? (
+        <div
+          className="custom-bg-image-layer"
+          style={{ backgroundImage: `url("${resolveBgImage(themeConfig?.bgImageUrl)}")` }}
+        />
+      ) : currentBgStyle === 'tech-grid' ? (
+        <>
+          <div className="season-backdrop" />
+          <div className="tech-grid-pattern" style={{ opacity: 0.35 }} />
+        </>
+      ) : currentBgStyle === 'aurora-glow' ? (
+        <div className="season-backdrop" />
+      ) : (
+        /* Default Mode: 'particles' (Hạt Động Bốn Mùa) */
+        <>
+          <div className="season-backdrop" />
+          <div className="tech-grid-pattern" style={{ opacity: 0.12 }} />
+          <div className="season-particles-container">
+            <div className="seasonal-particle" style={{ left: '8%', animationDelay: '0s', animationDuration: '18s' }} />
+            <div className="seasonal-particle" style={{ left: '22%', animationDelay: '4s', animationDuration: '22s' }} />
+            <div className="seasonal-particle" style={{ left: '42%', animationDelay: '2s', animationDuration: '16s' }} />
+            <div className="seasonal-particle" style={{ left: '62%', animationDelay: '7s', animationDuration: '20s' }} />
+            <div className="seasonal-particle" style={{ left: '82%', animationDelay: '3s', animationDuration: '24s' }} />
+          </div>
+        </>
+      )}
+
+      {/* Event Popup Dialog */}
+      <EventPopupModal onNavigatePricing={() => handleNavigate('/pricing')} />
+
       {/* Global Header */}
       <Header
         activePath={activePath}
@@ -376,28 +459,23 @@ export default function Home() {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <main style={{ flex: 1 }}>
+      <main style={{ flex: 1, position: 'relative', zIndex: 10 }}>
         {/* ==================== 1. LANDING PAGE HOME (/) ==================== */}
         {activePath === '/' && (
           <div style={{ position: 'relative', overflow: 'hidden', paddingBottom: 60 }}>
-            {/* Background pattern & Ambient Glows (Blue & Sky Blue) */}
-            <div className="bg-pattern" />
-            <div className="glow-circle" style={{ width: 600, height: 600, background: 'rgba(59, 130, 246, 0.2)', top: -200, left: -200 }} />
-            <div className="glow-circle" style={{ width: 500, height: 500, background: 'rgba(14, 165, 233, 0.15)', bottom: -100, right: -100 }} />
-
             {/* Hero Section */}
-            <section style={{ padding: '60px 24px 40px', maxWidth: 1240, margin: '0 auto' }}>
+            <section style={{ padding: '60px 24px 40px', maxWidth: 1240, margin: '0 auto', position: 'relative', zIndex: 10 }}>
               <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 48 }}>
                 {/* Left Column (Text & Downloads) */}
                 <div style={{ flex: '1 1 500px', maxWidth: 620 }}>
                   {/* Version Badge */}
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '6px 14px', borderRadius: 20, background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', backdropFilter: 'blur(10px)', marginBottom: 28 }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '6px 14px', borderRadius: 20, background: 'var(--accent-glow)', border: '1px solid var(--accent)', backdropFilter: 'blur(10px)', marginBottom: 28 }}>
                     <span style={{ position: 'relative', display: 'flex', width: 10, height: 10 }}>
-                      <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#f59e0b', opacity: 0.75, animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
-                      <span style={{ position: 'relative', borderRadius: '50%', width: 10, height: 10, background: '#f59e0b' }} />
+                      <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'var(--accent)', opacity: 0.75, animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
+                      <span style={{ position: 'relative', borderRadius: '50%', width: 10, height: 10, background: 'var(--accent)' }} />
                     </span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>
-                      {language === 'en' ? 'Version 3.0 Live Engine Available' : 'Phiên bản mới 3.0 đã ra mắt'}
+                      {themeConfig?.badgeText || (language === 'en' ? 'Version 3.0 Live Engine Available' : 'Phiên bản mới 3.0 đã ra mắt')}
                     </span>
                   </div>
 
@@ -564,7 +642,7 @@ export default function Home() {
                   <img
                     src="https://static.9proxy-cdn.net/media/assets/web-images/images/home/airplanes.webp"
                     alt="Airplanes Illustration"
-                    style={{ maxWidth: 100, width: '100%', height: 'auto', objectFit: 'contain', margin: '0 auto', display: 'block', filter: 'drop-shadow(0 10px 20px rgba(245, 158, 11, 0.25))' }}
+                    style={{ maxWidth: 100, width: '100%', height: 'auto', objectFit: 'contain', margin: '0 auto', display: 'block', filter: 'drop-shadow(0 10px 20px var(--accent-glow))' }}
                   />
                 </div>
                 <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 12, color: 'var(--text-primary)' }}>{t('feat_title')}</h2>
@@ -581,7 +659,7 @@ export default function Home() {
                   { icon: <DownloadCloud size={24} />, title: language === 'en' ? '6. Bulk Downloader' : '6. Tải video hàng loạt', desc: language === 'en' ? 'Download entire TikTok/YouTube channels without watermark logos at ultra high speed.' : 'Tải hàng loạt trọn bộ Kênh TikTok / YouTube không logo watermark tốc độ cực nhanh.' },
                 ].map((item, idx) => (
                   <div key={idx} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 28, transition: 'all 0.2s' }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                       {item.icon}
                     </div>
                     <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 10, color: 'var(--text-primary)' }}>{item.title}</h3>
@@ -595,7 +673,7 @@ export default function Home() {
             <section style={{ padding: '30px 24px 70px', maxWidth: 1240, margin: '0 auto' }}>
               <h2 style={{ fontSize: 'min(2.25rem, 6vw)', fontWeight: 800, textAlign: 'center', marginBottom: 36, color: 'var(--text-primary)' }}>
                 {language === 'en' ? 'Hundreds of thousands of creators trust ' : 'Hàng trăm nghìn người dùng tin tưởng lựa chọn '}
-                <span style={{ color: '#f59e0b', fontWeight: 900 }}>EIGU Platform</span>
+                <span style={{ color: 'var(--accent)', fontWeight: 900 }}>EIGU Platform</span>
               </h2>
 
               <div className="marquee-mask-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, height: 420, overflow: 'hidden', position: 'relative' }}>
@@ -703,33 +781,109 @@ export default function Home() {
 
         {/* ==================== 3. ABOUT PAGE (/about) ==================== */}
         {activePath === '/about' && (
-          <section style={{ padding: '60px 24px', maxWidth: 900, margin: '0 auto' }}>
-            <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 20, textAlign: 'center' }}>
-              {language === 'en' ? 'About EIGU Platform' : 'Giới Thiệu Về EIGU Platform'}
-            </h1>
-            <p style={{ fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: 24 }}>
-              {language === 'en'
-                ? 'EIGU Platform is an all-in-one SaaS automation engine purpose-built for MMO creators, video reuploaders, and short-form content publishers in Europe, US, and Asia.'
-                : 'EIGU Platform là giải pháp SaaS toàn diện được thiết kế chuyên biệt cho cộng đồng làm MMO, Reup và Sáng tạo nội dung video ngắn tại thị trường Châu Âu, Mỹ và Châu Á.'}
-            </p>
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 32, marginBottom: 32 }}>
-              <h3 style={{ fontSize: 20, marginBottom: 16 }}>
-                {language === 'en' ? 'Core Architecture Breakthroughs' : 'Kiến trúc Đột phá'}
-              </h3>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14, fontSize: 15 }}>
-                <li style={{ display: 'flex', gap: 12 }}>
-                  <Zap style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                  <strong>Desktop Heavy Worker Engine:</strong> {language === 'en' ? 'High-efficiency hardware FFmpeg GPU rendering right on your workstation.' : 'Xử lý render FFmpeg GPU phần碎 cứng mượt mà ngay trên máy trạm của bạn.'}
-                </li>
-                <li style={{ display: 'flex', gap: 12 }}>
-                  <Shield style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                  <strong>Puppeteer Anti-Detect Stealth:</strong> {language === 'en' ? 'Browser fingerprint spoofing, SOCKS5 proxy rotation, and Content ID bypass.' : 'Giả lập vân tay trình duyệt, proxy SOCKS5 chống gậy bản quyền.'}
-                </li>
-                <li style={{ display: 'flex', gap: 12 }}>
-                  <Globe style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                  <strong>Supabase & NestJS Cloud Gateway:</strong> {language === 'en' ? 'Real-time state sync, telemetry tracking, and dynamic pricing management.' : 'Quản lý thời gian thực, đồng bộ telemetry và dữ liệu bảng giá linh hoạt.'}
-                </li>
-              </ul>
+          <section style={{ padding: '60px 24px 80px', maxWidth: 1040, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+            {/* Main Header */}
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 20, background: 'var(--accent-glow)', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: 13, fontWeight: 700, marginBottom: 20 }}>
+                <Sparkles size={16} />
+                <span>{language === 'en' ? 'About EIGU Platform' : 'Về Chúng Tôi'}</span>
+              </div>
+              <h1 style={{ fontSize: 'min(3rem, 8vw)', fontWeight: 900, marginBottom: 20, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                {language === 'en' ? 'About EIGU Platform' : 'Giới Thiệu Về EIGU Platform'}
+              </h1>
+              <p style={{ fontSize: 17, color: 'var(--text-secondary)', lineHeight: 1.8, maxWidth: 840, margin: '0 auto', fontWeight: 500 }}>
+                {language === 'en'
+                  ? 'EIGU Platform is a comprehensive SaaS solution purpose-built for MMO creators, video reuploaders, and short-form content publishers in Europe, US, and Asia. EIGU has evolved into a 6-module synchronized platform — from clipping and AI generation to anti-detect copyright shield and niche discovery.'
+                  : 'EIGU Platform là giải pháp SaaS toàn diện, được xây dựng dành riêng cho cộng đồng làm MMO, Reup và Sáng tạo nội dung video ngắn tại thị trường Châu Âu, Mỹ và Châu Á. Từ một công cụ tự động hoá đơn lẻ, EIGU đã phát triển thành nền tảng 6 mô-đun hoạt động đồng bộ — từ cắt dựng, tạo video AI, đến chống gậy bản quyền và khai thác ngách thị trường — giúp người sáng tạo tiết kiệm hàng giờ mỗi ngày.'}
+              </p>
+            </div>
+
+            {/* Mission Card */}
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '32px 36px', marginBottom: 40, boxShadow: '0 12px 32px rgba(0,0,0,0.2)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: 4, height: '100%', background: 'var(--accent)' }} />
+              <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Sparkles size={22} style={{ color: 'var(--accent)' }} />
+                <span>{language === 'en' ? 'Our Mission' : 'Sứ Mệnh'}</span>
+              </h2>
+              <p style={{ fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0, fontWeight: 500 }}>
+                {language === 'en'
+                  ? 'Automating repetitive, time-consuming tasks in content production so users can focus on what matters most: creativity and channel scaling.'
+                  : 'Tự động hoá những công việc lặp lại, tốn thời gian nhất trong quy trình sản xuất nội dung, để người dùng tập trung vào điều quan trọng hơn: sáng tạo và mở rộng quy mô kênh.'}
+              </p>
+            </div>
+
+            {/* Architecture Breakthroughs */}
+            <div style={{ marginBottom: 48 }}>
+              <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 24, textAlign: 'center' }}>
+                {language === 'en' ? 'Breakthrough Architecture' : 'Kiến Trúc Đột Phá'}
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+                {/* Engine Card 1 */}
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 28, transition: 'all 0.25s' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Zap size={24} />
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>
+                    Desktop Heavy Worker Engine
+                  </h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
+                    {language === 'en'
+                      ? 'Hardware-accelerated FFmpeg GPU rendering right on your workstation — zero server dependence, zero queue limits.'
+                      : 'Xử lý render FFmpeg GPU tận dụng phần cứng, mượt mà ngay trên máy trạm của bạn — không phụ thuộc server, không giới hạn hàng chờ.'}
+                  </p>
+                </div>
+
+                {/* Engine Card 2 */}
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 28, transition: 'all 0.25s' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Shield size={24} />
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>
+                    Puppeteer Anti-Detect Stealth
+                  </h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
+                    {language === 'en'
+                      ? 'Browser fingerprint spoofing, SOCKS5 proxy rotation to bypass detection and mitigate copyright risks across multi-account ops.'
+                      : 'Giả lập vân tay trình duyệt, xoay vòng Proxy SOCKS5, giúp né tránh phát hiện và hạn chế rủi ro bản quyền khi vận hành đa tài khoản.'}
+                  </p>
+                </div>
+
+                {/* Engine Card 3 */}
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 28, transition: 'all 0.25s' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Globe size={24} />
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>
+                    Supabase & NestJS Cloud Gateway
+                  </h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
+                    {language === 'en'
+                      ? 'Real-time data sync, telemetry tracking, and dynamic pricing management — Desktop App and Website stay in sync instantly.'
+                      : 'Đồng bộ dữ liệu thời gian thực, quản lý telemetry và bảng giá linh hoạt — Desktop App và Website luôn khớp dữ liệu tức thì.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Metrics Numbers */}
+            <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '36px 28px', textAlign: 'center' }}>
+              <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 28 }}>
+                {language === 'en' ? 'Impressive Metrics' : 'Con Số Ấn Tượng'}
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
+                <div>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>6 Mô-đun</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>Công cụ chuyên sâu hoạt động độc lập</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>100,000+</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>Người dùng tin tưởng lựa chọn</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>24/7</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>Hỗ trợ dành cho gói Team & Enterprise</div>
+                </div>
+              </div>
             </div>
           </section>
         )}
@@ -770,72 +924,358 @@ export default function Home() {
 
         {/* ==================== 5. FAQ PAGE (/faq) ==================== */}
         {activePath === '/faq' && (
-          <section style={{ padding: '60px 24px', maxWidth: 800, margin: '0 auto' }}>
-            <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 32, textAlign: 'center' }}>
+          <section style={{ padding: '60px 24px 80px', maxWidth: 800, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+            <h1 style={{ fontSize: 'min(2.5rem, 7vw)', fontWeight: 900, marginBottom: 12, textAlign: 'center', color: 'var(--text-primary)' }}>
               {language === 'en' ? 'Frequently Asked Questions (FAQ)' : 'Câu Hỏi Thường Gặp (FAQ)'}
             </h1>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {[
-                {
-                  q: language === 'en' ? '1. Can I purchase individual modules separately?' : '1. Tôi có thể mua lẻ từng mô-đun công cụ không?',
-                  a: language === 'en' ? 'Yes! EIGU Platform offers independent module subscriptions. Purchase only what you need.' : 'Có! EIGU Platform bán độc lập từng mô-đun. Bạn chỉ cần mua đúng mô-đun mình cần sử dụng.'
-                },
-                {
-                  q: language === 'en' ? '2. Does the 7-day Trial cost anything?' : '2. Gói Trial 7 ngày có mất phí không?',
-                  a: language === 'en' ? 'Completely FREE! Access all features of the Trial plan without any credit card required.' : 'Hoàn toàn không! Bạn có thể trải nghiệm miễn phí 7 ngày đầy đủ tính năng của gói Trial.'
-                },
-                {
-                  q: language === 'en' ? '3. Do pricing tiers include VAT tax?' : '3. Giá các gói đã bao gồm thuế VAT chưa?',
-                  a: language === 'en' ? 'All prices displayed on the website are inclusive of VAT tax.' : 'Tất cả mức giá hiển thị trên website đều đã bao gồm thuế VAT.'
-                },
-                {
-                  q: language === 'en' ? '4. Can I upgrade from Pro to Team plan?' : '4. Tôi có thể nâng cấp từ gói Pro lên Team không?',
-                  a: language === 'en' ? 'Yes! Upgrade anytime seamlessly through your User Portal.' : 'Có! Bạn có thể chọn nâng cấp bất cứ lúc nào trong User Portal.'
-                },
-              ].map((item, idx) => (
-                <div key={idx} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', padding: 20 }}>
-                  <h4 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>{item.q}</h4>
-                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>{item.a}</p>
+            <p style={{ fontSize: 15, color: 'var(--text-secondary)', textAlign: 'center', marginBottom: 36, fontWeight: 500 }}>
+              {language === 'en' ? 'Find answers to common questions about EIGU Platform plans, payments, usage, and support.' : 'Giải đáp các thắc mắc phổ biến về gói dịch vụ, thanh toán, hạn mức sử dụng và hỗ trợ kỹ thuật.'}
+            </p>
+
+            {[
+              {
+                category: language === 'en' ? 'Packages & Services' : 'Về Gói Dịch Vụ',
+                items: [
+                  {
+                    id: 1,
+                    q: language === 'en' ? '1. Can I purchase individual modules separately?' : '1. Tôi có thể mua lẻ từng mô-đun công cụ không?',
+                    a: language === 'en'
+                      ? 'Yes! EIGU Platform offers independent module subscriptions (AI Video Generator, Auto Clipper, Reup Engine, Niche Finder...). You only need to buy the specific module you need without purchasing a full bundle.'
+                      : 'Có! EIGU Platform bán độc lập từng mô-đun (Tạo video AI, Tự động cắt video, Reup, Tìm ngách hot...). Bạn chỉ cần mua đúng mô-đun mình cần sử dụng, không bắt buộc mua trọn gói.'
+                  },
+                  {
+                    id: 2,
+                    q: language === 'en' ? '2. Does the 7-day Trial plan cost anything?' : '2. Gói Trial 7 ngày có mất phí không?',
+                    a: language === 'en'
+                      ? 'Completely FREE! You can experience all features for 7 days without entering any credit card details.'
+                      : 'Hoàn toàn không! Bạn có thể trải nghiệm miễn phí 7 ngày, không cần nhập thẻ thanh toán.'
+                  },
+                  {
+                    id: 3,
+                    q: language === 'en' ? '3. Can I upgrade from Basic/Pro to Team or Enterprise plans?' : '3. Tôi có thể nâng cấp từ gói Basic/Pro lên Team hoặc Enterprise không?',
+                    a: language === 'en'
+                      ? 'Yes! You can upgrade anytime right inside your User Portal, and the system will automatically calculate the prorated difference for your remaining subscription.'
+                      : 'Có! Bạn có thể nâng cấp bất cứ lúc nào ngay trong User Portal, hệ thống sẽ tự tính phần chênh lệch còn lại của gói hiện tại.'
+                  },
+                  {
+                    id: 4,
+                    q: language === 'en' ? '4. Are displayed plan prices inclusive of VAT tax?' : '4. Giá các gói đã bao gồm thuế VAT chưa?',
+                    a: language === 'en'
+                      ? 'All prices displayed on the website are inclusive of VAT tax, with no hidden fees or extra surcharges at checkout.'
+                      : 'Tất cả mức giá hiển thị trên website đều đã bao gồm thuế VAT, không phát sinh thêm phụ phí khi thanh toán.'
+                  }
+                ]
+              },
+              {
+                category: language === 'en' ? 'Payment & Refund Policy' : 'Về Thanh Toán & Hoàn Tiền',
+                items: [
+                  {
+                    id: 5,
+                    q: language === 'en' ? '5. Can I get a refund if I change my mind after purchasing?' : '5. Tôi có được hoàn tiền nếu đổi ý sau khi mua không?',
+                    a: language === 'en'
+                      ? 'Under EIGU\'s policy, we do not support refunds once a payment transaction is successful, including cases of accidental selection or no longer needing the service. Therefore, please try out our free 7-day Trial plan before upgrading to a paid plan.'
+                      : 'Theo chính sách của EIGU, chúng tôi không hỗ trợ hoàn tiền sau khi giao dịch thanh toán thành công, kể cả trong trường hợp chọn nhầm gói hoặc không còn nhu cầu sử dụng. Vì vậy, hãy dùng thử gói Trial 7 ngày miễn phí trước khi quyết định nâng cấp lên gói trả phí.'
+                  },
+                  {
+                    id: 6,
+                    q: language === 'en' ? '6. Which payment methods are supported by the system?' : '6. Hệ thống hỗ trợ những phương thức thanh toán nào?',
+                    a: language === 'en'
+                      ? 'EIGU supports various domestic payment gateways (SePay, VNPay, Momo...) and international gateways (Stripe, PayOS...), enabling fast and secure checkout.'
+                      : 'EIGU hỗ trợ đa dạng cổng thanh toán trong nước (SePay, VNPay, Momo...) và quốc tế (Stripe, PayOS...), giúp bạn thanh toán nhanh chóng và an toàn.'
+                  }
+                ]
+              },
+              {
+                category: language === 'en' ? 'Usage & Device Limits' : 'Về Sử Dụng & Thiết Bị',
+                items: [
+                  {
+                    id: 7,
+                    q: language === 'en' ? '7. How many devices can each subscription plan use?' : '7. Mỗi gói được phép dùng trên bao nhiêu máy?',
+                    a: language === 'en'
+                      ? 'Each plan has its own device limit (see details on the Pricing page). You are allowed to transfer your license when an old computer breaks down or is replaced, but you must notify our support team for verification before transferring.'
+                      : 'Mỗi gói có giới hạn số máy riêng (xem chi tiết tại trang Bảng giá). Bạn được phép chuyển đổi thiết bị khi máy cũ hư hỏng không thể sử dụng, nhưng cần thông báo với đội ngũ hỗ trợ để được xác nhận trước khi chuyển.'
+                  },
+                  {
+                    id: 8,
+                    q: language === 'en' ? '8. Will my account be banned if shared beyond allowed device limits?' : '8. Tài khoản của tôi có bị khoá nếu dùng chung vượt số máy quy định không?',
+                    a: language === 'en'
+                      ? 'Yes. Exceeding the maximum allowed device limit of your active subscription violates our Terms of Service and may result in temporary suspension or permanent ban without refund.'
+                      : 'Có. Việc sử dụng vượt quá số máy tối đa của gói đang đăng ký là vi phạm điều khoản sử dụng và có thể khiến tài khoản bị tạm ngưng hoặc khoá vĩnh viễn mà không được hoàn tiền.'
+                  }
+                ]
+              },
+              {
+                category: language === 'en' ? 'Support & Security' : 'Về Hỗ Trợ',
+                items: [
+                  {
+                    id: 9,
+                    q: language === 'en' ? '9. Where can I contact for technical support?' : '9. Tôi cần hỗ trợ kỹ thuật thì liên hệ ở đâu?',
+                    a: language === 'en'
+                      ? 'You can use the in-app Feedback / Bug Report feature, or reach out via Discord/Telegram/Email — the EIGU team provides 24/7 support for Team and Enterprise plans, and business-hours support for Basic/Pro plans.'
+                      : 'Bạn có thể dùng tính năng Góp ý / Báo lỗi ngay trong ứng dụng, hoặc liên hệ qua Discord/Telegram/Email — đội ngũ EIGU hỗ trợ 24/7 cho các gói Team và Enterprise, hỗ trợ trong giờ hành chính cho gói Basic/Pro.'
+                  },
+                  {
+                    id: 10,
+                    q: language === 'en' ? '10. Are my data and videos kept secure and confidential?' : '10. Dữ liệu và video của tôi có được bảo mật không?',
+                    a: language === 'en'
+                      ? 'Yes. All processed videos and images are stored locally on your machine and are never uploaded to EIGU servers unless explicitly shared. The system uses Puppeteer Anti-Detect and enterprise-grade Supabase security infrastructure to protect your account.'
+                      : 'Có. Video/ảnh xử lý được lưu cục bộ trên máy của bạn, không upload lên server EIGU trừ khi bạn chủ động chia sẻ. Hệ thống dùng Puppeteer Anti-Detect và hạ tầng Supabase đạt chuẩn bảo mật để bảo vệ tài khoản của bạn.'
+                  }
+                ]
+              }
+            ].map((group, groupIdx) => (
+              <div key={groupIdx} style={{ marginBottom: 28 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
+                  <span>{group.category}</span>
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {group.items.map(item => {
+                    const isOpen = openFaqId === item.id;
+                    return (
+                      <div
+                        key={item.id}
+                        style={{
+                          background: 'var(--bg-card)',
+                          border: isOpen ? '1px solid var(--accent)' : '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-lg)',
+                          overflow: 'hidden',
+                          transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                          boxShadow: isOpen ? '0 4px 20px var(--accent-glow)' : '0 2px 6px rgba(0,0,0,0.1)',
+                        }}
+                      >
+                        <button
+                          onClick={() => setOpenFaqId(prev => (prev === item.id ? null : item.id))}
+                          style={{
+                            width: '100%',
+                            padding: '16px 20px',
+                            background: 'transparent',
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 16,
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            color: isOpen ? 'var(--accent)' : 'var(--text-primary)',
+                            fontWeight: 700,
+                            fontSize: 15,
+                          }}
+                        >
+                          <span>{item.q}</span>
+                          <ChevronDown
+                            size={18}
+                            style={{
+                              flexShrink: 0,
+                              transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                              color: isOpen ? 'var(--accent)' : 'var(--text-muted)',
+                            }}
+                          />
+                        </button>
+
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateRows: isOpen ? '1fr' : '0fr',
+                            transition: 'grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                          }}
+                        >
+                          <div style={{ overflow: 'hidden' }}>
+                            <div style={{ padding: '0 20px 18px', color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.65, fontWeight: 500 }}>
+                              {item.a}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </section>
         )}
 
         {/* ==================== 6. CONTACT PAGE (/contact) ==================== */}
         {activePath === '/contact' && (
-          <section style={{ padding: '60px 24px', maxWidth: 600, margin: '0 auto' }}>
-            <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 12, textAlign: 'center' }}>
-              {language === 'en' ? 'Contact Support Team' : 'Liên Hệ Với Chúng Tôi'}
-            </h1>
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: 32 }}>
-              {language === 'en' ? 'EIGU Platform support team is available 24/7 to assist you' : 'Đội ngũ EIGU Platform luôn sẵn sàng hỗ trợ bạn 24/7'}
-            </p>
+          <section style={{ padding: '60px 24px 80px', maxWidth: 1040, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 44 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 20, background: 'var(--accent-glow)', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: 13, fontWeight: 700, marginBottom: 16 }}>
+                <Mail size={16} />
+                <span>{language === 'en' ? 'Support & Inquiries' : 'Hỗ Trợ & Liên Hệ'}</span>
+              </div>
+              <h1 style={{ fontSize: 'min(2.75rem, 7vw)', fontWeight: 900, marginBottom: 12, textAlign: 'center', color: 'var(--text-primary)' }}>
+                {language === 'en' ? 'Contact Support Team' : 'Liên Hệ Với Chúng Tôi'}
+              </h1>
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 16, fontWeight: 500, maxWidth: 640, margin: '0 auto' }}>
+                {language === 'en'
+                  ? 'EIGU Platform support team is available 24/7 to assist with your technical questions and plan custom requests.'
+                  : 'Đội ngũ EIGU Platform luôn sẵn sàng đồng hành và hỗ trợ giải đáp mọi thắc mắc của bạn 24/7.'}
+              </p>
+            </div>
 
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 32 }}>
-              <form onSubmit={e => { e.preventDefault(); alert(language === 'en' ? 'Thank you for reaching out! We will reply shortly.' : 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất.'); }}>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: 'var(--text-secondary)' }}>
-                    {language === 'en' ? 'Full Name' : 'Họ và tên'}
-                  </label>
-                  <input type="text" placeholder={language === 'en' ? 'John Doe' : 'Nguyễn Văn A'} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} required />
+            {/* 2-Column Layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 32, alignItems: 'start' }}>
+              {/* Left Column: Direct Support Channels */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {/* Channel 1: Email */}
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 24, display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Mail size={22} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 4 }}>
+                      {language === 'en' ? 'Email Support' : 'Email Hỗ Trợ Kỹ Thuật'}
+                    </h3>
+                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6, fontWeight: 500 }}>
+                      support@eigu.vn
+                    </p>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                      {language === 'en' ? 'Response within 1-2 business hours' : 'Phản hồi trong vòng 1-2 giờ làm việc'}
+                    </span>
+                  </div>
                 </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: 'var(--text-secondary)' }}>
-                    {language === 'en' ? 'Email Address' : 'Email liên hệ'}
-                  </label>
-                  <input type="email" placeholder="example@gmail.com" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }} required />
+
+                {/* Channel 2: Live Community & Telegram */}
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 24, display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Globe size={22} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 4 }}>
+                      {language === 'en' ? 'Community Telegram & Discord' : 'Cộng Đồng Telegram & Discord'}
+                    </h3>
+                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 6, fontWeight: 500 }}>
+                      t.me/eigu_platform
+                    </p>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                      {language === 'en' ? 'Join 100k+ MMO creators for tips & updates' : 'Trao đổi cùng 100,000+ nhà sáng tạo nội dung'}
+                    </span>
+                  </div>
                 </div>
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: 'var(--text-secondary)' }}>
-                    {language === 'en' ? 'Support Inquiry' : 'Nội dung cần hỗ trợ'}
-                  </label>
-                  <textarea rows={4} placeholder={language === 'en' ? 'Describe your question or issue...' : 'Nhập câu hỏi hoặc yêu cầu hỗ trợ...'} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', resize: 'vertical' }} required />
+
+                {/* Channel 3: Working Hours */}
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 24, display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Zap size={22} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 4 }}>
+                      {language === 'en' ? 'Support Schedule' : 'Thời Gian Phục Vụ'}
+                    </h3>
+                    <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
+                      • <strong>Team & Enterprise:</strong> Support 24/7/365 <br />
+                      • <strong>Basic & Pro:</strong> 8h30 - 18h00 (T2 - T7)
+                    </p>
+                  </div>
                 </div>
-                <button type="submit" style={{ width: '100%', padding: 12, borderRadius: 8, background: 'var(--accent)', color: '#fff', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
-                  {language === 'en' ? 'Send Message' : 'Gửi Tin Nhắn'}
-                </button>
-              </form>
+              </div>
+
+              {/* Right Column: Contact Inquiry Form */}
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 32, boxShadow: '0 12px 32px rgba(0,0,0,0.25)' }}>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <HelpCircle size={20} style={{ color: 'var(--accent)' }} />
+                  <span>{language === 'en' ? 'Send a Support Ticket' : 'Gửi Yêu Cầu Hỗ Trợ Direct'}</span>
+                </h2>
+
+                {contactSuccess && (
+                  <div style={{ padding: '14px 18px', borderRadius: 10, background: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#22c55e', fontSize: 14, fontWeight: 600, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Check size={18} style={{ flexShrink: 0 }} />
+                    <span>{contactSuccess}</span>
+                  </div>
+                )}
+
+                {contactError && (
+                  <div style={{ padding: '14px 18px', borderRadius: 10, background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', fontSize: 14, fontWeight: 600, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                    <span>{contactError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setContactLoading(true);
+                  setContactSuccess(null);
+                  setContactError(null);
+                  try {
+                    const res = await contactApi.submitContact({
+                      name: contactName,
+                      email: contactEmail,
+                      message: contactMessage,
+                    });
+                    if (res && (res.success || res.message)) {
+                      setContactSuccess(res.message || (language === 'en' ? 'Thank you! Your ticket has been submitted successfully.' : 'Cảm ơn bạn! Yêu cầu hỗ trợ đã được lưu vào hệ thống.'));
+                      setContactName('');
+                      setContactEmail('');
+                      setContactMessage('');
+                    } else {
+                      setContactError(res?.message || (language === 'en' ? 'Failed to send. Please try again.' : 'Không thể gửi tin nhắn. Vui lòng thử lại.'));
+                    }
+                  } catch (err: any) {
+                    setContactError(err?.message || (language === 'en' ? 'An error occurred while sending.' : 'Đã xảy ra lỗi trong quá trình gửi tin nhắn.'));
+                  } finally {
+                    setContactLoading(false);
+                  }
+                }}>
+                  <div style={{ marginBottom: 18 }}>
+                    <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                      {language === 'en' ? 'Full Name' : 'Họ và tên'}
+                    </label>
+                    <input
+                      type="text"
+                      value={contactName}
+                      onChange={e => setContactName(e.target.value)}
+                      placeholder={language === 'en' ? 'John Doe' : 'Nguyễn Văn A'}
+                      style={{ width: '100%', padding: '12px 14px', borderRadius: 10, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 14, outline: 'none' }}
+                      required
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 18 }}>
+                    <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                      {language === 'en' ? 'Email Address' : 'Email liên hệ'}
+                    </label>
+                    <input
+                      type="email"
+                      value={contactEmail}
+                      onChange={e => setContactEmail(e.target.value)}
+                      placeholder="example@gmail.com"
+                      style={{ width: '100%', padding: '12px 14px', borderRadius: 10, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 14, outline: 'none' }}
+                      required
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                      {language === 'en' ? 'Support Inquiry' : 'Nội dung cần hỗ trợ'}
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={contactMessage}
+                      onChange={e => setContactMessage(e.target.value)}
+                      placeholder={language === 'en' ? 'Describe your question, feature request or issue...' : 'Nhập chi tiết câu hỏi hoặc yêu cầu hỗ trợ...'}
+                      style={{ width: '100%', padding: '12px 14px', borderRadius: 10, background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 14, resize: 'vertical', outline: 'none' }}
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={contactLoading}
+                    className="btn-primary"
+                    style={{ width: '100%', padding: '14px 20px', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: contactLoading ? 'not-allowed' : 'pointer', opacity: contactLoading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+                  >
+                    <span>
+                      {contactLoading
+                        ? (language === 'en' ? 'Sending Request...' : 'Đang Gửi Yêu Cầu...')
+                        : (language === 'en' ? 'Send Message' : 'Gửi Tin Nhắn')}
+                    </span>
+                    <ArrowRight size={18} />
+                  </button>
+                </form>
+              </div>
             </div>
           </section>
         )}
@@ -965,142 +1405,6 @@ export default function Home() {
           </div>
         )}
       </main>
-
-      {/* ==================== EVENT PROMO POPUP MODAL ==================== */}
-      {eventPopupOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 999999,
-            background: 'rgba(0, 0, 0, 0.82)',
-            backdropFilter: 'blur(12px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-          }}
-          onClick={handleCloseEventPopup}
-        >
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              maxWidth: 440,
-              background: 'linear-gradient(180deg, #991b1b 0%, #7f1d1d 50%, #450a0a 100%)',
-              border: '2px solid #f59e0b',
-              borderRadius: 24,
-              padding: '32px 24px 24px',
-              boxShadow: '0 0 60px rgba(245, 158, 11, 0.55), 0 20px 60px rgba(0,0,0,0.85)',
-              textAlign: 'center',
-              color: '#ffffff',
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Close Button 'X' */}
-            <button
-              onClick={handleCloseEventPopup}
-              style={{
-                position: 'absolute',
-                top: -14,
-                right: -14,
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                background: '#ffffff',
-                color: '#000000',
-                border: '2px solid #f59e0b',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-              }}
-            >
-              <X size={20} style={{ strokeWidth: 3 }} />
-            </button>
-
-            {/* Red Envelope Icon Badge */}
-            <div style={{ margin: '0 auto 12px', width: 56, height: 56, borderRadius: '50%', background: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(245, 158, 11, 0.85)' }}>
-              <Gift size={30} style={{ color: '#7f1d1d' }} />
-            </div>
-
-            {/* Title */}
-            <h2 style={{ fontSize: 24, fontWeight: 900, color: '#fef08a', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
-              🍂 ƯU ĐÃI MÙA THU
-            </h2>
-            <p style={{ fontSize: 13, color: '#fcd34d', fontWeight: 600, marginBottom: 20 }}>
-              Nhận ngay ưu đãi độc quyền 2026
-            </p>
-
-            {/* Offer Cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-              {[
-                { title: 'Gói BASIC Beta', note: 'Full tính năng', disc: '-80%', oldPrice: '100k', price: '20k' },
-                { title: 'Gói PRO Beta', note: 'Full tính năng', disc: '-50%', oldPrice: '158k', price: '79k' },
-                { title: 'Gói PREMIUM Beta', note: 'Full tính năng', disc: '-40%', oldPrice: '250k', price: '150k' },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    background: '#ffffff',
-                    borderRadius: 14,
-                    padding: '10px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    color: '#1c1917',
-                    position: 'relative',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-                  }}
-                >
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1c1917' }}>{item.title}</div>
-                    <div style={{ fontSize: 11, color: '#78716c', fontWeight: 500 }}>{item.note}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ position: 'absolute', top: 4, right: 16, background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 4 }}>{item.disc}</span>
-                    <div style={{ fontSize: 11, textDecoration: 'line-through', color: '#a8a29e', marginTop: 8 }}>{item.oldPrice}</div>
-                    <div style={{ fontSize: 18, fontWeight: 900, color: '#dc2626' }}>{item.price}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Action Button */}
-            <button
-              onClick={() => { handleCloseEventPopup(); handleNavigate('/pricing'); }}
-              style={{
-                width: '100%',
-                padding: '14px 20px',
-                borderRadius: 14,
-                background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-                color: '#450a0a',
-                fontSize: 16,
-                fontWeight: 900,
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 6px 20px rgba(245, 158, 11, 0.6)',
-                letterSpacing: '0.5px',
-                marginBottom: 14,
-              }}
-            >
-              NHẬN NGAY
-            </button>
-
-            {/* Checkbox Don't Show Again */}
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#fef08a', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={dontShowAgain}
-                onChange={e => setDontShowAgain(e.target.checked)}
-                style={{ accentColor: '#f59e0b' }}
-              />
-              Đã hiểu, không hiển thị lại
-            </label>
-          </div>
-        </div>
-      )}
 
       {/* Global Footer */}
       <Footer onNavigate={handleNavigate} />

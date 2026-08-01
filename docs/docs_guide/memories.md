@@ -976,3 +976,46 @@ Xử lý:
 #### 8. Kiểm Tra Biên Dịch Production
 - Chạy lệnh `npx nx build web` thành công 100% (`✓ Compiled successfully in 3.1s`, 0 error).
 
+## Phase 21: Phiên làm việc 01/08/2026 — Sửa Lỗi Background Stacking Context, Đồng Bộ Accent Color, Nâng Cấp Trang About Us, FAQ Accordion 10 Câu, Full OG Metadata & Contact API Direct
+
+### 21.1 Khắc Phục Lỗi Z-Index Lớp Nền Theo Mùa (Seasonal Background Stacking Context Bug)
+- **Thời gian xử lý:** 01/08/2026
+- **Vấn đề:** Ảnh nền theo mùa (`.custom-bg-image-layer`, `.season-backdrop`, `.tech-grid-pattern`) bị chìm bên dưới canvas background của thẻ `html, body`, dẫn đến ảnh nền mùa hè/thu không hiển thị trên trình duyệt dù API đã trả về đúng cấu hình.
+- **Giải pháp:**
+  - Trong `apps/web/src/app/global.css`, nâng z-index của các lớp nền theo mùa lên số dương: `.season-backdrop` (`z-index: 1`), `.tech-grid-pattern` & `.custom-bg-image-layer` (`z-index: 2`), `.season-particles-container` (`z-index: 2`).
+  - Giữ nguyên `background: var(--bg-primary)` trên thẻ `html, body` làm lớp canvas dự phòng bên dưới cùng.
+  - Đảm bảo Main Content (`z-index: 10`) và Header (`z-index: 100`) luôn trôi nổi mượt mà phía trên các lớp nền.
+
+### 21.2 Loại Bỏ Popup Khuyến Mãi Cũ Hardcode & Đồng Bộ Mọi Chi Tiết UI Theo Màu Accent Mùa (`var(--accent)`)
+- **Sửa lỗi trùng lặp Popup:** Trong `apps/web/src/app/page.tsx`, xóa bỏ khối JSX Popup Promo cứng trùng lặp cũ; giữ lại duy nhất component `<EventPopupModal />` tự động đọc dữ liệu động từ DB (`eventTitle`, `eventSubtitle`, `eventBannerUrl`, `eventNotice`).
+- **Đồng bộ Accent Color toàn diện:** Thay thế toàn bộ mã màu cứng Amber Gold (`#f59e0b`, `rgba(245,158,11)`) và Indigo (`#6366f1`, `rgba(99,102,241)`) ở icon Feature cards, rating stars, hover card pricing (`PricingCard.tsx`), tab bar module pricing (`PricingModuleTabs.tsx`) bằng các biến CSS động `var(--accent)` và `var(--accent-glow)`. UI tự động đổi sang Cyan cho Mùa Hè, Hồng cho Mùa Xuân, Xanh Băng cho Mùa Đông và Hổ Phách cho Mùa Thu.
+
+### 21.3 Tái Cấu Trúc Trang Giới Thiệu EIGU Platform (`/about`)
+- **Cập nhật nội dung chuẩn chính thức:** Tiêu đề tổng quan, khối **Sứ Mệnh (Our Mission)**, khối **Kiến Trúc Đột Phá** (3 trụ cột: *Desktop Heavy Worker Engine*, *Puppeteer Anti-Detect Stealth*, *Supabase & NestJS Cloud Gateway*) và khối **Con Số Ấn Tượng** (6 Mô-đun, 100,000+ người dùng, 24/7 support).
+- **Thiết kế Glassmorphism:** Các card hiển thị hiệu ứng Kính mờ bo tròn sang trọng, viền và icon sáng mượt theo Accent Mùa.
+
+### 21.4 Viết Lại Trang Câu Hỏi Thường Gặp (`/faq`) Dạng Accordion 10 Câu Phân Nhóm
+- **4 Nhóm Chủ Đề Rõ Ràng:** *Về Gói Dịch Vụ* (Câu 1-4), *Về Thanh Toán & Hoàn Tiền* (Câu 5-6), *Về Sử Dụng & Thiết Bị* (Câu 7-8), *Về Hỗ Trợ* (Câu 9-10).
+- **Accordion UI với CSS Grid Transition:** Các câu hỏi mặc định thu gọn. Khi click, câu trả lời mở ra mượt mà nhờ kỹ thuật CSS Grid `gridTemplateRows: isOpen ? '1fr' : '0fr'`, icon `ChevronDown` xoay 180 độ.
+- **Đảm bảo 100% nguyên văn Tiếng Việt & Song ngữ Tiếng Anh.**
+
+### 21.5 Bổ Sung Cấu Hình Meta & OpenGraph OG Banner Cho SEO (`layout.tsx`)
+- **File:** `apps/web/src/app/layout.tsx` và `src/app/layout.tsx`.
+- **Tích hợp Next.js Metadata API:**
+  - Khai báo file ảnh OG Banner: `/og_image.png` (`apps/web/public/og_image.png`, 1200x630px).
+  - Khai báo đầy đủ `title`, `description`, `keywords`, `openGraph` (Facebook, Zalo, LinkedIn), `twitter` (summary_large_image), `viewport` (`themeColor: '#0c0a09'`), `icons` (logo.png) và `robots` index.
+
+### 21.6 Nâng Cấp Trang Liên Hệ (`/contact`) 2 Cột & Kết Nối Thực Tế Với NestJS API & Discord Webhook
+- **Tái cấu trúc 2 cột responsive (`maxWidth: 1040px`):**
+  - **Cột Trái (Kênh Hỗ Trợ & Khung Giờ):** Email `support@eigu.vn`, Telegram `t.me/eigu_platform`, Lịch làm việc 24/7 (Team/Enterprise) & Giờ hành chính (Basic/Pro).
+  - **Cột Phải (Form Direct Ticket):** Thẻ Glassmorphic sang trọng với các ô `Họ và tên`, `Email`, `Nội dung`.
+- **Kết nối Backend API thực tế (`POST /api/feedback/public`):**
+  - Tạo endpoint `@Post('public')` trong `FeedbackController` & `FeedbackService` của NestJS.
+  - Tự động định dạng và đẩy thông báo ticket tức thì về kênh Discord qua **Discord Webhook** (`DISCORD_WEBHOOK_URL`) đồng thời lưu vết ticket vào **Prisma Database (`Feedback`)**.
+  - Hiển thị trạng thái "Đang Gửi Yêu Cầu...", tự động xuất banner xanh lá chúc mừng và reset form khi hoàn tất.
+
+### 21.7 Kiểm Tra Biên Dịch Hệ Thống (Build Verification)
+- `npx nx build web`: `✓ Compiled successfully in 2.1s` (0 error).
+- `npx nx build desktop`: `✓ Successfully ran target build` (0 error).
+- `npx nx build api`: `✓ Webpack compiled successfully` (0 error).
+
