@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Sparkles, Scissors, Clapperboard, RefreshCw, TrendingUp, DownloadCloud,
   ArrowRight, Check, Shield, Zap, Play, HelpCircle, Mail, Globe, Wallet,
-  User, Link as LinkIcon, Tag, History, BookOpen, ChevronRight, ChevronDown, X, AlertCircle, ShoppingCart, Star, Gift
+  User, Link as LinkIcon, Tag, History, BookOpen, ChevronRight, ChevronDown, X, AlertCircle, ShoppingCart, Star, Gift, ShieldAlert, FileText, Lock
 } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
@@ -280,8 +280,9 @@ export default function Home() {
   // Selected Checkout State
   const [selectedCheckout, setSelectedCheckout] = useState<{ tier: PricingTierDto; moduleSlug: string } | null>(null);
 
-  // FAQ Accordion State
+  // FAQ Accordion & SubTab State
   const [openFaqId, setOpenFaqId] = useState<number | null>(null);
+  const [faqSubTab, setFaqSubTab] = useState<'faq' | 'terms'>('faq');
 
   // Contact Form Real Submission State
   const [contactName, setContactName] = useState('');
@@ -1039,176 +1040,383 @@ export default function Home() {
 
         {/* ==================== 5. FAQ PAGE (/faq) ==================== */}
         {activePath === '/faq' && (
-          <section style={{ padding: '60px 24px 80px', maxWidth: 800, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+          <section style={{ padding: '60px 24px 80px', maxWidth: 880, margin: '0 auto', position: 'relative', zIndex: 10 }}>
             <h1 style={{ fontSize: 'min(2.5rem, 7vw)', fontWeight: 900, marginBottom: 12, textAlign: 'center', color: 'var(--text-primary)' }}>
-              {language === 'en' ? 'Frequently Asked Questions (FAQ)' : 'Câu Hỏi Thường Gặp (FAQ)'}
+              {language === 'en' ? 'Frequently Asked Questions & Terms' : 'Câu Hỏi Thường Gặp & Điều Khoản Sử Dụng'}
             </h1>
-            <p style={{ fontSize: 15, color: 'var(--text-secondary)', textAlign: 'center', marginBottom: 36, fontWeight: 500 }}>
-              {language === 'en' ? 'Find answers to common questions about EIGU Platform plans, payments, usage, and support.' : 'Giải đáp các thắc mắc phổ biến về gói dịch vụ, thanh toán, hạn mức sử dụng và hỗ trợ kỹ thuật.'}
+            <p style={{ fontSize: 15, color: 'var(--text-secondary)', textAlign: 'center', marginBottom: 28, fontWeight: 500 }}>
+              {language === 'en'
+                ? 'Find answers to common questions about EIGU Platform plans, payments, usage limits, and official Terms of Service.'
+                : 'Giải đáp các thắc mắc phổ biến về gói dịch vụ, thanh toán, hạn mức sử dụng và Quy định Điều khoản sử dụng chính thức.'}
             </p>
 
-            {[
-              {
-                category: language === 'en' ? 'Packages & Services' : 'Về Gói Dịch Vụ',
-                items: [
-                  {
-                    id: 1,
-                    q: language === 'en' ? '1. Can I purchase individual modules separately?' : '1. Tôi có thể mua lẻ từng mô-đun công cụ không?',
-                    a: language === 'en'
-                      ? 'Yes! EIGU Platform offers independent module subscriptions (AI Video Generator, Auto Clipper, Reup Engine, Niche Finder...). You only need to buy the specific module you need without purchasing a full bundle.'
-                      : 'Có! EIGU Platform bán độc lập từng mô-đun (Tạo video AI, Tự động cắt video, Reup, Tìm ngách hot...). Bạn chỉ cần mua đúng mô-đun mình cần sử dụng, không bắt buộc mua trọn gói.'
-                  },
-                  {
-                    id: 2,
-                    q: language === 'en' ? '2. Does the 7-day Trial plan cost anything?' : '2. Gói Trial 7 ngày có mất phí không?',
-                    a: language === 'en'
-                      ? 'Completely FREE! You can experience all features for 7 days without entering any credit card details.'
-                      : 'Hoàn toàn không! Bạn có thể trải nghiệm miễn phí 7 ngày, không cần nhập thẻ thanh toán.'
-                  },
-                  {
-                    id: 3,
-                    q: language === 'en' ? '3. Can I upgrade from Basic/Pro to Team or Enterprise plans?' : '3. Tôi có thể nâng cấp từ gói Basic/Pro lên Team hoặc Enterprise không?',
-                    a: language === 'en'
-                      ? 'Yes! You can upgrade anytime right inside your User Portal, and the system will automatically calculate the prorated difference for your remaining subscription.'
-                      : 'Có! Bạn có thể nâng cấp bất cứ lúc nào ngay trong User Portal, hệ thống sẽ tự tính phần chênh lệch còn lại của gói hiện tại.'
-                  },
-                  {
-                    id: 4,
-                    q: language === 'en' ? '4. Are displayed plan prices inclusive of VAT tax?' : '4. Giá các gói đã bao gồm thuế VAT chưa?',
-                    a: language === 'en'
-                      ? 'All prices displayed on the website are inclusive of VAT tax, with no hidden fees or extra surcharges at checkout.'
-                      : 'Tất cả mức giá hiển thị trên website đều đã bao gồm thuế VAT, không phát sinh thêm phụ phí khi thanh toán.'
-                  }
-                ]
-              },
-              {
-                category: language === 'en' ? 'Payment & Refund Policy' : 'Về Thanh Toán & Hoàn Tiền',
-                items: [
-                  {
-                    id: 5,
-                    q: language === 'en' ? '5. Can I get a refund if I change my mind after purchasing?' : '5. Tôi có được hoàn tiền nếu đổi ý sau khi mua không?',
-                    a: language === 'en'
-                      ? 'Under EIGU\'s policy, we do not support refunds once a payment transaction is successful, including cases of accidental selection or no longer needing the service. Therefore, please try out our free 7-day Trial plan before upgrading to a paid plan.'
-                      : 'Theo chính sách của EIGU, chúng tôi không hỗ trợ hoàn tiền sau khi giao dịch thanh toán thành công, kể cả trong trường hợp chọn nhầm gói hoặc không còn nhu cầu sử dụng. Vì vậy, hãy dùng thử gói Trial 7 ngày miễn phí trước khi quyết định nâng cấp lên gói trả phí.'
-                  },
-                  {
-                    id: 6,
-                    q: language === 'en' ? '6. Which payment methods are supported by the system?' : '6. Hệ thống hỗ trợ những phương thức thanh toán nào?',
-                    a: language === 'en'
-                      ? 'EIGU supports various domestic payment gateways (SePay, VNPay, Momo...) and international gateways (Stripe, PayOS...), enabling fast and secure checkout.'
-                      : 'EIGU hỗ trợ đa dạng cổng thanh toán trong nước (SePay, VNPay, Momo...) và quốc tế (Stripe, PayOS...), giúp bạn thanh toán nhanh chóng và an toàn.'
-                  }
-                ]
-              },
-              {
-                category: language === 'en' ? 'Usage & Device Limits' : 'Về Sử Dụng & Thiết Bị',
-                items: [
-                  {
-                    id: 7,
-                    q: language === 'en' ? '7. How many devices can each subscription plan use?' : '7. Mỗi gói được phép dùng trên bao nhiêu máy?',
-                    a: language === 'en'
-                      ? 'Each plan has its own device limit (see details on the Pricing page). You are allowed to transfer your license when an old computer breaks down or is replaced, but you must notify our support team for verification before transferring.'
-                      : 'Mỗi gói có giới hạn số máy riêng (xem chi tiết tại trang Bảng giá). Bạn được phép chuyển đổi thiết bị khi máy cũ hư hỏng không thể sử dụng, nhưng cần thông báo với đội ngũ hỗ trợ để được xác nhận trước khi chuyển.'
-                  },
-                  {
-                    id: 8,
-                    q: language === 'en' ? '8. Will my account be banned if shared beyond allowed device limits?' : '8. Tài khoản của tôi có bị khoá nếu dùng chung vượt số máy quy định không?',
-                    a: language === 'en'
-                      ? 'Yes. Exceeding the maximum allowed device limit of your active subscription violates our Terms of Service and may result in temporary suspension or permanent ban without refund.'
-                      : 'Có. Việc sử dụng vượt quá số máy tối đa của gói đang đăng ký là vi phạm điều khoản sử dụng và có thể khiến tài khoản bị tạm ngưng hoặc khoá vĩnh viễn mà không được hoàn tiền.'
-                  }
-                ]
-              },
-              {
-                category: language === 'en' ? 'Support & Security' : 'Về Hỗ Trợ',
-                items: [
-                  {
-                    id: 9,
-                    q: language === 'en' ? '9. Where can I contact for technical support?' : '9. Tôi cần hỗ trợ kỹ thuật thì liên hệ ở đâu?',
-                    a: language === 'en'
-                      ? 'You can use the in-app Feedback / Bug Report feature, or reach out via Discord/Telegram/Email — the EIGU team provides 24/7 support for Team and Enterprise plans, and business-hours support for Basic/Pro plans.'
-                      : 'Bạn có thể dùng tính năng Góp ý / Báo lỗi ngay trong ứng dụng, hoặc liên hệ qua Discord/Telegram/Email — đội ngũ EIGU hỗ trợ 24/7 cho các gói Team và Enterprise, hỗ trợ trong giờ hành chính cho gói Basic/Pro.'
-                  },
-                  {
-                    id: 10,
-                    q: language === 'en' ? '10. Are my data and videos kept secure and confidential?' : '10. Dữ liệu và video của tôi có được bảo mật không?',
-                    a: language === 'en'
-                      ? 'Yes. All processed videos and images are stored locally on your machine and are never uploaded to EIGU servers unless explicitly shared. The system uses Puppeteer Anti-Detect and enterprise-grade Supabase security infrastructure to protect your account.'
-                      : 'Có. Video/ảnh xử lý được lưu cục bộ trên máy của bạn, không upload lên server EIGU trừ khi bạn chủ động chia sẻ. Hệ thống dùng Puppeteer Anti-Detect và hạ tầng Supabase đạt chuẩn bảo mật để bảo vệ tài khoản của bạn.'
-                  }
-                ]
-              }
-            ].map((group, groupIdx) => (
-              <div key={groupIdx} style={{ marginBottom: 28 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
-                  <span>{group.category}</span>
-                </h3>
+            {/* Sub-Tab Navigation Switcher */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 36, flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setFaqSubTab('faq')}
+                style={{
+                  padding: '10px 22px',
+                  borderRadius: 24,
+                  border: faqSubTab === 'faq' ? '1px solid var(--accent)' : '1px solid var(--border-color)',
+                  background: faqSubTab === 'faq' ? 'var(--accent-glow)' : 'var(--bg-card)',
+                  color: faqSubTab === 'faq' ? 'var(--accent)' : 'var(--text-secondary)',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  transition: 'all 0.25s',
+                  boxShadow: faqSubTab === 'faq' ? '0 4px 16px var(--accent-glow)' : 'none',
+                }}
+              >
+                <HelpCircle size={16} />
+                <span>{language === 'en' ? 'Frequently Asked Questions' : 'Câu Hỏi Thường Gặp (FAQ)'}</span>
+              </button>
+              <button
+                onClick={() => setFaqSubTab('terms')}
+                style={{
+                  padding: '10px 22px',
+                  borderRadius: 24,
+                  border: faqSubTab === 'terms' ? '1px solid var(--accent)' : '1px solid var(--border-color)',
+                  background: faqSubTab === 'terms' ? 'var(--accent-glow)' : 'var(--bg-card)',
+                  color: faqSubTab === 'terms' ? 'var(--accent)' : 'var(--text-secondary)',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  transition: 'all 0.25s',
+                  boxShadow: faqSubTab === 'terms' ? '0 4px 16px var(--accent-glow)' : 'none',
+                }}
+              >
+                <ShieldAlert size={16} />
+                <span>{language === 'en' ? 'Terms & Conditions of Service' : 'Quy Định & Điều Khoản Sử Dụng'}</span>
+              </button>
+            </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {group.items.map(item => {
-                    const isOpen = openFaqId === item.id;
-                    return (
-                      <div
-                        key={item.id}
-                        style={{
-                          background: 'var(--bg-card)',
-                          border: isOpen ? '1px solid var(--accent)' : '1px solid var(--border-color)',
-                          borderRadius: 'var(--radius-lg)',
-                          overflow: 'hidden',
-                          transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                          boxShadow: isOpen ? '0 4px 20px var(--accent-glow)' : '0 2px 6px rgba(0,0,0,0.1)',
-                        }}
-                      >
-                        <button
-                          onClick={() => setOpenFaqId(prev => (prev === item.id ? null : item.id))}
-                          style={{
-                            width: '100%',
-                            padding: '16px 20px',
-                            background: 'transparent',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: 16,
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            color: isOpen ? 'var(--accent)' : 'var(--text-primary)',
-                            fontWeight: 700,
-                            fontSize: 15,
-                          }}
-                        >
-                          <span>{item.q}</span>
-                          <ChevronDown
-                            size={18}
+            {/* TAB 1: FAQ Accordions */}
+            {faqSubTab === 'faq' && (
+              <>
+                {[
+                  {
+                    category: language === 'en' ? 'Packages & Services' : 'Về Gói Dịch Vụ',
+                    items: [
+                      {
+                        id: 1,
+                        q: language === 'en' ? '1. Can I purchase individual modules separately?' : '1. Tôi có thể mua lẻ từng mô-đun công cụ không?',
+                        a: language === 'en'
+                          ? 'Yes! EIGU Platform offers independent module subscriptions (AI Video Generator, Auto Clipper, Reup Engine, Niche Finder...). You only need to buy the specific module you need without purchasing a full bundle.'
+                          : 'Có! EIGU Platform bán độc lập từng mô-đun (Tạo video AI, Tự động cắt video, Reup, Tìm ngách hot...). Bạn chỉ cần mua đúng mô-đun mình cần sử dụng, không bắt buộc mua trọn gói.'
+                      },
+                      {
+                        id: 2,
+                        q: language === 'en' ? '2. Does the 7-day Trial plan cost anything?' : '2. Gói Trial 7 ngày có mất phí không?',
+                        a: language === 'en'
+                          ? 'Completely FREE! You can experience all features for 7 days without entering any credit card details.'
+                          : 'Hoàn toàn không! Bạn có thể trải nghiệm miễn phí 7 ngày, không cần nhập thẻ thanh toán.'
+                      },
+                      {
+                        id: 3,
+                        q: language === 'en' ? '3. Can I upgrade from Basic/Pro to Team or Enterprise plans?' : '3. Tôi có thể nâng cấp từ gói Basic/Pro lên Team hoặc Enterprise không?',
+                        a: language === 'en'
+                          ? 'Yes! You can upgrade anytime right inside your User Portal, and the system will automatically calculate the prorated difference for your remaining subscription.'
+                          : 'Có! Bạn có thể nâng cấp bất cứ lúc nào ngay trong User Portal, hệ thống sẽ tự tính phần chênh lệch còn lại của gói hiện tại.'
+                      },
+                      {
+                        id: 4,
+                        q: language === 'en' ? '4. Are displayed plan prices inclusive of VAT tax?' : '4. Giá các gói đã bao gồm thuế VAT chưa?',
+                        a: language === 'en'
+                          ? 'All prices displayed on the website are inclusive of VAT tax, with no hidden fees or extra surcharges at checkout.'
+                          : 'Tất cả mức giá hiển thị trên website đều đã bao gồm thuế VAT, không phát sinh thêm phụ phí khi thanh toán.'
+                      }
+                    ]
+                  },
+                  {
+                    category: language === 'en' ? 'Payment & Refund Policy' : 'Về Thanh Toán & Hoàn Tiền',
+                    items: [
+                      {
+                        id: 5,
+                        q: language === 'en' ? '5. Can I get a refund if I change my mind after purchasing?' : '5. Tôi có được hoàn tiền nếu đổi ý sau khi mua không?',
+                        a: language === 'en'
+                          ? 'Under Article 4 of EIGU Platform Terms of Service, we do NOT issue refunds under any circumstances once a payment transaction is completed, including cases of accidental selection or no longer needing the service. Please try out our 7-day Trial plan before subscribing.'
+                          : 'Theo Điều 4 trong Quy định Điều khoản sử dụng của EIGU Platform, chúng tôi KHÔNG hoàn tiền trong bất kỳ trường hợp nào sau khi giao dịch thanh toán thành công, kể cả do nhầm lẫn chủ quan hoặc không còn nhu cầu. Hãy dùng thử gói Trial 7 ngày miễn phí trước khi quyết định nâng cấp.'
+                      },
+                      {
+                        id: 6,
+                        q: language === 'en' ? '6. Which payment methods are supported by the system?' : '6. Hệ thống hỗ trợ những phương thức thanh toán nào?',
+                        a: language === 'en'
+                          ? 'EIGU supports various domestic payment gateways (SePay, VNPay, Momo...) and international gateways (Stripe, PayOS...), enabling fast and secure checkout.'
+                          : 'EIGU hỗ trợ đa dạng cổng thanh toán trong nước (SePay, VNPay, Momo...) và quốc tế (Stripe, PayOS...), giúp bạn thanh toán nhanh chóng và an toàn.'
+                      }
+                    ]
+                  },
+                  {
+                    category: language === 'en' ? 'Anti-Abuse Rules & Device Limits' : 'Chống Lạm Dụng & Hạn Mức Thiết Bị',
+                    items: [
+                      {
+                        id: 7,
+                        q: language === 'en' ? '7. How many devices can each subscription plan use?' : '7. Mỗi gói được phép dùng trên bao nhiêu máy?',
+                        a: language === 'en'
+                          ? 'Each subscription plan authorizes login on a specified maximum number of devices (see details on the Pricing page). Shared account usage beyond allowed limits is strictly prohibited.'
+                          : 'Mỗi gói cước quy định số lượng máy được phép đăng ký sử dụng tối đa riêng (xem tại trang Bảng giá). Tuyệt đối không được chia sẻ tài khoản dùng chung vượt quá số máy quy định.'
+                      },
+                      {
+                        id: 8,
+                        q: language === 'en' ? '8. How can I transfer my license when replacing or repairing a computer?' : '8. Tôi muốn chuyển đổi sang máy tính mới hoặc sửa máy thì làm thế nào?',
+                        a: language === 'en'
+                          ? 'Device transfers are allowed when your old computer is damaged or replaced. However, you must notify EIGU Technical Support and obtain written confirmation before performing the device migration.'
+                          : 'Bạn được phép chuyển đổi máy khi máy đăng ký hư hỏng không thể sử dụng. Tuy nhiên, việc chuyển đổi buộc phải thông báo trước cho bộ phận Hỗ trợ kỹ thuật EIGU để được xác nhận chấp thuận.'
+                      },
+                      {
+                        id: 9,
+                        q: language === 'en' ? '9. What happens if an account violates anti-reverse engineering or abuse rules?' : '9. Tài khoản sẽ bị xử lý thế nào nếu vi phạm bẻ khóa, rải account hoặc lạm dụng tool?',
+                        a: language === 'en'
+                          ? 'Under Article 3, severe violations (reverse engineering, cracking, server intrusion, unauthorized account resale) will result in immediate permanent account termination, forfeiture of all paid fees, and potential legal prosecution under applicable laws.'
+                          : 'Theo Điều 3, các hành vi vi phạm nghiêm trọng (dịch ngược mã nguồn, crack, xâm nhập hệ thống, bán lại tài khoản) sẽ bị khóa vĩnh viễn ngay lập tức, hủy toàn bộ quyền lợi mà KHÔNG HOÀN TIỀN, đồng thời bị lập vi bằng truy cứu trách nhiệm pháp lý.'
+                      }
+                    ]
+                  },
+                  {
+                    category: language === 'en' ? 'Support & Security' : 'Về Hỗ Trợ & Bảo Mật',
+                    items: [
+                      {
+                        id: 10,
+                        q: language === 'en' ? '10. Where can I contact for technical support?' : '10. Tôi cần hỗ trợ kỹ thuật thì liên hệ ở đâu?',
+                        a: language === 'en'
+                          ? 'You can use the in-app Feedback / Bug Report feature, or reach out via Discord/Telegram/Email — the EIGU team provides 24/7 support for Team and Enterprise plans, and business-hours support for Basic/Pro plans.'
+                          : 'Bạn có thể dùng tính năng Góp ý / Báo lỗi ngay trong ứng dụng, hoặc liên hệ qua Discord/Telegram/Email — đội ngũ EIGU hỗ trợ 24/7 cho các gói Team và Enterprise, hỗ trợ trong giờ hành chính cho gói Basic/Pro.'
+                      },
+                      {
+                        id: 11,
+                        q: language === 'en' ? '11. Are my data and videos kept secure and confidential?' : '11. Dữ liệu và video của tôi có được bảo mật không?',
+                        a: language === 'en'
+                          ? 'Yes. All processed videos and images are stored locally on your machine and are never uploaded to EIGU servers unless explicitly shared. The system uses Puppeteer Anti-Detect and enterprise-grade Supabase security infrastructure to protect your account.'
+                          : 'Có. Video/ảnh xử lý được lưu cục bộ trên máy của bạn, không upload lên server EIGU trừ khi bạn chủ động chia sẻ. Hệ thống dùng Puppeteer Anti-Detect và hạ tầng Supabase đạt chuẩn bảo mật để bảo vệ tài khoản của bạn.'
+                      }
+                    ]
+                  }
+                ].map((group, groupIdx) => (
+                  <div key={groupIdx} style={{ marginBottom: 28 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
+                      <span>{group.category}</span>
+                    </h3>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {group.items.map(item => {
+                        const isOpen = openFaqId === item.id;
+                        return (
+                          <div
+                            key={item.id}
                             style={{
-                              flexShrink: 0,
-                              transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                              color: isOpen ? 'var(--accent)' : 'var(--text-muted)',
+                              background: 'var(--bg-card)',
+                              border: isOpen ? '1px solid var(--accent)' : '1px solid var(--border-color)',
+                              borderRadius: 'var(--radius-lg)',
+                              overflow: 'hidden',
+                              transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                              boxShadow: isOpen ? '0 4px 20px var(--accent-glow)' : '0 2px 6px rgba(0,0,0,0.1)',
                             }}
-                          />
-                        </button>
+                          >
+                            <button
+                              onClick={() => setOpenFaqId(prev => (prev === item.id ? null : item.id))}
+                              style={{
+                                width: '100%',
+                                padding: '16px 20px',
+                                background: 'transparent',
+                                border: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 16,
+                                textAlign: 'left',
+                                cursor: 'pointer',
+                                color: isOpen ? 'var(--accent)' : 'var(--text-primary)',
+                                fontWeight: 700,
+                                fontSize: 15,
+                              }}
+                            >
+                              <span>{item.q}</span>
+                              <ChevronDown
+                                size={18}
+                                style={{
+                                  flexShrink: 0,
+                                  transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                                  transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                  color: isOpen ? 'var(--accent)' : 'var(--text-muted)',
+                                }}
+                              />
+                            </button>
 
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateRows: isOpen ? '1fr' : '0fr',
-                            transition: 'grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                          }}
-                        >
-                          <div style={{ overflow: 'hidden' }}>
-                            <div style={{ padding: '0 20px 18px', color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.65, fontWeight: 500 }}>
-                              {item.a}
+                            <div
+                              style={{
+                                display: 'grid',
+                                gridTemplateRows: isOpen ? '1fr' : '0fr',
+                                transition: 'grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                              }}
+                            >
+                              <div style={{ overflow: 'hidden' }}>
+                                <div style={{ padding: '0 20px 18px', color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.65, fontWeight: 500 }}>
+                                  {item.a}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* TAB 2: Official Terms & Conditions of Service Document */}
+            {faqSubTab === 'terms' && (
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '36px 32px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
+                <div style={{ textAlign: 'center', marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 20, background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: 13, fontWeight: 700, marginBottom: 12 }}>
+                    <ShieldAlert size={16} />
+                    <span>{language === 'en' ? 'Legal & System Anti-Abuse Rules' : 'Quy Định Pháp Lý & Chống Lạm Dụng Phần Mềm'}</span>
+                  </div>
+                  <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>
+                    {language === 'en' ? 'Terms & Conditions of Service' : 'Quy Định và Điều Khoản Sử Dụng'}
+                  </h2>
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                    {language === 'en' ? 'Last updated: May 19, 2026' : 'Cập nhật lần cuối: 19 tháng 5 năm 2026'}
+                  </p>
+                </div>
+
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 28, background: 'var(--bg-secondary)', padding: '16px 20px', borderRadius: 'var(--radius-sm)', borderLeft: '4px solid var(--accent)' }}>
+                  {language === 'en'
+                    ? 'Welcome to EIGU Platform ("Software"). By registering an account or using our Software, you confirm that you have read, understood, and agreed to be bound by all terms specified in this document.'
+                    : 'Chào mừng bạn đến với EIGU Platform ("Phần mềm"). Bằng cách đăng ký tài khoản hoặc sử dụng Phần mềm của chúng tôi, bạn xác nhận rằng bạn đã đọc, hiểu và đồng ý bị ràng buộc bởi tất cả các điều khoản được quy định trong tài liệu này.'}
+                </p>
+
+                {/* Article 1 */}
+                <div style={{ marginBottom: 28 }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <FileText size={18} style={{ color: 'var(--accent)' }} />
+                    <span>{language === 'en' ? 'Article 1: Acceptance of Terms' : 'Điều 1: Chấp nhận Điều khoản'}</span>
+                  </h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, paddingLeft: 26 }}>
+                    {language === 'en'
+                      ? 'Creating an account and/or accessing and using our Software constitutes your complete and unconditional agreement to these terms and conditions. If you do not agree to any part of these terms, you must immediately cease using the Software.'
+                      : 'Hành động tạo tài khoản và/hoặc truy cập, sử dụng Phần mềm của chúng tôi được coi là sự chấp thuận hoàn toàn và vô điều kiện của bạn đối với các điều khoản và điều kiện này. Nếu bạn không đồng ý với bất kỳ phần nào của các điều khoản này, bạn phải ngay lập tức ngừng sử dụng Phần mềm.'}
+                  </p>
+                </div>
+
+                {/* Article 2 */}
+                <div style={{ marginBottom: 28 }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--danger)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <ShieldAlert size={18} />
+                    <span>{language === 'en' ? 'Article 2: Prohibited Actions (Anti-Abuse Rules)' : 'Điều 2: Các hành vi bị nghiêm cấm'}</span>
+                  </h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 12, paddingLeft: 26 }}>
+                    {language === 'en' ? 'Users are strictly prohibited from performing the following actions under any circumstances:' : 'Người dùng tuyệt đối không được thực hiện các hành vi sau đây dưới bất kỳ hình thức nào:'}
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 26 }}>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>{language === 'en' ? 'Interference & Reverse Engineering: ' : 'Can thiệp và Phá hoại: '}</strong>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: 13.5 }}>
+                        {language === 'en'
+                          ? 'Attempting to reverse engineer, crack, decompile, or tamper with the source code, structure, or operation of the Software.'
+                          : 'Cố gắng dịch ngược, bẻ khóa (crack), giải mã, hoặc can thiệp vào mã nguồn, cấu trúc, và hoạt động của Phần mềm.'}
+                      </span>
+                    </div>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>{language === 'en' ? 'Security Violations: ' : 'Xâm phạm An ninh: '}</strong>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: 13.5 }}>
+                        {language === 'en'
+                          ? 'Utilizing any tools or methods to breach, launch attacks, or gain unauthorized access to servers, databases, or system components.'
+                          : 'Sử dụng bất kỳ công cụ, phương pháp nào để xâm nhập, truy cập trái phép vào hệ thống máy chủ, cơ sở dữ liệu hoặc các thành phần khác của Phần mềm.'}
+                      </span>
+                    </div>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>{language === 'en' ? 'Intellectual Property Theft: ' : 'Đánh cắp tài sản trí tuệ: '}</strong>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: 13.5 }}>
+                        {language === 'en'
+                          ? 'Copying, distributing, reselling, leasing, or transferring the Software or any portion thereof to third parties without our explicit written consent.'
+                          : 'Sao chép, phân phối, bán lại, cho thuê hoặc chuyển giao Phần mềm hoặc bất kỳ phần nào của nó cho bên thứ ba mà không có sự đồng ý bằng văn bản của chúng tôi.'}
+                      </span>
+                    </div>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>{language === 'en' ? 'Other Harmful Behavior: ' : 'Hành vi gây hại khác: '}</strong>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: 13.5 }}>
+                        {language === 'en'
+                          ? 'Engaging in actions that damage reputation, disrupt business operations, cause server overload, or interrupt system functionality.'
+                          : 'Thực hiện bất kỳ hành động nào gây tổn hại đến danh tiếng, hoạt động kinh doanh hoặc gây quá tải, làm gián đoạn hệ thống của Phần mềm.'}
+                      </span>
+                    </div>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>{language === 'en' ? 'Misuse of Device Limits: ' : 'Sử dụng sai quy định: '}</strong>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: 13.5 }}>
+                        {language === 'en'
+                          ? 'The Software is authorized for login on up to the maximum number of devices specified by your subscribed plan. Users may transfer devices when registered hardware is damaged and unusable, but sharing beyond allowed device limits is strictly prohibited. Any device transfer requires prior notification and written approval from our support team. We reserve the right to suspend or terminate your account upon detecting intentional violations.'
+                          : 'Phần mềm được phép đăng nhập sử dụng tối đa với số máy đã quy định, có thể đăng nhập sử dụng, chuyển đổi máy khi máy đăng ký hư hỏng không thể sử dụng, không được sử dụng chung quá tối đa số máy quy định của các gói tương ứng. Nếu muốn chuyển đổi buộc phải thông báo với chúng tôi và có sự đồng ý từ chúng tôi trước khi thực hiện. Chúng tôi có quyền ngừng kích hoạt/tạm dừng tài khoản của bạn nếu phát hiện hoặc cố tình vi phạm.'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Article 3 */}
+                <div style={{ marginBottom: 28 }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Lock size={18} style={{ color: 'var(--warning)' }} />
+                    <span>{language === 'en' ? 'Article 3: Enforcement & Penalties' : 'Điều 3: Xử lý vi phạm'}</span>
+                  </h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 12, paddingLeft: 26 }}>
+                    {language === 'en'
+                      ? 'We hold full authority to determine whether an act constitutes a policy violation. Upon detecting any violation, we will apply enforcement actions without prior notice. Remedial actions include:'
+                      : 'Chúng tôi có toàn quyền xác định một hành vi có vi phạm các điều khoản này hay không. Trong trường hợp phát hiện bất kỳ vi phạm nào, chúng tôi sẽ áp dụng các biện pháp xử lý mà không cần thông báo trước. Các biện pháp xử lý bao gồm:'}
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, paddingLeft: 26 }}>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '14px 16px', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ fontWeight: 700, color: 'var(--warning)', marginBottom: 4, fontSize: 13.5 }}>{language === 'en' ? 'Support Suspension' : 'Ngừng hỗ trợ'}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{language === 'en' ? 'Technical support will be suspended for infractions classified as Minor.' : 'Chúng tôi sẽ ngừng hỗ trợ với tài khoản vi phạm đối với hành vi được xác định là Chưa nghiêm trọng.'}</div>
+                    </div>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '14px 16px', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ fontWeight: 700, color: 'var(--danger)', marginBottom: 4, fontSize: 13.5 }}>{language === 'en' ? 'Account Termination' : 'Chấm dứt tài khoản'}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{language === 'en' ? 'Violating accounts will be permanently banned and access revoked immediately.' : 'Tài khoản của người dùng vi phạm sẽ bị khóa vĩnh viễn và chấm dứt quyền truy cập ngay lập tức.'}</div>
+                    </div>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '14px 16px', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ fontWeight: 700, color: 'var(--danger)', marginBottom: 4, fontSize: 13.5 }}>{language === 'en' ? 'Non-Refundable' : 'Không hoàn tiền'}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{language === 'en' ? 'All payments, subscription fees, or account balances will not be refunded.' : 'Mọi khoản phí, gói đăng ký hoặc chi phí khác đã thanh toán sẽ không được hoàn trả dưới bất kỳ hình thức nào.'}</div>
+                    </div>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '14px 16px', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ fontWeight: 700, color: 'var(--accent)', marginBottom: 4, fontSize: 13.5 }}>{language === 'en' ? 'Legal Prosecution' : 'Truy cứu trách nhiệm pháp lý'}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{language === 'en' ? 'We reserve the right to secure legal evidence and prosecute severe infringements under applicable laws.' : 'Chúng tôi bảo lưu quyền Lập vi bằng, yêu cầu truy cứu trách nhiệm pháp lý theo quy định của Pháp luật.'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Article 4 */}
+                <div style={{ marginBottom: 28 }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <AlertCircle size={18} style={{ color: 'var(--danger)' }} />
+                    <span>{language === 'en' ? 'Article 4: Non-Refund Policy' : 'Điều 4: Quy định không hoàn tiền'}</span>
+                  </h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, paddingLeft: 26, background: 'rgba(239, 68, 68, 0.05)', padding: '14px 18px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                    {language === 'en'
+                      ? 'Our system requires users to carefully review and confirm all transaction details before clicking deposit or completing payments. We do NOT issue refunds under any circumstances once a payment transaction is completed. Errors arising from user mistake (e.g. depositing to wrong account, selecting incorrect package, no longer needing service) are strictly non-refundable.'
+                      : 'Hệ thống yêu cầu người dùng phải chắc chắn và chủ động xác nhận lại thông tin trước khi bấm nút nạp tiền hoặc thực hiện thanh toán. Chúng tôi KHÔNG hoàn tiền trong bất kỳ trường hợp nào sau khi giao dịch thanh toán thành công. Mọi lỗi phát sinh từ sự nhầm lẫn chủ quan của người dùng (như nạp nhầm tài khoản, chọn sai gói dịch vụ, không còn nhu cầu sử dụng...) đều không được hỗ trợ giải quyết hoàn tiền.'}
+                  </p>
+                </div>
+
+                {/* Article 5 */}
+                <div>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <RefreshCw size={18} style={{ color: 'var(--accent)' }} />
+                    <span>{language === 'en' ? 'Article 5: Terms Amendments' : 'Điều 5: Thay đổi Điều khoản'}</span>
+                  </h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, paddingLeft: 26 }}>
+                    {language === 'en'
+                      ? 'We reserve the right to modify these Terms of Service at any time. Continued use of the Software following published modifications constitutes your explicit acceptance of the revised terms.'
+                      : 'Chúng tôi có thể sửa đổi các Điều khoản Sử dụng này vào bất kỳ lúc nào. Việc bạn tiếp tục sử dụng Phần mềm sau khi các thay đổi được đăng tải đồng nghĩa với việc bạn chấp nhận các điều khoản đã được sửa đổi.'}
+                  </p>
                 </div>
               </div>
-            ))}
+            )}
           </section>
         )}
 
