@@ -52,36 +52,15 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        background: 'rgba(0,0,0,0.7)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-      }}
+      className="settings-modal-overlay"
       onClick={onClose}
     >
       <div
-        style={{
-          width: '100%',
-          maxWidth: 640,
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-color)',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: '90vh',
-        }}
+        className="settings-modal-card"
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--border-color)' }}>
+        <div className="settings-modal-header">
           <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>Cài Đặt Tài Khoản</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
             <X size={20} />
@@ -89,9 +68,9 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
         </div>
 
         {/* Modal Body */}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <div className="settings-modal-body">
           {/* Submenu Sidebar */}
-          <div style={{ width: 180, background: 'var(--bg-secondary)', borderRight: '1px solid var(--border-color)', padding: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className="settings-modal-sidebar">
             {[
               { id: 'theme', icon: <Sun size={16} />, label: 'Giao diện' },
               { id: 'language', icon: <Globe size={16} />, label: 'Ngôn ngữ' },
@@ -125,11 +104,11 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
           </div>
 
           {/* Submenu Main Content */}
-          <div style={{ flex: 1, padding: 24, overflowY: 'auto' }}>
+          <div className="settings-modal-content">
             {activeTab === 'theme' && (
               <div>
                 <h4 style={{ marginBottom: 16, fontSize: 16 }}>Giao diện ứng dụng</h4>
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div className="settings-theme-grid">
                   {themeOptions.map(opt => (
                     <button
                       key={opt.mode}

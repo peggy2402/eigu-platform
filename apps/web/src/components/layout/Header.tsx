@@ -6,7 +6,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import ThemeToggle from './ThemeToggle';
 import UserDropdown from './UserDropdown';
 import { useEffect, useState } from 'react';
-import { Menu, X, Home, Info, CreditCard, Newspaper, HelpCircle, Mail } from 'lucide-react';
+import { Menu, X, Home, Info, CreditCard, Newspaper, HelpCircle, Mail, User, Wallet, Settings, Bug, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface HeaderProps {
@@ -26,7 +26,7 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
 };
 
 export default function Header({ activePath = '/', onNavigate, onOpenSettings, onOpenFeedback }: HeaderProps) {
-  const { token, loading } = useAuth();
+  const { user, token, loading, logout } = useAuth();
   const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -154,13 +154,15 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
             <ThemeToggle />
             <LanguageSwitcher />
 
-            {/* Desktop auth buttons */}
+            {/* Desktop auth buttons / user dropdown */}
             {!loading && token ? (
-              <UserDropdown
-                onOpenSettings={onOpenSettings}
-                onOpenFeedback={onOpenFeedback}
-                onNavigate={onNavigate}
-              />
+              <div className="desktop-user-dropdown">
+                <UserDropdown
+                  onOpenSettings={onOpenSettings}
+                  onOpenFeedback={onOpenFeedback}
+                  onNavigate={onNavigate}
+                />
+              </div>
             ) : (
               <div className="desktop-auth-btns" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <motion.button
@@ -252,12 +254,57 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
 
             {/* If logged in, show user info area in drawer */}
             {!loading && token && (
-              <div style={{ padding: '0 16px 16px' }}>
-                <UserDropdown
-                  onOpenSettings={() => { onOpenSettings(); setMobileOpen(false); }}
-                  onOpenFeedback={() => { onOpenFeedback(); setMobileOpen(false); }}
-                  onNavigate={handleNav}
-                />
+              <div className="mobile-drawer-user">
+                <div className="mobile-user-card">
+                  <div className="mobile-user-info">
+                    <div className="mobile-user-avatar">
+                      <User size={18} />
+                    </div>
+                    <div>
+                      <div className="mobile-user-name">{user?.username || (user?.email ? user.email.split('@')[0] : 'User')}</div>
+                      <div className="mobile-user-email">{user?.email || ''}</div>
+                    </div>
+                  </div>
+                  <div className="mobile-user-balance-box">
+                    <div>
+                      <span className="mobile-balance-label">{t('user_balance')}</span>
+                      <div className="mobile-balance-val">{(user?.balance || 0).toLocaleString('vi-VN')}đ</div>
+                    </div>
+                    <button
+                      onClick={() => { setMobileOpen(false); onNavigate('/dashboard/transactions'); }}
+                      className="mobile-deposit-btn"
+                    >
+                      <Wallet size={14} />
+                      <span>{t('user_deposit')}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mobile-user-actions">
+                  <button
+                    onClick={() => { setMobileOpen(false); onOpenSettings(); }}
+                    className="mobile-action-btn"
+                  >
+                    <Settings size={16} />
+                    <span>{t('user_settings')}</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setMobileOpen(false); onOpenFeedback(); }}
+                    className="mobile-action-btn"
+                  >
+                    <Bug size={16} />
+                    <span>{t('user_feedback')}</span>
+                  </button>
+
+                  <button
+                    onClick={async () => { setMobileOpen(false); await logout(); window.location.href = '/auth/login'; }}
+                    className="mobile-action-btn danger"
+                  >
+                    <LogOut size={16} />
+                    <span>{t('user_logout')}</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
