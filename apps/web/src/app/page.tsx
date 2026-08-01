@@ -23,6 +23,7 @@ import PricingGrid from '../components/pricing/PricingGrid';
 import EventPopupModal from '../components/event/EventPopupModal';
 import { pricingApi, themeEventApi, contactApi } from '../lib/api';
 import type { PricingModuleDto, PricingTierDto } from '@eigu-platform/shared';
+import TypewriterText from '../components/TypewriterText';
 
 const TESTIMONIALS_COL1 = [
   { name: 'Quỳnh Mai', handle: '@quynhmai_mmo', avatar: 'https://scontent.fhan2-5.fna.fbcdn.net/v/t1.15752-9/759188241_1776425700453909_6966335744454354739_n.jpg?stp=dst-jpg_tt6&cstp=mx1086x1086&ctp=s1086x1086&_nc_cat=106&ccb=1-7&_nc_sid=9f807c&_nc_ohc=YXc0j8wUbUgQ7kNvwEWGZZQ&_nc_oc=Ado1Pzc1RXZik11wE0uAy5OKmD5HXI7gmueCmDkeT4BfqYy_LuAQaBKeSjdshfP4OJfLNq-DQvr9JhWSo2FwP0Co&_nc_zt=23&_nc_ht=scontent.fhan2-5.fna&_nc_ss=7b2a8&oh=03_Q7cD6AHPtH3npzIp-myWNjM6y7xTS8sREvdbz2ChqX0u-2p5FQ&oe=6A9439E3', text: 'Giao diện dễ dùng, nạp tiền tự động nhanh gọn. Via Facebook ở đây trâu thật sự.' },
@@ -400,8 +401,101 @@ export default function Home() {
 
   if (authLoading) {
     return (
-      <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-        Đang tải EIGU Platform...
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 99999,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        background: 'var(--bg-primary)',
+        gap: 0,
+      }}>
+        {/* Ambient glow blobs */}
+        <div style={{
+          position: 'absolute', top: '20%', left: '30%',
+          width: 400, height: 400, borderRadius: '50%',
+          background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)',
+          filter: 'blur(60px)', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '25%', right: '25%',
+          width: 300, height: 300, borderRadius: '50%',
+          background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)',
+          filter: 'blur(80px)', pointerEvents: 'none',
+          opacity: 0.5,
+        }} />
+
+        {/* Logo + spinner ring */}
+        <div style={{ position: 'relative', width: 96, height: 96, marginBottom: 32 }}>
+          {/* Outer spinning ring */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            borderRadius: '50%',
+            border: '3px solid transparent',
+            borderTopColor: 'var(--accent)',
+            borderRightColor: 'var(--accent)',
+            animation: 'eigu-spin 1s linear infinite',
+          }} />
+          {/* Inner soft ring */}
+          <div style={{
+            position: 'absolute', inset: 6,
+            borderRadius: '50%',
+            border: '2px solid var(--border-color)',
+          }} />
+          {/* Logo centered */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <img
+              src="/logo.png"
+              alt="EIGU"
+              style={{
+                width: 52, height: 52, objectFit: 'contain',
+                filter: 'drop-shadow(0 0 16px var(--accent))',
+                animation: 'eigu-pulse 2s ease-in-out infinite',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Brand name */}
+        <div style={{
+          fontSize: 26, fontWeight: 800, letterSpacing: '-0.5px',
+          color: 'var(--text-primary)', marginBottom: 8,
+        }}>
+          EIGU <span style={{ color: 'var(--accent)' }}>Platform</span>
+        </div>
+
+        {/* Subtitle */}
+        <div style={{
+          fontSize: 13, color: 'var(--text-muted)', marginBottom: 36, fontWeight: 400,
+        }}>
+          AI Automation Engine
+        </div>
+
+        {/* Pulsing dots */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{
+              width: 7, height: 7, borderRadius: '50%',
+              background: 'var(--accent)',
+              animation: `eigu-bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+            }} />
+          ))}
+        </div>
+
+        {/* Inline keyframes */}
+        <style>{`
+          @keyframes eigu-spin {
+            to { transform: rotate(360deg); }
+          }
+          @keyframes eigu-pulse {
+            0%, 100% { filter: drop-shadow(0 0 16px var(--accent)); }
+            50%       { filter: drop-shadow(0 0 28px var(--accent)) brightness(1.2); }
+          }
+          @keyframes eigu-bounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40%           { transform: scale(1.1); opacity: 1; }
+          }
+        `}</style>
       </div>
     );
   }
@@ -448,7 +542,8 @@ export default function Home() {
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenFeedback={() => setFeedbackOpen(true)}
       />
-
+      {/* Spacer compensates for fixed-position navbar height */}
+      <div style={{ height: 76, flexShrink: 0 }} aria-hidden="true" />
       {/* Settings Modal */}
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
 
@@ -494,7 +589,20 @@ export default function Home() {
                     </span>
                   </h1>
                   <h2 style={{ fontSize: 'min(2.5rem, 6vw)', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 24, lineHeight: 1.2 }}>
-                    {language === 'en' ? '& Professional AI Support' : '& Hỗ trợ AI chuyên nghiệp'}
+                    {language === 'en' ? '& ' : '& '}
+                    <TypewriterText
+                      phrases={
+                        language === 'en'
+                          ? ['Professional AI Support', 'Complete AI Solution', 'AI for Every Task', 'Unlock AI Power', 'Priority 24/7 Support']
+                          : ['Hỗ trợ AI chuyên nghiệp', 'Giải pháp AI toàn diện', 'AI cho mọi tác vụ', 'Khai phá sức mạnh AI', 'Ưu tiên hỗ trợ 24/7']
+                      }
+                      style={{
+                        background: 'linear-gradient(135deg, var(--text-secondary) 0%, var(--accent) 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                      }}
+                    />
                   </h2>
 
                   {/* Subtitle */}

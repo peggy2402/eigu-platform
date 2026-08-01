@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Lock, User, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
 import { authApi } from '../../../lib/api';
 import { useToast } from '../../../contexts/ToastContext';
+import BackToHomeButton from '../../../components/layout/BackToHomeButton';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function LoginPage() {
 
   return (
     <div className="auth-split-wrapper">
+      <BackToHomeButton />
       <div className="auth-split-card">
         {/* Left Hero Banner Side */}
         <div className="auth-left-banner">

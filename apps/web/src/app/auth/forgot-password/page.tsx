@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, Eye, EyeOff, Mail, Lock, KeyRound, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
 import { authApi } from '../../../lib/api';
+import BackToHomeButton from '../../../components/layout/BackToHomeButton';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -54,6 +55,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="auth-split-wrapper">
+      <BackToHomeButton />
       <div className="auth-split-card">
         {/* Left Hero Banner Side */}
         <div className="auth-left-banner">

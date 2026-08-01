@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
 import { authApi } from '../../../lib/api';
 import { useToast } from '../../../contexts/ToastContext';
+import BackToHomeButton from '../../../components/layout/BackToHomeButton';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -95,6 +96,7 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-split-wrapper">
+      <BackToHomeButton />
       <div className="auth-split-card">
         {/* Left Hero Banner Side */}
         <div className="auth-left-banner">

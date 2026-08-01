@@ -590,6 +590,60 @@ html, body {
   }
 }
 
+/* ===== Back To Home Button (Shared Auth Component) ===== */
+.back-to-home-wrapper {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 9999;
+}
+
+.back-to-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 9999px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change: transform, color, border-color, box-shadow;
+}
+
+.back-to-home-btn:hover {
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  background: var(--bg-card) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px var(--accent-glow), 0 0 0 1px var(--accent) !important;
+}
+
+.back-to-home-btn:active {
+  transform: translateY(0) scale(0.97) !important;
+}
+
+@media (max-width: 480px) {
+  .back-to-home-wrapper {
+    top: 12px;
+    left: 12px;
+  }
+  .back-to-home-btn span {
+    display: none;
+  }
+  .back-to-home-btn {
+    padding: 8px 10px;
+    gap: 0;
+  }
+}
+
 .auth-container {
   min-height: 100vh;
   display: flex;
@@ -1211,14 +1265,21 @@ input[type="submit"]:active {
 
 /* Thanh Nav lơ lửng - Hiệu ứng Liquid Glass */
 .apple-nav-wrapper {
-  position: sticky;
+  position: fixed;
   top: 1.25rem;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 92%;
   max-width: 1080px;
-  margin: 0 auto;
-  z-index: 100;
+  z-index: 9999;
+  transition: top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Scroll state: nav becomes more compact & opaque */
+.apple-nav-wrapper.nav-scrolled {
+  top: 0.5rem;
+  width: 96%;
+  max-width: 1100px;
 }
 
 .apple-nav {
@@ -1241,13 +1302,36 @@ input[type="submit"]:active {
   white-space: nowrap !important;
   gap: 12px;
   position: relative;
-  overflow: visible !important; /* Allow UserDropdown menu to pop out without clipping */
+  overflow: visible !important;
+  /* Smooth transitions for scroll-aware changes */
+  transition:
+    padding 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.35s ease,
+    box-shadow 0.35s ease,
+    backdrop-filter 0.35s ease;
+}
+
+/* Scrolled state: tighter padding, stronger glass blur, more prominent shadow */
+.nav-scrolled .apple-nav {
+  padding: 0.45rem 1rem;
+  background: linear-gradient(135deg, rgba(30, 26, 23, 0.82) 0%, rgba(12, 10, 9, 0.95) 100%);
+  backdrop-filter: blur(60px) saturate(200%);
+  -webkit-backdrop-filter: blur(60px) saturate(200%);
+  box-shadow:
+    0 20px 50px -8px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 [data-theme="light"] .apple-nav {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 244, 0.96) 100%);
   border: 1px solid var(--border-color);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 0 20px var(--accent-glow);
+}
+
+[data-theme="light"] .nav-scrolled .apple-nav {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 248, 248, 0.99) 100%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 24px var(--accent-glow);
 }
 
 /* Hiệu ứng vệt sáng lướt qua của liquid glass - Clipped strictly with round navbar */
@@ -1394,13 +1478,23 @@ input[type="submit"]:active {
   .apple-nav-wrapper {
     width: calc(100% - 20px) !important;
     top: 0.5rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
   }
   .apple-nav {
     padding: 0.5rem 0.75rem !important;
     gap: 6px !important;
   }
-  .apple-nav nav {
+  /* Hide desktop nav tabs & auth buttons on mobile */
+  .desktop-nav {
     display: none !important;
+  }
+  .desktop-auth-btns {
+    display: none !important;
+  }
+  /* Show hamburger button on mobile */
+  .mobile-menu-btn {
+    display: flex !important;
   }
   .header-right-controls {
     gap: 6px !important;
@@ -1429,6 +1523,8 @@ input[type="submit"]:active {
   .apple-nav-wrapper {
     width: calc(100% - 16px) !important;
     top: 0.4rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
   }
   .apple-nav {
     padding: 0.4rem 0.6rem !important;
@@ -1436,10 +1532,6 @@ input[type="submit"]:active {
   }
   .header-brand-title {
     font-size: 14px !important;
-  }
-  .btn-header-login, .btn-header-register {
-    padding: 6px 10px !important;
-    font-size: 12px !important;
   }
   .user-dropdown-btn {
     padding: 5px 8px !important;
@@ -1453,6 +1545,192 @@ input[type="submit"]:active {
     display: inline-block;
     vertical-align: middle;
   }
+}
+
+/* Hamburger button — hidden on desktop, shown on mobile */
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0;
+}
+.mobile-menu-btn:hover {
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  background: var(--bg-elevated) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ===== Mobile Nav Drawer ===== */
+.mobile-nav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fadeInOverlay 0.2s ease;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.mobile-nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0 0 24px 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  padding-bottom: 24px;
+  animation: slideDownDrawer 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+@keyframes slideDownDrawer {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+.mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mobile-close-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease !important;
+}
+.mobile-close-btn:hover {
+  color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  background: var(--danger-bg) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.mobile-drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 12px 8px;
+}
+
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font);
+  transition: all 0.15s ease !important;
+  position: relative;
+}
+.mobile-nav-item:hover {
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.mobile-nav-item.active {
+  background: var(--accent-glow) !important;
+  color: var(--accent) !important;
+  font-weight: 700;
+}
+.mobile-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+.mobile-nav-item.active .mobile-nav-icon {
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+.mobile-nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.mobile-drawer-auth {
+  display: flex;
+  gap: 10px;
+  padding: 8px 16px 0;
+}
+.mobile-auth-login {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.15s ease !important;
+}
+.mobile-auth-login:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: var(--bg-elevated) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.mobile-auth-register {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--accent);
+  border: 1px solid transparent;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.15s ease !important;
+}
+.mobile-auth-register:hover {
+  background: var(--accent-hover) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* Nút Tải xuống Chính (Windows - Dynamic Season Accent Gradient) */
@@ -1555,5 +1833,18 @@ input[type="submit"]:active {
 
 
 
+/* ===== Typewriter Text Cursor ===== */
+.typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  margin-left: 2px;
+  color: var(--accent);
+  animation: blink-cursor 0.75s step-end infinite;
+  font-weight: 300;
+  vertical-align: baseline;
+}
 
-
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
