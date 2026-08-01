@@ -9,8 +9,8 @@ export class ObfuscatedPrefixMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     const originalUrl = req.originalUrl || req.url;
 
-    // Allow static docs or root api health
-    if (originalUrl === '/api' || originalUrl === '/api/' || originalUrl.startsWith('/api/docs')) {
+    // Allow static docs, root api health, or public bootstrap
+    if (originalUrl === '/api' || originalUrl === '/api/' || originalUrl.startsWith('/api/docs') || originalUrl.startsWith('/api/bootstrap')) {
       return next();
     }
 
