@@ -380,6 +380,12 @@ export default function Home() {
 
   useEffect(() => {
     fetchPricing();
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      if (['/about', '/pricing', '/news', '/faq', '/contact', '/'].includes(currentPath)) {
+        setActivePath(currentPath);
+      }
+    }
   }, [fetchPricing]);
 
   // Navigate Handler
@@ -389,6 +395,9 @@ export default function Home() {
       return;
     }
     setActivePath(path);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', path);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -543,8 +552,9 @@ export default function Home() {
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenFeedback={() => setFeedbackOpen(true)}
       />
-      {/* Spacer compensates for fixed-position navbar height */}
-      <div style={{ height: 76, flexShrink: 0 }} aria-hidden="true" />
+      {/* Scroll Edge Dissolve Mask (Soft gradient dissolve behind navbar) */}
+      <div className="nav-scroll-dissolve-mask" aria-hidden="true" />
+
       {/* Settings Modal */}
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
 
@@ -561,13 +571,13 @@ export default function Home() {
         </div>
       )}
 
-      {/* MAIN CONTENT AREA */}
-      <main style={{ flex: 1, position: 'relative', zIndex: 10 }}>
+      {/* SINGLE GLOBAL MAIN CONTENT WRAPPER WITH --nav-clearance */}
+      <main className="site-main-container">
         {/* ==================== 1. LANDING PAGE HOME (/) ==================== */}
         {activePath === '/' && (
           <div style={{ position: 'relative', overflow: 'hidden', paddingBottom: 60 }}>
             {/* Hero Section */}
-            <section style={{ padding: '60px 24px 40px', maxWidth: 1240, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+            <section style={{ padding: '0 24px 40px', maxWidth: 1240, margin: '0 auto', position: 'relative', zIndex: 10 }}>
               <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 48 }}>
                 {/* Left Column (Text & Downloads) */}
                 <div style={{ flex: '1 1 500px', maxWidth: 620 }}>
@@ -862,7 +872,7 @@ export default function Home() {
 
         {/* ==================== 2. PUBLIC PRICING PAGE (/pricing) ==================== */}
         {(activePath === '/pricing' || (token && activeUserView === 'bang-gia' && activePath === '/dashboard')) && (
-          <section style={{ padding: '60px 24px', maxWidth: 1200, margin: '0 auto' }}>
+          <section style={{ padding: '0 24px 80px', maxWidth: 1200, margin: '0 auto' }}>
             <div style={{ textAlign: 'center', marginBottom: 40 }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 14px', borderRadius: 20, background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent)', fontSize: 12, fontWeight: 700, marginBottom: 16 }}>
                 <Tag size={14} /> {t('pricing_title')}
@@ -897,7 +907,7 @@ export default function Home() {
 
         {/* ==================== 3. ABOUT PAGE (/about) ==================== */}
         {activePath === '/about' && (
-          <section style={{ padding: '60px 24px 80px', maxWidth: 1040, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+          <section style={{ padding: '0 24px 80px', maxWidth: 1040, margin: '0 auto', position: 'relative', zIndex: 10 }}>
             {/* Main Header */}
             <div style={{ textAlign: 'center', marginBottom: 48 }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 20, background: 'var(--accent-glow)', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: 13, fontWeight: 700, marginBottom: 20 }}>
@@ -1014,10 +1024,11 @@ export default function Home() {
 
         {/* ==================== 4. NEWS PAGE (/news) ==================== */}
         {activePath === '/news' && (
-          <section style={{ padding: '60px 24px', maxWidth: 1000, margin: '0 auto' }}>
+          <section style={{ padding: '0 24px 80px', maxWidth: 1000, margin: '0 auto' }}>
             <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 32, textAlign: 'center' }}>
               {language === 'en' ? 'Product News & System Updates' : 'Tin Tức & Cập Nhật Sản Phẩm'}
             </h1>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
               {[
                 {
@@ -1048,7 +1059,7 @@ export default function Home() {
 
         {/* ==================== 5. FAQ PAGE (/faq) ==================== */}
         {activePath === '/faq' && (
-          <section style={{ padding: '60px 24px 80px', maxWidth: 880, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+          <section style={{ padding: '0 24px 80px', maxWidth: 880, margin: '0 auto', position: 'relative', zIndex: 10 }}>
             <h1 style={{ fontSize: 'min(2.5rem, 7vw)', fontWeight: 900, marginBottom: 12, textAlign: 'center', color: 'var(--text-primary)' }}>
               {language === 'en' ? 'Frequently Asked Questions & Terms' : 'Câu Hỏi Thường Gặp & Điều Khoản Sử Dụng'}
             </h1>
@@ -1430,7 +1441,7 @@ export default function Home() {
 
         {/* ==================== 6. CONTACT PAGE (/contact) ==================== */}
         {activePath === '/contact' && (
-          <section style={{ padding: '60px 24px 80px', maxWidth: 1040, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+          <section style={{ padding: '0 24px 80px', maxWidth: 1040, margin: '0 auto', position: 'relative', zIndex: 10 }}>
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: 44 }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 20, background: 'var(--accent-glow)', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: 13, fontWeight: 700, marginBottom: 16 }}>

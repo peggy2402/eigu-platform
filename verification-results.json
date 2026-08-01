@@ -1,0 +1,194 @@
+[
+  {
+    "page": "home",
+    "theme": "dark",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 174,
+      "height": 211
+    },
+    "clearanceDistancePx": 95,
+    "status": "PASS",
+    "screenshotFile": "home-dark.png"
+  },
+  {
+    "page": "home",
+    "theme": "light",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 174,
+      "height": 211
+    },
+    "clearanceDistancePx": 95,
+    "status": "PASS",
+    "screenshotFile": "home-light.png"
+  },
+  {
+    "page": "about",
+    "theme": "dark",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 166,
+      "height": 58
+    },
+    "clearanceDistancePx": 87,
+    "status": "PASS",
+    "screenshotFile": "about-dark.png"
+  },
+  {
+    "page": "about",
+    "theme": "light",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 166,
+      "height": 58
+    },
+    "clearanceDistancePx": 87,
+    "status": "PASS",
+    "screenshotFile": "about-light.png"
+  },
+  {
+    "page": "pricing",
+    "theme": "dark",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 155,
+      "height": 43
+    },
+    "clearanceDistancePx": 76,
+    "status": "PASS",
+    "screenshotFile": "pricing-dark.png"
+  },
+  {
+    "page": "pricing",
+    "theme": "light",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 155,
+      "height": 43
+    },
+    "clearanceDistancePx": 76,
+    "status": "PASS",
+    "screenshotFile": "pricing-light.png"
+  },
+  {
+    "page": "news",
+    "theme": "dark",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 116,
+      "height": 43
+    },
+    "clearanceDistancePx": 37,
+    "status": "PASS",
+    "screenshotFile": "news-dark.png"
+  },
+  {
+    "page": "news",
+    "theme": "light",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 116,
+      "height": 43
+    },
+    "clearanceDistancePx": 37,
+    "status": "PASS",
+    "screenshotFile": "news-light.png"
+  },
+  {
+    "page": "faq",
+    "theme": "dark",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 116,
+      "height": 94
+    },
+    "clearanceDistancePx": 37,
+    "status": "PASS",
+    "screenshotFile": "faq-dark.png"
+  },
+  {
+    "page": "faq",
+    "theme": "light",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 116,
+      "height": 94
+    },
+    "clearanceDistancePx": 37,
+    "status": "PASS",
+    "screenshotFile": "faq-light.png"
+  },
+  {
+    "page": "contact",
+    "theme": "dark",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 162,
+      "height": 52
+    },
+    "clearanceDistancePx": 83,
+    "status": "PASS",
+    "screenshotFile": "contact-dark.png"
+  },
+  {
+    "page": "contact",
+    "theme": "light",
+    "navbar": {
+      "y": 20,
+      "height": 59,
+      "bottom": 79
+    },
+    "h1": {
+      "y": 162,
+      "height": 52
+    },
+    "clearanceDistancePx": 83,
+    "status": "PASS",
+    "screenshotFile": "contact-light.png"
+  }
+]
