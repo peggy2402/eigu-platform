@@ -26,75 +26,72 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
   ];
 
   return (
-    <header
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        background: 'rgba(10, 11, 16, 0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border-color)',
-        padding: '0 24px',
-        height: 64,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}
-    >
-      {/* Brand Logo & Title */}
-      <div
-        onClick={() => onNavigate('/')}
-        style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
-      >
-        <img src="/logo.png" alt="EIGU Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
-        <span style={{ fontSize: 18, fontWeight: 800, background: 'linear-gradient(135deg, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          EIGU Platform
-        </span>
-      </div>
-
-      {/* Main Nav Links */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        {navItems.map(item => {
-          const isActive = activePath === item.path;
-          return (
-            <span
-              key={item.path}
-              onClick={() => onNavigate(item.path)}
-              className={`nav-link ${isActive ? 'active' : ''}`}
-            >
-              {item.label}
-            </span>
-          );
-        })}
-      </nav>
-
-      {/* Right Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <LanguageSwitcher />
-
-        {!loading && token ? (
-          <UserDropdown
-            onOpenSettings={onOpenSettings}
-            onOpenFeedback={onOpenFeedback}
-            onNavigate={onNavigate}
+    <div className="apple-nav-wrapper">
+      <header className="apple-nav">
+        {/* Brand Logo & Title */}
+        <div
+          onClick={() => onNavigate('/')}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+        >
+          <img
+            src="/logo.png"
+            alt="EIGU Logo"
+            style={{
+              width: 34,
+              height: 34,
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.6))',
+            }}
           />
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button
-              onClick={() => onNavigate('/auth/login')}
-              className="btn-header-login"
-            >
-              {t('nav_login')}
-            </button>
-            <button
-              onClick={() => onNavigate('/auth/register')}
-              className="btn-header-register"
-            >
-              {t('nav_register')}
-            </button>
-          </div>
-        )}
-      </div>
-    </header>
+          <span style={{ fontSize: 17, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.3px' }}>
+            EIGU Platform
+          </span>
+        </div>
+
+        {/* Main Nav Links with Liquid Glass Tabs */}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {navItems.map(item => {
+            const isActive = activePath === item.path;
+            return (
+              <span
+                key={item.path}
+                onClick={() => onNavigate(item.path)}
+                className={`header-nav-item ${isActive ? 'active' : ''}`}
+              >
+                {item.label}
+              </span>
+            );
+          })}
+        </nav>
+
+        {/* Right Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <LanguageSwitcher />
+
+          {!loading && token ? (
+            <UserDropdown
+              onOpenSettings={onOpenSettings}
+              onOpenFeedback={onOpenFeedback}
+              onNavigate={onNavigate}
+            />
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                onClick={() => onNavigate('/auth/login')}
+                className="btn-header-login"
+              >
+                {t('nav_login')}
+              </button>
+              <button
+                onClick={() => onNavigate('/auth/register')}
+                className="btn-header-register"
+              >
+                {t('nav_register')}
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+    </div>
   );
 }

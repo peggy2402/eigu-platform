@@ -65,14 +65,14 @@ export default function UserDropdown({ onOpenSettings, onOpenFeedback, onNavigat
         <div
           style={{
             position: 'absolute',
-            top: 'calc(100% + 8px)',
+            top: 'calc(100% + 12px)',
             right: 0,
-            width: 240,
+            width: 250,
             background: 'var(--bg-card)',
             border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius)',
-            boxShadow: '0 16px 40px rgba(0,0,0,0.4)',
-            zIndex: 999,
+            boxShadow: '0 20px 50px rgba(0,0,0,0.7), 0 0 20px rgba(245, 158, 11, 0.2)',
+            zIndex: 99999,
             overflow: 'hidden',
             padding: 8,
           }}

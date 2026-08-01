@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giải Pháp Phần Mềm | E-Solution</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            500: '#ef4444', // Red-500
+                            600: '#dc2626', // Red-600
+                            900: '#7f1d1d',
+                        },
+                        dark: {
+                            900: '#0a0a0a',
+                            800: '#171717',
+                            700: '#262626',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #0a0a0a; /* Đen nhám sâu */
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Nền Pattern chấm bi tinh tế */
+        .bg-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 32px 32px;
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            opacity: 0.4;
+        }
+
+        /* Đèn nền (Glow) */
+        .glow-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Thanh Nav lơ lửng - Hiệu ứng Liquid Glass */
+        .apple-nav-wrapper {
+            position: fixed;
+            top: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1000px;
+            z-index: 50;
+        }
+
+        .apple-nav {
+            background: linear-gradient(135deg, rgba(40, 40, 40, 0.4) 0%, rgba(10, 10, 10, 0.6) 100%);
+            backdrop-filter: blur(40px) saturate(150%);
+            -webkit-backdrop-filter: blur(40px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.3); /* Phản quang chất lỏng ở viền trên */
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            box-shadow: 
+                0 30px 60px -10px rgba(0,0,0,0.6), 
+                inset 0 2px 20px rgba(255,255,255,0.05),
+                inset 0 -1px 0 rgba(0,0,0,0.5);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hiệu ứng vệt sáng lướt qua của liquid glass */
+        .apple-nav::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transform: skewX(-20deg);
+            animation: liquid-shine 8s infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes liquid-shine {
+            0% { left: -150%; }
+            15% { left: 200%; }
+            100% { left: 200%; }
+        }
+        
+        /* Đảm bảo nội dung nav luôn nổi lên trên hiệu ứng vệt sáng */
+        .apple-nav > * {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Nút Tải xuống Chính */
+        .btn-primary {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.39);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+            background: linear-gradient(135deg, #f87171, #dc2626);
+        }
+
+        /* Nút Tải xuống Phụ */
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Hiệu ứng 3D cho ảnh minh họa */
+        .perspective-container {
+            perspective: 1200px;
+        }
+        .tilt-card {
+            transform: rotateY(-15deg) rotateX(10deg);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+        .tilt-card:hover {
+            transform: rotateY(-5deg) rotateX(5deg);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased relative">
+
+    <!-- Các lớp nền -->
+    <div class="bg-pattern"></div>
+    <div class="glow-circle w-[600px] h-[600px] bg-red-600/20 top-[-200px] left-[-200px]"></div>
+    <div class="glow-circle w-[500px] h-[500px] bg-blue-600/20 bottom-[-100px] right-[-100px]"></div>
+
+    <!-- Navigation Container -->
+    <div class="apple-nav-wrapper">
+        <nav class="apple-nav">
+            
+            <!-- Logo -->
+            <div class="flex items-center gap-3 cursor-pointer">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-[0_0_15px_rgba(239,68,68,0.5)]">
+                    E
+                </div>
+                <span class="font-bold text-lg tracking-tight text-white hidden sm:block">
+                    E-Solution
+                </span>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#" class="text-sm font-medium text-white relative after:absolute after:-bottom-1.5 after:left-0 after:w-full after:h-0.5 after:bg-brand-500 after:rounded-full">Trang chủ</a>
+                <a href="#" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Giới thiệu</a>
+                <a href="#" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Bảng giá</a>
+                <a href="#" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Sản phẩm</a>
+                <a href="#" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Tin tức</a>
+            </div>
+
+            <!-- Auth Buttons -->
+            <div class="hidden md:flex items-center space-x-4">
+                <!-- Language Selector -->
+                <div class="flex items-center gap-1.5 cursor-pointer text-gray-300 hover:text-white transition-colors pr-4 border-r border-white/10 group">
+                    <i class="fas fa-globe text-sm"></i>
+                    <span class="text-sm font-medium uppercase">vi</span>
+                    <i class="fas fa-chevron-down text-[10px] ml-0.5 opacity-70 group-hover:opacity-100 transition-opacity"></i>
+                </div>
+                
+                <a href="#" class="text-sm font-medium text-gray-300 hover:text-white transition-colors pl-1">Đăng nhập</a>
+                <a href="#" class="bg-white text-black hover:bg-gray-200 px-5 py-2 rounded-full text-sm font-semibold transition-colors shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                    Đăng ký
+                </a>
+            </div>
+
+            <!-- Mobile menu button -->
+            <button class="md:hidden text-gray-300 hover:text-white p-2">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </nav>
+    </div>
+
+    <main class="flex-grow flex items-center pt-32 pb-16 lg:pt-48 lg:pb-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-12">
+                
+                <!-- Cột nội dung bên trái -->
+                <div class="w-full lg:w-1/2 text-center lg:text-left flex flex-col items-center lg:items-start">
+                    
+                    <!-- Badge -->
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
+                        <span class="relative flex h-2.5 w-2.5">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-500"></span>
+                        </span>
+                        <span class="text-xs sm:text-sm font-medium text-gray-300">Phiên bản mới 3.0 đã ra mắt</span>
+                    </div>
+
+                    <!-- Tiêu đề chính -->
+                    <h1 class="text-5xl sm:text-6xl lg:text-[4.5rem] font-bold tracking-tight mb-6 leading-[1.1] text-white">
+                        Giải pháp phần mềm, <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-brand-500 to-orange-400">Tự động hóa</span>
+                    </h1>
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-semibold text-gray-400 mb-6">
+                        & Hỗ trợ AI chuyên nghiệp
+                    </h2>
+                    
+                    <!-- Mô tả -->
+                    <p class="text-lg sm:text-xl text-gray-400 max-w-2xl lg:max-w-xl mb-10 leading-relaxed font-light">
+                        Tối ưu hóa quy trình làm việc của bạn. Tiết kiệm hàng giờ đồng hồ mỗi ngày với công cụ tự động hóa thông minh dành cho doanh nghiệp.
+                    </p>
+                    
+                    <!-- Nút Tải xuống -->
+                    <div class="flex flex-col sm:flex-row w-full sm:w-auto gap-4">
+                        <a href="#" class="btn-primary flex items-center justify-center px-8 py-4 text-white rounded-full font-medium text-base group">
+                            <i class="fab fa-windows text-xl mr-3 group-hover:-translate-y-1 transition-transform"></i>
+                            Tải cho Windows
+                            <span class="ml-2 text-xs opacity-70 font-normal">(.exe)</span>
+                        </a>
+                        
+                        <a href="#" class="btn-secondary flex items-center justify-center px-8 py-4 text-gray-200 rounded-full font-medium text-base group hover:text-white">
+                            <i class="fab fa-apple text-xl mr-3 group-hover:-translate-y-1 transition-transform"></i>
+                            Tải cho macOS
+                            <span class="ml-2 text-xs opacity-70 font-normal">(.pkg)</span>
+                        </a>
+                    </div>
+
+                    <!-- Trust indicators -->
+                    <div class="mt-12 flex items-center gap-6 text-gray-500 text-sm font-medium">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-shield-alt text-gray-400"></i> An toàn 100%
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-bolt text-gray-400"></i> Cài đặt nhanh
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột hình ảnh minh họa 3D bên phải -->
+                <div class="w-full lg:w-1/2 perspective-container mt-12 lg:mt-0">
+                    <div class="tilt-card relative w-full aspect-[4/3] rounded-2xl bg-dark-800 border border-white/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden">
+                        
+                        <!-- Ánh sáng hắt viền -->
+                        <div class="absolute inset-0 bg-gradient-to-tr from-brand-500/10 via-transparent to-blue-500/10 z-0"></div>
+
+                        <!-- Top Bar kiểu cửa sổ macOS -->
+                        <div class="h-12 bg-dark-900/80 backdrop-blur border-b border-white/10 flex items-center px-4 gap-2 relative z-10">
+                            <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                            <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                            <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+                            <div class="mx-auto text-xs font-medium text-gray-500 tracking-wider absolute left-1/2 transform -translate-x-1/2">E-SOLUTION DASHBOARD</div>
+                        </div>
+
+                        <!-- Nội dung giả lập App -->
+                        <div class="p-6 relative z-10 h-[calc(100%-3rem)] flex flex-col gap-4">
+                            <!-- Header giả -->
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="h-6 w-32 bg-white/10 rounded-md"></div>
+                                <div class="h-8 w-8 bg-white/10 rounded-full"></div>
+                            </div>
+                            
+                            <!-- Main Content Area -->
+                            <div class="flex gap-4 h-full">
+                                <!-- Sidebar giả -->
+                                <div class="w-1/4 flex flex-col gap-3">
+                                    <div class="h-8 w-full bg-white/10 rounded-md"></div>
+                                    <div class="h-8 w-full bg-brand-500/20 border border-brand-500/30 rounded-md"></div>
+                                    <div class="h-8 w-full bg-white/5 rounded-md"></div>
+                                    <div class="h-8 w-full bg-white/5 rounded-md"></div>
+                                </div>
+                                
+                                <!-- Content giả -->
+                                <div class="w-3/4 flex flex-col gap-4">
+                                    <!-- Biểu đồ giả -->
+                                    <div class="h-1/2 w-full bg-white/5 rounded-xl border border-white/5 p-4 flex items-end gap-2">
+                                        <div class="w-1/6 bg-blue-500/50 h-[40%] rounded-t-sm"></div>
+                                        <div class="w-1/6 bg-blue-500/50 h-[60%] rounded-t-sm"></div>
+                                        <div class="w-1/6 bg-brand-500/80 h-[90%] rounded-t-sm relative">
+                                            <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white text-black text-[10px] font-bold py-1 px-2 rounded">Đỉnh</div>
+                                        </div>
+                                        <div class="w-1/6 bg-blue-500/50 h-[70%] rounded-t-sm"></div>
+                                        <div class="w-1/6 bg-blue-500/50 h-[50%] rounded-t-sm"></div>
+                                        <div class="w-1/6 bg-blue-500/50 h-[80%] rounded-t-sm"></div>
+                                    </div>
+                                    <!-- List giả -->
+                                    <div class="h-1/2 w-full bg-white/5 rounded-xl border border-white/5 p-4 flex flex-col gap-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                            <div class="h-4 w-3/4 bg-white/20 rounded"></div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-orange-400"></div>
+                                            <div class="h-4 w-1/2 bg-white/10 rounded"></div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                            <div class="h-4 w-2/3 bg-white/10 rounded"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card nổi 1: Tiến độ -->
+                        <div class="absolute -right-8 top-20 bg-dark-800/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl animate-float">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-400 font-medium">Auto Task #402</div>
+                                    <div class="text-sm font-bold text-white">Hoàn tất 100%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card nổi 2: AI Status -->
+                        <div class="absolute -left-6 bottom-16 bg-dark-800/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl animate-float-delayed">
+                            <div class="flex items-center gap-3">
+                                <div class="relative">
+                                    <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-brand-500 to-orange-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-dark-800"></div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-400 font-medium">AI Assistant</div>
+                                    <div class="text-sm font-bold text-white">Đang hoạt động</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-white/5 mt-auto bg-dark-900/50 backdrop-blur-sm py-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-xs">E</div>
+                <p>&copy; 2026 E-Solution. Bản quyền thuộc về E-Solution.</p>
+            </div>
+            <div class="flex space-x-6 font-medium">
+                <a href="#" class="hover:text-white transition-colors">Điều khoản</a>
+                <a href="#" class="hover:text-white transition-colors">Bảo mật</a>
+                <a href="#" class="hover:text-white transition-colors">Twitter</a>
+                <a href="#" class="hover:text-white transition-colors">Hỗ trợ</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

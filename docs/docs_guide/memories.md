@@ -924,3 +924,55 @@ Xử lý:
 - **Re-entrant guard cần try/finally:** Module flag phải luôn được reset trong `finally` block, không chỉ ở cuối function — exception từ DOM operations có thể làm treo flag vĩnh viễn
 - **Maintenance overlay cần được ẩn khi logout:** `handleLogout()` đã ẩn banned overlay nhưng quên maintenance overlay — cần ẩn tất cả overlay khi logout
 - **Admin cần emergency escape hatch:** Bất kỳ feature nào có thể lock admin ra khỏi hệ thống (maintenance mode) cần có bypass cho admin role
+
+## Phase 20: Phiên làm việc 31/07/2026 — Nâng cấp Giao diện Web (Autumn Theme, Bảng giá DB, Liquid Glass Header, Fix Dropdown & Event Popup Modal)
+
+### 20.1 Thời Gian & Phạm Vi Công Việc
+- **Ngày thực hiện:** 31/07/2026 (Hoàn tất 23:37 GMT+7)
+- **Phạm vi tác động:** `apps/web` (Web Dashboard & Landing Page), `apps/desktop` (Admin Configuration Scope), `global.css`, `Header.tsx`, `UserDropdown.tsx`, `page.tsx`.
+
+### 20.2 Các Hạng Mục Đã Thực Hiện & Hoàn Thành
+
+#### 1. Chuẩn Hóa Kiến Trúc Bảng Giá & Loại Bỏ Mock Data Sai Cấu Trúc
+- **Phân tích Database Prisma Schema**: Đọc và làm rõ cấu trúc 4 bảng Prisma liên quan đến Pricing: `PricingBadge`, `PricingTier`, `PricingModule`, `PricingTierFeature`.
+- **Đồng bộ Web App với API Backend**: Thay thế mock data cứng ở `apps/web/src/app/page.tsx` bằng hàm `pricingApi.getPricing()` kết nối tới NestJS API `/api/pricing`. 
+- **Cơ chế Fallback An toàn**: Giữ lại mảng `FALLBACK_PRICING_MODULES` đảm bảo nếu chưa khởi chạy API Backend thì giao diện Web vẫn hiển thị bảng giá ổn định mà không bị crash.
+
+#### 2. Nâng Cấp Header Liquid Glass & Thay Thế Logo Thương Hiệu
+- **Logo EIGU**: Thay thế icon chữ "E" cũ ở góc trái Header thành ảnh Logo thương hiệu `logo.png` (`/Users/peggy2402/Projects/eigu-platform/apps/web/public/logo.png`).
+- **Nút Chuyển Tab Liquid Glass theo phong cách Apple**:
+  - Giao diện Header chuyển thành viên nhộng trôi (`.apple-nav`) phong cách Frosted Glass.
+  - Tab Active áp dụng hiệu ứng Kính mờ Hổ phách (`background: linear-gradient(135deg, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0.18) 100%)`).
+  - Khi click tab có hiệu ứng nhấn lò xo Apple (`transform: scale(0.96)`).
+
+#### 3. Sửa Triệt Để Lỗi Dropdown Header Bị Che Khuất (User Dropdown Clipping Bug)
+- **Nguyên nhân**: Container `.apple-nav` trong `global.css` có thuộc tính `overflow: hidden`, khiến menu xổ xuống của `UserDropdown.tsx` (`position: absolute; top: calc(100% + 12px)`) bị cắt lẹm không hiển thị được.
+- **Giải pháp**: Cập nhật `.apple-nav` thành `overflow: visible !important;` và gán `z-index: 99999` cho `UserDropdown` menu container. Menu "Xin chào, {{username}}" xổ xuống trôi nổi trên cùng hoàn chỉnh.
+
+#### 4. Chuyển Đổi Tông Màu Mùa Thu (Autumn Theme) & Hỗ Trợ Light / Dark Mode Tương Phản 100%
+- **Bảng Màu Mùa Thu**: Áp dụng tông màu Hổ Phách & Vàng Mùa Thu (`#f59e0b`, `#d97706`, `#ea580c`).
+- **Khắc phục lỗi mất chữ ở Chế độ sáng (Light Mode)**: 
+  - Thay thế toàn bộ mã màu cứng `#ffffff`, `#94a3b8`, `#64748b` trong `page.tsx` thành các biến **CSS Theme Variables** (`var(--text-primary)`, `var(--text-secondary)`, `var(--text-muted)`).
+  - Khi bật Light Mode (`[data-theme="light"]`), tiêu đề và văn bản tự động chuyển sang màu tối tương phản rõ nét 100%.
+
+#### 5. Tích Hợp Ảnh Máy Bay (`airplanes.webp`)
+- Đưa hình ảnh minh họa máy bay `airplanes.webp` (`maxWidth: 100px`) căn giữa lơ lửng ngay phía trên dòng chữ *"6 Mô-Đun Công Cụ Độc Lập Chuyên Sâu"*.
+
+#### 6. Tối Ưu Khối Đánh Giá Khách Hàng 3 Cột (Testimonial Marquee)
+- **Tiêu đề**: **"Hàng trăm nghìn người dùng tin tưởng lựa chọn EIGU Platform"** (Thay thế chữ "ZENTRA GROUP" cũ thành "EIGU Platform").
+- **Dữ liệu thực**: Cập nhật avatar & thông tin người dùng thật.
+- **3 Cột Cuộn Liên Tục Vô Tận**:
+  - Cột 1 & Cột 3 cuộn xuống (`marquee-col-down`), Cột 2 cuộn lên (`marquee-col-up`).
+  - Bỏ hiệu ứng ngắt cuộn khi hover (`animation-play-state: paused` đã xóa), marquee chạy mượt liên tục không dừng.
+  - Đúng 3 card nhỏ gọn per column (`padding: 14px 16px`, `fontSize: 13px`).
+- **Hiệu ứng Mờ 2 Đầu (Top & Bottom Fade Mask)**: Áp dụng CSS `mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)` giúp các card biến mất/hiển thị mượt mà ở 2 mép trên và dưới.
+
+#### 7. Module Popup Sự Kiện Khuyến Mãi (Event Promo Modal & Admin Scope Rule)
+- **Giao diện Web Client (`apps/web`)**: Tự động mở Popup chào mừng *"🍂 ƯU ĐÃI MÙA THU 2026"* (3 gói Beta giảm tới 80%, nút NHẬN NGAY, nút đóng 'X', và checkbox *"Đã hiểu, không hiển thị lại"* ghi nhớ vào `localStorage`).
+- **Quy chuẩn Quản trị Admin (`apps/desktop`)**:
+  - Cấu hình 4 Mùa (Xuân / Hạ / Thu / Đông) và Bật/Tắt Sự Kiện khuyến mãi được quy định **chỉ Admin thực hiện trong ứng dụng Desktop (`apps/desktop`) khi `role === 'admin'`**.
+  - Trái lại, Web Client chỉ đóng vai trò nhận diện và tự động hiển thị tương ứng với cấu hình active của Admin. Nếu không có sự kiện active thì Web sẽ không hiển thị Popup.
+
+#### 8. Kiểm Tra Biên Dịch Production
+- Chạy lệnh `npx nx build web` thành công 100% (`✓ Compiled successfully in 3.1s`, 0 error).
+
