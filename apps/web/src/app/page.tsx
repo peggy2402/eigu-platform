@@ -261,13 +261,13 @@ const FALLBACK_PRICING_MODULES: PricingModuleDto[] = [
   },
 ];
 
-export default function Home() {
+export default function Home({ initialPath }: { initialPath?: string } = {}) {
   const router = useRouter();
   const { token, user, loading: authLoading } = useAuth();
   const { t, language } = useLanguage();
 
   // Navigation State
-  const [activePath, setActivePath] = useState<string>('/');
+  const [activePath, setActivePath] = useState<string>(initialPath || '/');
   const [activeUserView, setActiveUserView] = useState<ViewType>('ho-so');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -1694,55 +1694,41 @@ export default function Home() {
           </section>
         )}
 
-        {/* ==================== 8. USER DASHBOARD PORTAL (/dashboard) ==================== */}
-        {activePath === '/dashboard' && token && (
-          <div style={{ display: 'flex', minHeight: 'calc(100vh - 64px)' }}>
-            <Sidebar
-              activeView={activeUserView}
-              onViewChange={view => setActiveUserView(view)}
-              collapsed={sidebarCollapsed}
-              onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-            />
+        {/* ==================== 8. STANDALONE ROUTE VIEWS (/transactions, /affiliate, /guide, /audit-log) ==================== */}
+        {(activePath === '/transactions' || activePath === '/dashboard/transactions' || activePath === '/dashboard') && (
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 24px 64px 24px', width: '100%' }}>
+            <TransactionHistoryView />
+          </div>
+        )}
 
-            <div style={{ flex: 1, padding: 32, maxWidth: 1200 }}>
-              {activeUserView === 'ho-so' && user && <ProfileView user={user} />}
+        {activePath === '/affiliate' && (
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 24px 64px 24px', width: '100%' }}>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 32 }}>
+              <h3 style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, fontSize: 20 }}>
+                <LinkIcon size={24} style={{ color: 'var(--accent)' }} /> {language === 'en' ? 'Affiliate Partner Program' : 'Chương Trình Tiếp Thị Liên Kết (Affiliate)'}
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 15, lineHeight: 1.6 }}>
+                {language === 'en' ? 'Refer new creators and earn 20% commission on every successful subscription.' : 'Giới thiệu người dùng mới và nhận 20% hoa hồng trên mỗi giao dịch nạp tiền thành công.'}
+              </p>
+            </div>
+          </div>
+        )}
 
-              {activeUserView === 'lich-su' && <TransactionHistoryView />}
+        {activePath === '/guide' && (
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 24px 64px 24px', width: '100%' }}>
+            <GuideView />
+          </div>
+        )}
 
-              {activeUserView === 'affiliate' && (
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
-                  <h3 style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <LinkIcon size={20} style={{ color: 'var(--accent)' }} /> {language === 'en' ? 'Affiliate Partner Program' : 'Chương Trình Tiếp Thị Liên Kết (Affiliate)'}
-                  </h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
-                    {language === 'en' ? 'Refer new creators and earn 20% commission on every successful subscription.' : 'Giới thiệu người dùng mới và nhận 20% hoa hồng trên mỗi giao dịch thành công.'}
-                  </p>
-                </div>
-              )}
-
-              {activeUserView === 'nhat-ky' && (
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
-                  <h3 style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <History size={20} style={{ color: 'var(--accent)' }} /> {language === 'en' ? 'User Activity Log' : 'Nhật Ký Hoạt Động Cá Nhân'}
-                  </h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-                    {language === 'en' ? 'Logs login history and execution commands on EIGU Platform.' : 'Ghi nhận lịch sử đăng nhập và thao tác trên hệ thống EIGU Platform.'}
-                  </p>
-                </div>
-              )}
-
-              {activeUserView === 'huong-dan' && <GuideView />}
-
-              {activeUserView === 'tro-giup' && (
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
-                  <h3 style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <HelpCircle size={20} style={{ color: 'var(--accent)' }} /> {language === 'en' ? 'Help Center & Technical Support' : 'Trung Tâm Trợ Giúp & Hỗ Trợ Kỹ Thuật'}
-                  </h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
-                    {language === 'en' ? 'Please submit Feedback / Bug Report or connect via Discord/Telegram to chat with Engineers.' : 'Vui lòng sử dụng tính năng Góp ý / Báo lỗi hoặc liên hệ qua kênh Discord/Telegram để gặp Kỹ thuật viên.'}
-                  </p>
-                </div>
-              )}
+        {activePath === '/audit-log' && (
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 24px 64px 24px', width: '100%' }}>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 32 }}>
+              <h3 style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, fontSize: 20 }}>
+                <History size={24} style={{ color: 'var(--accent)' }} /> {language === 'en' ? 'User Activity Log' : 'Nhật Ký Hoạt Động Cá Nhân'}
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>
+                {language === 'en' ? 'Logs login history and execution commands on EIGU Platform.' : 'Ghi nhận lịch sử đăng nhập và các thao tác bảo mật trên hệ thống EIGU Platform.'}
+              </p>
             </div>
           </div>
         )}

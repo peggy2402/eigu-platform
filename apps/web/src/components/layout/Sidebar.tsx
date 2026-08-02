@@ -34,12 +34,7 @@ export default function Sidebar({
 
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-header">
-        <img src="/logo.png" alt="EIGU Logo" className="sidebar-logo-img" style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }} />
-        <span className="sidebar-title">EIGU Portal</span>
-        <div className="sidebar-toggle" onClick={onToggle}><ChevronRight size={12} /></div>
-      </div>
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" style={{ paddingTop: 16 }}>
         {userMenuItems.map(item => (
           <div
             key={item.view}

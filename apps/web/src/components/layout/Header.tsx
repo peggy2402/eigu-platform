@@ -6,8 +6,8 @@ import LanguageSwitcher from './LanguageSwitcher';
 import ThemeToggle from './ThemeToggle';
 import UserDropdown from './UserDropdown';
 import { useEffect, useState } from 'react';
-import { Menu, X, Home, Info, CreditCard, Newspaper, HelpCircle, Mail, User, Wallet, Settings, Bug, LogOut } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, Home, Info, CreditCard, Newspaper, HelpCircle, Mail, User, Wallet, Settings, Bug, LogOut, History, Link as LinkIcon, BookOpen } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface HeaderProps {
   activePath?: string;
@@ -206,107 +206,145 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
       {/* Mobile Nav Drawer */}
       {mobileOpen && (
         <div className="mobile-nav-overlay" onClick={() => setMobileOpen(false)}>
-          <div className="mobile-nav-drawer" onClick={e => e.stopPropagation()}>
+          <div className="mobile-nav-drawer" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto', padding: 14 }}>
             {/* Drawer Header */}
-            <div className="mobile-drawer-header">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderBottom: '1px solid var(--border-color)', paddingBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <img src="/logo.png" alt="EIGU Logo" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 0 8px var(--accent))' }} />
-                <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>EIGU Platform</span>
+                <img src="/logo.png" alt="EIGU Logo" style={{ width: 24, height: 24, objectFit: 'contain', filter: 'drop-shadow(0 0 8px var(--accent))' }} />
+                <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>EIGU Platform</span>
               </div>
-              <button onClick={() => setMobileOpen(false)} className="mobile-close-btn" aria-label="Đóng menu">
-                <X size={20} />
+              <button onClick={() => setMobileOpen(false)} className="mobile-close-btn" aria-label="Đóng menu" style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}>
+                <X size={18} />
               </button>
             </div>
 
-            {/* Nav Items */}
-            <nav className="mobile-drawer-nav">
+            {/* 1. TOP BLOCK: USER ACCOUNT CARD (If logged in) */}
+            {!loading && token && (
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', padding: 12, marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--accent-glow)', border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
+                      <User size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>{user?.username || (user?.email ? user.email.split('@')[0] : 'User')}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.2 }}>{user?.email || ''}</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setMobileOpen(false); if (onOpenDeposit) { onOpenDeposit(); } else { onNavigate('/transactions'); } }}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 16,
+                      background: 'linear-gradient(135deg, var(--accent), #a855f7)',
+                      color: '#fff',
+                      border: 'none',
+                      fontWeight: 700,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    <Wallet size={12} />
+                    <span>Nạp tiền</span>
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'var(--bg-primary)', borderRadius: 8, border: '1px solid var(--border-color)' }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('user_balance')}</span>
+                  <strong style={{ fontSize: 14, color: 'var(--accent)', fontWeight: 800 }}>{(user?.balance || 0).toLocaleString('vi-VN')}đ</strong>
+                </div>
+              </div>
+            )}
+
+            {/* 2. USER ACTIONS GRID (2-Column Compact Grid) */}
+            {!loading && token && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
+                <button onClick={() => handleNav('/transactions')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                  <History size={14} style={{ color: 'var(--accent)' }} /> Lịch sử
+                </button>
+                <button onClick={() => handleNav('/affiliate')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                  <LinkIcon size={14} style={{ color: 'var(--accent)' }} /> Affiliate
+                </button>
+                <button onClick={() => handleNav('/guide')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                  <BookOpen size={14} style={{ color: 'var(--accent)' }} /> Hướng dẫn
+                </button>
+                <button onClick={() => handleNav('/audit-log')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                  <History size={14} style={{ color: 'var(--accent)' }} /> Nhật ký
+                </button>
+                <button onClick={() => { setMobileOpen(false); onOpenSettings(); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                  <Settings size={14} style={{ color: 'var(--text-secondary)' }} /> Cài đặt
+                </button>
+                <button onClick={() => { setMobileOpen(false); onOpenFeedback(); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                  <Bug size={14} style={{ color: 'var(--text-secondary)' }} /> Góp ý
+                </button>
+              </div>
+            )}
+
+            {/* 3. SITE NAVIGATION (3-Column Compact Grid) */}
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, paddingLeft: 2 }}>Điều hướng trang</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 12 }}>
               {navItems.map(item => {
                 const isActive = activePath === item.path;
                 return (
                   <button
                     key={item.path}
                     onClick={() => handleNav(item.path)}
-                    className={`mobile-nav-item ${isActive ? 'active' : ''}`}
+                    style={{
+                      padding: '8px 4px',
+                      borderRadius: 8,
+                      border: '1px solid',
+                      borderColor: isActive ? 'var(--accent)' : 'var(--border-color)',
+                      background: isActive ? 'var(--accent-glow)' : 'var(--bg-card)',
+                      color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                      fontSize: 12,
+                      fontWeight: isActive ? 700 : 500,
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                    }}
                   >
-                    <span className="mobile-nav-icon">{NAV_ICONS[item.path]}</span>
-                    <span>{item.label}</span>
-                    {isActive && <span className="mobile-nav-dot" />}
+                    {item.label}
                   </button>
                 );
               })}
-            </nav>
+            </div>
 
-            {/* Auth Buttons in Drawer */}
-            {!loading && !token && (
-              <div className="mobile-drawer-auth">
-                <button
-                  onClick={() => handleNav('/auth/login')}
-                  className="mobile-auth-login"
-                >
-                  {t('nav_login')}
-                </button>
-                <button
-                  onClick={() => handleNav('/auth/register')}
-                  className="mobile-auth-register"
-                >
-                  {t('nav_register')}
-                </button>
-              </div>
+            {/* 4. LOGOUT BUTTON */}
+            {!loading && token && (
+              <button
+                onClick={async () => { setMobileOpen(false); await logout(); window.location.href = '/auth/login'; }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  padding: '9px 12px',
+                  borderRadius: 8,
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  color: 'var(--danger)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                <LogOut size={14} />
+                <span>{t('user_logout')}</span>
+              </button>
             )}
 
-            {/* If logged in, show user info area in drawer */}
-            {!loading && token && (
-              <div className="mobile-drawer-user">
-                <div className="mobile-user-card">
-                  <div className="mobile-user-info">
-                    <div className="mobile-user-avatar">
-                      <User size={18} />
-                    </div>
-                    <div>
-                      <div className="mobile-user-name">{user?.username || (user?.email ? user.email.split('@')[0] : 'User')}</div>
-                      <div className="mobile-user-email">{user?.email || ''}</div>
-                    </div>
-                  </div>
-                  <div className="mobile-user-balance-box">
-                    <div>
-                      <span className="mobile-balance-label">{t('user_balance')}</span>
-                      <div className="mobile-balance-val">{(user?.balance || 0).toLocaleString('vi-VN')}đ</div>
-                    </div>
-                    <button
-                      onClick={() => { setMobileOpen(false); if (onOpenDeposit) { onOpenDeposit(); } else { onNavigate('/dashboard/transactions'); } }}
-                      className="mobile-deposit-btn"
-                    >
-                      <Wallet size={14} />
-                      <span>{t('user_deposit')}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mobile-user-actions">
-                  <button
-                    onClick={() => { setMobileOpen(false); onOpenSettings(); }}
-                    className="mobile-action-btn"
-                  >
-                    <Settings size={16} />
-                    <span>{t('user_settings')}</span>
-                  </button>
-
-                  <button
-                    onClick={() => { setMobileOpen(false); onOpenFeedback(); }}
-                    className="mobile-action-btn"
-                  >
-                    <Bug size={16} />
-                    <span>{t('user_feedback')}</span>
-                  </button>
-
-                  <button
-                    onClick={async () => { setMobileOpen(false); await logout(); window.location.href = '/auth/login'; }}
-                    className="mobile-action-btn danger"
-                  >
-                    <LogOut size={16} />
-                    <span>{t('user_logout')}</span>
-                  </button>
-                </div>
+            {/* Auth Buttons if not logged in */}
+            {!loading && !token && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
+                <button onClick={() => handleNav('/auth/login')} className="mobile-auth-login">
+                  {t('nav_login')}
+                </button>
+                <button onClick={() => handleNav('/auth/register')} className="mobile-auth-register">
+                  {t('nav_register')}
+                </button>
               </div>
             )}
           </div>

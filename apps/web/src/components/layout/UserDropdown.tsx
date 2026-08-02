@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Wallet, Settings, Bug, LogOut, ArrowUpRight } from 'lucide-react';
+import { ChevronDown, Wallet, Settings, Bug, LogOut, ArrowUpRight, History, Link, BookOpen } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-
 import { useLanguage } from '../../contexts/LanguageContext';
 
 interface UserDropdownProps {
@@ -103,7 +102,7 @@ export default function UserDropdown({ onOpenSettings, onOpenFeedback, onOpenDep
           {/* Actions Menu */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <button
-              onClick={() => { setOpen(false); if (onOpenDeposit) { onOpenDeposit(); } else { onNavigate('/dashboard/transactions'); } }}
+              onClick={() => { setOpen(false); if (onOpenDeposit) { onOpenDeposit(); } else { onNavigate('/transactions'); } }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -124,6 +123,90 @@ export default function UserDropdown({ onOpenSettings, onOpenFeedback, onOpenDep
                 <Wallet size={14} /> {t('user_deposit')}
               </span>
               <ArrowUpRight size={14} />
+            </button>
+
+            <button
+              onClick={() => { setOpen(false); onNavigate('/transactions'); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '9px 12px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+              className="dropdown-item"
+            >
+              <History size={14} /> Lịch sử giao dịch
+            </button>
+
+            <button
+              onClick={() => { setOpen(false); onNavigate('/affiliate'); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '9px 12px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+              className="dropdown-item"
+            >
+              <Link size={14} /> Tiếp thị liên kết
+            </button>
+
+            <button
+              onClick={() => { setOpen(false); onNavigate('/guide'); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '9px 12px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+              className="dropdown-item"
+            >
+              <BookOpen size={14} /> Hướng dẫn sử dụng
+            </button>
+
+            <button
+              onClick={() => { setOpen(false); onNavigate('/audit-log'); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '9px 12px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+              className="dropdown-item"
+            >
+              <History size={14} /> Nhật ký hoạt động
             </button>
 
             <button
