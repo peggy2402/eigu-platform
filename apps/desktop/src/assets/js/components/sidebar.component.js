@@ -23,6 +23,10 @@ const SidebarComponent = `
       <span class="nav-icon" data-icon="user"></span>
       <span class="nav-label" data-i18n="profile">Hồ sơ</span>
     </div>
+    <div class="nav-item" data-view="transaction-history" onclick="switchView('transaction-history', this, null, event)">
+      <span class="nav-icon" data-icon="wallet"></span>
+      <span class="nav-label" data-i18n="transaction_history">Lịch sử giao dịch</span>
+    </div>
     <div class="nav-item-wrapper">
       <div class="nav-item" data-view="cong-cu" onclick="toggleDropdown(this, event)">
         <span class="nav-icon" data-icon="zap"></span>

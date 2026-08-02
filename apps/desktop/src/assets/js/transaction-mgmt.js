@@ -204,3 +204,350 @@ async function handleCancelTxAdmin(txId, code) {
     }
   }
 }
+
+// ==================== USER TRANSACTION HISTORY & DEPOSIT MODAL ====================
+let userTxCurrentPage = 1;
+let userTxTotalPages = 1;
+let userDepositPollTimer = null;
+let currentDepositData = null;
+
+async function loadUserTransactionHistory(page = 1) {
+  userTxCurrentPage = page;
+  const searchInput = document.getElementById('user-tx-search-input');
+  const statusFilter = document.getElementById('user-tx-status-filter');
+  const pageSizeSelect = document.getElementById('user-tx-page-size');
+  const tbody = document.getElementById('user-tx-table-body');
+
+  const search = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  const status = statusFilter ? statusFilter.value : 'ALL';
+  const limit = pageSizeSelect ? parseInt(pageSizeSelect.value, 10) || 10 : 10;
+
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
+          Đang tải lịch sử giao dịch...
+        </td>
+      </tr>
+    `;
+  }
+
+  try {
+    const rawData = await apiFetch('/payment/my-transactions');
+    if (!Array.isArray(rawData)) {
+      if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">Không có dữ liệu.</td></tr>`;
+      return;
+    }
+
+    // Client-side filtering
+    let filtered = rawData.filter(item => {
+      if (status !== 'ALL' && item.status !== status) return false;
+      if (search) {
+        const matchCode = (item.code || '').toLowerCase().includes(search);
+        const matchContent = (item.fullContent || '').toLowerCase().includes(search);
+        const matchBank = (item.bankName || '').toLowerCase().includes(search);
+        if (!matchCode && !matchContent && !matchBank) return false;
+      }
+      return true;
+    });
+
+    const total = filtered.length;
+    userTxTotalPages = Math.ceil(total / limit) || 1;
+    const safePage = Math.min(Math.max(1, userTxCurrentPage), userTxTotalPages);
+    const startIdx = (safePage - 1) * limit;
+    const paginated = filtered.slice(startIdx, startIdx + limit);
+
+    if (paginated.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">Chưa có giao dịch nào phù hợp.</td></tr>`;
+    } else {
+      tbody.innerHTML = paginated.map(item => {
+        let statusBadge = '';
+        if (item.status === 'COMPLETED') {
+          statusBadge = `<span style="padding: 3px 10px; border-radius: 20px; background: rgba(34, 197, 94, 0.12); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); font-weight: 700; font-size: 11px;">Thành công</span>`;
+        } else if (item.status === 'PENDING') {
+          statusBadge = `<span style="padding: 3px 10px; border-radius: 20px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 700; font-size: 11px;">Đang chờ</span>`;
+        } else {
+          statusBadge = `<span style="padding: 3px 10px; border-radius: 20px; background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; font-size: 11px;">Đã hủy</span>`;
+        }
+
+        const dateStr = new Date(item.createdAt).toLocaleString('vi-VN');
+
+        return `
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 12px 14px; font-weight: 800; color: var(--text-primary);">#${item.code}</td>
+            <td style="padding: 12px 14px; font-family: monospace; font-size: 12px; color: var(--text-secondary);">${item.fullContent}</td>
+            <td style="padding: 12px 14px; font-weight: 800; color: ${item.status === 'COMPLETED' ? '#22c55e' : 'var(--text-primary)'};">+${item.amount.toLocaleString('vi-VN')}đ</td>
+            <td style="padding: 12px 14px; color: var(--text-secondary);">${item.bankName || 'ACB'}</td>
+            <td style="padding: 12px 14px;">${statusBadge}</td>
+            <td style="padding: 12px 14px; color: var(--text-muted); font-size: 12px;">${dateStr}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    const infoEl = document.getElementById('user-tx-pagination-info');
+    if (infoEl) infoEl.textContent = `Hiển thị ${total > 0 ? startIdx + 1 : 0} - ${Math.min(startIdx + limit, total)} trên tổng ${total} giao dịch`;
+
+    const badgeEl = document.getElementById('user-tx-page-badge');
+    if (badgeEl) badgeEl.textContent = `${safePage} / ${userTxTotalPages}`;
+
+    const prevBtn = document.getElementById('user-tx-prev-btn');
+    const nextBtn = document.getElementById('user-tx-next-btn');
+
+    if (prevBtn) prevBtn.disabled = safePage <= 1;
+    if (nextBtn) nextBtn.disabled = safePage >= userTxTotalPages;
+
+  } catch (err) {
+    console.error('[UserTx] Error fetching history:', err);
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: #ef4444;">Không thể tải lịch sử giao dịch. Vui lòng đăng nhập lại.</td></tr>`;
+  }
+}
+
+function userTxChangePage(dir) {
+  const targetPage = userTxCurrentPage + dir;
+  if (targetPage >= 1 && targetPage <= userTxTotalPages) {
+    loadUserTransactionHistory(targetPage);
+  }
+}
+
+// ==================== DEPOSIT MODAL LOGIC ====================
+
+function openDepositModalDesktop() {
+  const overlay = document.getElementById('desktop-deposit-modal-overlay');
+  if (overlay) overlay.classList.remove('hidden');
+  renderDepositStep1();
+}
+
+function closeDepositModalDesktop() {
+  const overlay = document.getElementById('desktop-deposit-modal-overlay');
+  if (overlay) overlay.classList.add('hidden');
+  if (userDepositPollTimer) {
+    clearInterval(userDepositPollTimer);
+    userDepositPollTimer = null;
+  }
+}
+
+function renderDepositStep1() {
+  const container = document.getElementById('desktop-deposit-modal-content');
+  if (!container) return;
+
+  const presetAmounts = [50000, 100000, 200000, 500000, 1000000, 2000000, 5000000];
+
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+      <div>
+        <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; display: block;">
+          Chọn nhanh hạn mức nạp (VNĐ):
+        </label>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;">
+          ${presetAmounts.map((amt, idx) => `
+            <button type="button" onclick="selectDepositPreset(${amt})" style="padding: 10px 12px; border-radius: 10px; background: ${amt === 200000 ? 'var(--accent)' : 'var(--bg-primary)'}; color: ${amt === 200000 ? '#ffffff' : 'var(--text-primary)'}; border: 1px solid ${amt === 200000 ? 'var(--accent)' : 'var(--border-color)'}; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;" id="preset-btn-${amt}">
+              ${amt.toLocaleString('vi-VN')}đ
+            </button>
+          `).join('')}
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; display: block;">
+          Hoặc nhập số tiền tùy chỉnh:
+        </label>
+        <div style="position: relative;">
+          <input type="text" id="desktop-custom-amount" value="200.000" placeholder="Ví dụ: 100.000" style="width: 100%; box-sizing: border-box; padding: 12px 16px; border-radius: 12px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 16px; font-weight: 800; outline: none;" oninput="onCustomAmountInput(this.value)" />
+          <span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-weight: 700; font-size: 14px;">VNĐ</span>
+        </div>
+      </div>
+
+      <div id="desktop-deposit-error" style="display: none; padding: 12px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; font-size: 13px;"></div>
+
+      <button type="button" class="btn-primary" id="desktop-create-qr-btn" onclick="handleCreateDepositDesktop()" style="width: 100% !important; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 800; margin: 0;">
+        Tạo mã VietQR nạp tiền →
+      </button>
+    </div>
+  `;
+}
+
+function selectDepositPreset(amt) {
+  const input = document.getElementById('desktop-custom-amount');
+  if (input) input.value = amt.toLocaleString('vi-VN');
+}
+
+function onCustomAmountInput(val) {
+  const clean = val.replace(/\D/g, '');
+  const input = document.getElementById('desktop-custom-amount');
+  if (input && clean) {
+    input.value = parseInt(clean, 10).toLocaleString('vi-VN');
+  }
+}
+
+async function handleCreateDepositDesktop() {
+  const input = document.getElementById('desktop-custom-amount');
+  const errDiv = document.getElementById('desktop-deposit-error');
+  const btn = document.getElementById('desktop-create-qr-btn');
+
+  const rawVal = input ? input.value.replace(/\D/g, '') : '';
+  const amount = parseInt(rawVal, 10);
+
+  if (!amount || amount < 10000) {
+    if (errDiv) {
+      errDiv.style.display = 'block';
+      errDiv.textContent = 'Số tiền nạp tối thiểu là 10.000đ';
+    }
+    return;
+  }
+
+  if (errDiv) errDiv.style.display = 'none';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Đang tạo mã VietQR...';
+  }
+
+  try {
+    const res = await apiFetch('/payment/create-deposit', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+
+    if (res && res.code) {
+      currentDepositData = res;
+      renderDepositStep2(res);
+      startDepositPollingDesktop(res.code);
+    }
+  } catch (err) {
+    if (errDiv) {
+      errDiv.style.display = 'block';
+      errDiv.textContent = err.message || 'Lỗi kết nối tạo mã VietQR';
+    }
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Tạo mã VietQR nạp tiền →';
+    }
+  }
+}
+
+function renderDepositStep2(data) {
+  const container = document.getElementById('desktop-deposit-modal-content');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <!-- Real-time Polling Status Banner -->
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 10px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: var(--accent);">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;">
+          <span>Đang chờ chuyển khoản... (Tự động kiểm tra 24/7)</span>
+        </div>
+        <span style="font-size: 11px; opacity: 0.8;">Cập nhật 3s/lần</span>
+      </div>
+
+      <!-- QR & Details Grid -->
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+        <div style="flex: 1 1 200px; display: flex; flex-direction: column; align-items: center; background: #ffffff; padding: 12px; border-radius: 16px; border: 1px solid var(--border-color);">
+          <img src="${data.qrCodeUrl}" alt="VietQR SePay" style="width: 100%; max-width: 200px; aspect-ratio: 1/1; object-fit: contain; border-radius: 8px;" />
+          <span style="font-size: 11px; font-weight: 700; color: #000000; margin-top: 6px;">Quét bằng App Ngân Hàng</span>
+        </div>
+
+        <div style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="background: var(--bg-primary); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+            <div style="font-size: 11px; color: var(--text-muted);">Ngân hàng nhận</div>
+            <div style="font-size: 14px; font-weight: 800; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center;">
+              <span>${data.bankName}</span>
+              <button type="button" onclick="copyTextDesktop('${data.bankName}')" style="background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px; font-weight: 700;">Copy</button>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-primary); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+            <div style="font-size: 11px; color: var(--text-muted);">Số tài khoản</div>
+            <div style="font-size: 15px; font-weight: 800; color: var(--accent); display: flex; justify-content: space-between; align-items: center;">
+              <span>${data.accountNumber}</span>
+              <button type="button" onclick="copyTextDesktop('${data.accountNumber}')" style="background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px; font-weight: 700;">Copy</button>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-primary); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+            <div style="font-size: 11px; color: var(--text-muted);">Chủ tài khoản</div>
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">${data.accountHolder}</div>
+          </div>
+
+          <div style="background: var(--bg-primary); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+            <div style="font-size: 11px; color: var(--text-muted);">Số tiền nạp</div>
+            <div style="font-size: 16px; font-weight: 900; color: #22c55e; display: flex; justify-content: space-between; align-items: center;">
+              <span>${data.amount.toLocaleString('vi-VN')}đ</span>
+              <button type="button" onclick="copyTextDesktop('${data.amount}')" style="background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px; font-weight: 700;">Copy</button>
+            </div>
+          </div>
+
+          <div style="background: rgba(245, 158, 11, 0.15); padding: 10px 12px; border-radius: 10px; border: 2px dashed var(--accent);">
+            <div style="font-size: 11px; color: var(--accent); font-weight: 800;">NỘI DUNG CHUYỂN KHOẢN (BẮT BUỘC):</div>
+            <div style="font-size: 14px; font-weight: 900; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+              <span>${data.fullContent}</span>
+              <button type="button" onclick="copyTextDesktop('${data.fullContent}')" style="background: var(--accent); color: #ffffff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="btn-outline" onclick="renderDepositStep1()" style="width: 100% !important; padding: 10px; border-radius: 10px; font-size: 13px; margin: 0;">
+        ← Thay đổi số tiền nạp khác
+      </button>
+    </div>
+  `;
+}
+
+function startDepositPollingDesktop(code) {
+  if (userDepositPollTimer) clearInterval(userDepositPollTimer);
+
+  userDepositPollTimer = setInterval(async () => {
+    try {
+      const res = await apiFetch(`/payment/status/${code}`);
+      if (res && res.status === 'COMPLETED') {
+        clearInterval(userDepositPollTimer);
+        userDepositPollTimer = null;
+
+        renderDepositSuccessDesktop(res);
+
+        // Refresh user profile balance
+        if (typeof loadProfileData === 'function') loadProfileData();
+        if (typeof updateProfile === 'function') updateProfile();
+      }
+    } catch (e) {
+      console.warn('[DepositPoll] Error checking status:', e);
+    }
+  }, 3000);
+}
+
+function renderDepositSuccessDesktop(res) {
+  const container = document.getElementById('desktop-deposit-modal-content');
+  if (!container) return;
+
+  const amtStr = (res.amount || currentDepositData?.amount || 0).toLocaleString('vi-VN') + 'đ';
+
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px 10px; gap: 16px;">
+      <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #22c55e; display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: var(--text-primary);">Nạp tiền thành công!</h3>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-top: 6px;">
+          Giao dịch tự động đã hoàn tất. Số dư tài khoản đã được cộng thành công.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-primary); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; width: 100%; box-sizing: border-box;">
+        <div style="font-size: 12px; color: var(--text-muted);">Mã đơn nạp: #${res.code || currentDepositData?.code}</div>
+        <div style="font-size: 22px; font-weight: 900; color: #22c55e; margin: 6px 0;">+${amtStr}</div>
+      </div>
+
+      <button type="button" class="btn-primary" onclick="closeDepositModalDesktop(); loadUserTransactionHistory(1);" style="width: 100% !important; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 700; margin: 0;">
+        Hoàn tất & Đóng
+      </button>
+    </div>
+  `;
+}
+
+function copyTextDesktop(text) {
+  navigator.clipboard.writeText(text);
+  if (typeof showToast === 'function') {
+    showToast('Đã sao chép: ' + text, 'success');
+  }
+}

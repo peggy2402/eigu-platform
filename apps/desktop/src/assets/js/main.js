@@ -23,6 +23,13 @@ function updateProfile() {
       roleBadge.style.color = cfg.color;
     }
 
+    // Header User Balance
+    const headerBalanceEl = document.getElementById('header-user-balance');
+    if (headerBalanceEl) {
+      const balance = Number(userProfile.balance || 0);
+      headerBalanceEl.textContent = balance.toLocaleString('vi-VN') + 'đ';
+    }
+
     // Phân quyền cho phần Cài đặt API & Telemetry (Chỉ Admin)
     if (typeof loadAdminApiConfig === 'function') {
       loadAdminApiConfig();

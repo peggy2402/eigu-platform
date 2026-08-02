@@ -56,6 +56,7 @@ function switchView(view, navEl, sub, e) {
     'pricing-management': lang === 'en' ? ['Pricing Management', 'Dynamic pricing engine console'] : ['Quản lý Bảng giá', 'Cấu hình mô-đun công cụ, giá bán và discount thời gian thực'],
     'theme-event-management': lang === 'en' ? ['Theme & Event Management', 'Seasonal themes & event popup dialog settings'] : ['Giao diện & Sự kiện', 'Cấu hình chủ đề giao diện bốn mùa và Popup thông báo sự kiện'],
     'transaction-management': lang === 'en' ? ['Transaction Management', 'Manage deposit transactions, manual approval & revenue stats'] : ['Quản lý Giao dịch', 'Quản lý lịch sử nạp tiền, phê duyệt thủ công & doanh thu hệ thống'],
+    'transaction-history': lang === 'en' ? ['Transaction History', 'VietQR automatic deposit history & balance tracking'] : ['Lịch sử giao dịch', 'Lịch sử nạp tiền tự động VietQR & đối soát số dư'],
     'user-activity-logs': lang === 'en' ? ['Activity Logs', 'System user access & action trail'] : ['Nhật ký hoạt động', 'Theo dõi lịch sử thao tác của các tài khoản hệ thống'],
   };
   const [t, s] = titles[view] || ['', ''];
@@ -114,6 +115,10 @@ function switchView(view, navEl, sub, e) {
 
   if (view === 'transaction-management' && typeof loadAdminTransactionData === 'function') {
     loadAdminTransactionData();
+  }
+
+  if (view === 'transaction-history' && typeof loadUserTransactionHistory === 'function') {
+    loadUserTransactionHistory();
   }
 
   // Load Real Chat Console if entering Chat Support view

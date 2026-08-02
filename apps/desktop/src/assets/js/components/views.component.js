@@ -1815,6 +1815,129 @@ const ViewsComponent = `
     </div>
   </div>
 </div>
+
+<!-- Client User Transaction History View -->
+<div id="view-transaction-history" class="view" style="padding: 16px;">
+  <!-- Header Bar -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <div>
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
+        <span data-i18n="tx_history_title">Lịch sử Nạp tiền SePay</span>
+      </h2>
+      <p style="color: var(--text-muted); font-size: 13px; margin: 4px 0 0 0;" data-i18n="tx_history_desc">
+        Quản lý và đối soát tự động toàn bộ giao dịch ngân hàng VietQR của bạn.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button type="button" class="btn-outline" style="padding: 9px 16px; font-size: 13px; border-radius: 10px; margin: 0; display: inline-flex; align-items: center; gap: 6px;" onclick="loadUserTransactionHistory()" data-i18n="reload_btn">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>Làm mới</span>
+      </button>
+
+      <button type="button" class="btn-primary" style="width: auto !important; padding: 9px 20px; font-size: 13px; font-weight: 700; border-radius: 10px; margin: 0; display: inline-flex; align-items: center; gap: 6px;" onclick="openDepositModalDesktop()">
+        <span>+ Nạp tiền ngay</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px;">
+    <!-- Search Input -->
+    <div style="display: flex; align-items: center; gap: 8px; flex: 1 1 280px;">
+      <div style="position: relative; flex: 1;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="user-tx-search-input" placeholder="Tìm theo Mã đơn hoặc cú pháp..." style="width: 100%; box-sizing: border-box; padding: 9px 12px 9px 36px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" onkeyup="if(event.key==='Enter') loadUserTransactionHistory(1)" />
+      </div>
+      <button type="button" class="btn-primary" style="width: auto !important; padding: 9px 16px; font-size: 13px; border-radius: 8px; margin: 0; white-space: nowrap;" onclick="loadUserTransactionHistory(1)">Tìm kiếm</button>
+    </div>
+
+    <!-- Status Filter -->
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <select id="user-tx-status-filter" style="padding: 9px 12px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none; cursor: pointer;" onchange="loadUserTransactionHistory(1)">
+        <option value="ALL">Tất cả trạng thái</option>
+        <option value="COMPLETED">Thành công (COMPLETED)</option>
+        <option value="PENDING">Đang chờ (PENDING)</option>
+        <option value="CANCELLED">Đã hủy (CANCELLED)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+        <thead>
+          <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+            <th style="padding: 12px 14px;">MÃ ĐƠN</th>
+            <th style="padding: 12px 14px;">NỘI DUNG CHUYỂN KHOẢN</th>
+            <th style="padding: 12px 14px;">SỐ TIỀN</th>
+            <th style="padding: 12px 14px;">NGÂN HÀNG</th>
+            <th style="padding: 12px 14px;">TRẠNG THÁI</th>
+            <th style="padding: 12px 14px;">THỜI GIAN</th>
+          </tr>
+        </thead>
+        <tbody id="user-tx-table-body">
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">Đang tải lịch sử giao dịch...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border-color); background: var(--bg-primary); font-size: 13px;">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <div id="user-tx-pagination-info" style="color: var(--text-muted);">Hiển thị 0 - 0 trên tổng 0 giao dịch</div>
+
+        <!-- Page Size Select -->
+        <div style="display: flex; align-items: center; gap: 6px; color: var(--text-secondary);">
+          <span>Hiển thị:</span>
+          <select id="user-tx-page-size" style="padding: 4px 8px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; outline: none; cursor: pointer;" onchange="loadUserTransactionHistory(1)">
+            <option value="5">5 / trang</option>
+            <option value="10" selected>10 / trang</option>
+            <option value="20">20 / trang</option>
+            <option value="50">50 / trang</option>
+            <option value="100">100 / trang</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button id="user-tx-prev-btn" class="btn-outline" style="padding: 4px 10px; font-size: 12px; border-radius: 6px; margin: 0;" disabled onclick="userTxChangePage(-1)">← Trang trước</button>
+        <span id="user-tx-page-badge" style="font-weight: 700; color: var(--accent); padding: 2px 8px;">1 / 1</span>
+        <button id="user-tx-next-btn" class="btn-outline" style="padding: 4px 10px; font-size: 12px; border-radius: 6px; margin: 0;" disabled onclick="userTxChangePage(1)">Trang sau →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Desktop Deposit Modal Overlay -->
+<div id="desktop-deposit-modal-overlay" class="modal-overlay hidden" style="position: fixed; inset: 0; z-index: 99999; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; padding: 16px;" onclick="closeDepositModalDesktop()">
+  <div style="width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 30px 80px rgba(0,0,0,0.8); padding: 24px; position: relative;" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; color: var(--accent);">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-primary);">Nạp tiền tự động SePay</h3>
+          <span style="font-size: 12px; color: var(--text-muted);">Ngân hàng VietQR • Khớp lệnh 24/7</span>
+        </div>
+      </div>
+      <button type="button" onclick="closeDepositModalDesktop()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 8px;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Content Render Target -->
+    <div id="desktop-deposit-modal-content">
+      <!-- Dynamically filled by JS -->
+    </div>
+  </div>
+</div>
 `;
 
 function renderViews() {

@@ -34,6 +34,22 @@ const HeaderComponent = `
         <span data-icon="chevronDown" class="chevron-icon"></span>
       </div>
       <div class="profile-menu-dropdown" id="profile-dropdown">
+        <!-- Balance Display Box & Deposit Button -->
+        <div style="padding: 12px 14px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(34, 197, 94, 0.08) 100%); border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border-color);" onclick="event.stopPropagation()">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="user_balance_label">Số dư tài khoản</span>
+            <span style="font-size: 10px; font-weight: 700; background: rgba(34, 197, 94, 0.15); color: #22c55e; padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(34, 197, 94, 0.3);">VND</span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div id="header-user-balance" style="font-size: 17px; font-weight: 900; color: #22c55e; letter-spacing: -0.3px;">0đ</div>
+            <button type="button" onclick="openDepositModalDesktop(); event.stopPropagation();" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; background: var(--accent); color: #ffffff; border: none; cursor: pointer; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35); transition: all 0.2s;" data-i18n="deposit_btn_short">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Nạp tiền</span>
+            </button>
+          </div>
+        </div>
+
         <div class="profile-menu-item" onclick="switchView('settings', null, null, event)">
           <span data-icon="settings"></span> <span data-i18n="settings">Cài đặt</span>
         </div>
