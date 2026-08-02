@@ -1,6 +1,163 @@
 // Admin Transaction Management JS module
 let adminTxCurrentPage = 1;
 let adminTxTotalPages = 1;
+let activeAdminTxTab = 'deposit'; // 'deposit' or 'subscriptions'
+let cachedAdminSubscriptions = [];
+
+function switchAdminTxTab(tab) {
+  activeAdminTxTab = tab;
+  const depBtn = document.getElementById('admin-tx-tab-btn-deposit');
+  const subBtn = document.getElementById('admin-tx-tab-btn-subscriptions');
+  const kpiRow = document.getElementById('admin-tx-kpi-row');
+
+  if (tab === 'deposit') {
+    if (depBtn) {
+      depBtn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+      depBtn.style.color = '#ffffff';
+      depBtn.style.border = 'none';
+      depBtn.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)';
+    }
+    if (subBtn) {
+      subBtn.style.background = 'rgba(255, 255, 255, 0.04)';
+      subBtn.style.color = 'var(--text-muted)';
+      subBtn.style.border = '1px solid var(--border-color)';
+      subBtn.style.boxShadow = 'none';
+    }
+    if (kpiRow) kpiRow.style.display = 'grid';
+    loadAdminTransactionData(1);
+  } else {
+    if (subBtn) {
+      subBtn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+      subBtn.style.color = '#ffffff';
+      subBtn.style.border = 'none';
+      subBtn.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)';
+    }
+    if (depBtn) {
+      depBtn.style.background = 'rgba(255, 255, 255, 0.04)';
+      depBtn.style.color = 'var(--text-muted)';
+      depBtn.style.border = '1px solid var(--border-color)';
+      depBtn.style.boxShadow = 'none';
+    }
+    if (kpiRow) kpiRow.style.display = 'none';
+    loadAdminSubscriptionData();
+  }
+}
+
+async function loadAdminSubscriptionData() {
+  if (activeAdminTxTab !== 'subscriptions') return;
+
+  const tbody = document.getElementById('admin-tx-table-body');
+  const thead = document.getElementById('admin-tx-table-head');
+  const infoEl = document.getElementById('admin-tx-pagination-info');
+
+  if (thead) {
+    thead.innerHTML = `
+      <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+        <th style="padding: 12px 14px;">KHÁCH HÀNG</th>
+        <th style="padding: 12px 14px;">MÔ-ĐUN DỊCH VỤ</th>
+        <th style="padding: 12px 14px;">GÓI ĐĂNG KÝ</th>
+        <th style="padding: 12px 14px;">CẤU HÌNH GÓI</th>
+        <th style="padding: 12px 14px;">CHI PHÍ GÓI</th>
+        <th style="padding: 12px 14px;">THỜI HẠN SỬ DỤNG</th>
+        <th style="padding: 12px 14px;">TRẠNG THÁI</th>
+        <th style="padding: 12px 14px; text-align: center;">HÀNH ĐỘNG</th>
+      </tr>
+    `;
+  }
+
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">
+          Đang kết nối Database lấy danh sách gói cước dịch vụ của mọi User...
+        </td>
+      </tr>
+    `;
+  }
+
+  try {
+    const res = await apiFetch('/pricing/admin/all-subscriptions');
+    cachedAdminSubscriptions = (res && Array.isArray(res.data)) ? res.data : [];
+
+    filterAndRenderAdminSubscriptions();
+  } catch (err) {
+    console.error('[AdminSubscriptions] Error:', err);
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 24px; color: #ef4444;">Không thể tải danh sách gói cước User: ${err.message || err}</td></tr>`;
+  }
+}
+
+function filterAndRenderAdminSubscriptions() {
+  if (activeAdminTxTab !== 'subscriptions') return;
+
+  const tbody = document.getElementById('admin-tx-table-body');
+  const infoEl = document.getElementById('admin-tx-pagination-info');
+  const searchInput = document.getElementById('admin-tx-search-input');
+  const search = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+  let list = cachedAdminSubscriptions;
+  if (search) {
+    list = list.filter(s =>
+      (s.userEmail && s.userEmail.toLowerCase().includes(search)) ||
+      (s.username && s.username.toLowerCase().includes(search)) ||
+      (s.moduleName && s.moduleName.toLowerCase().includes(search)) ||
+      (s.moduleSlug && s.moduleSlug.toLowerCase().includes(search)) ||
+      (s.tierLabel && s.tierLabel.toLowerCase().includes(search))
+    );
+  }
+
+  if (infoEl) infoEl.textContent = `Hiển thị ${list.length} gói cước dịch vụ đã mua của User`;
+
+  if (list.length === 0) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">Chưa có dữ liệu đăng ký gói cước nào.</td></tr>`;
+    return;
+  }
+
+  if (tbody) {
+    tbody.innerHTML = list.map(sub => {
+      const isExpired = sub.expiresAt && new Date(sub.expiresAt) < new Date();
+      const statusBadge = !isExpired && sub.status === 'ACTIVE'
+        ? `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); font-weight: 700; font-size: 11px;">Đang hoạt động</span>`
+        : `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px;">Hết hạn</span>`;
+
+      const priceStr = sub.price ? `${sub.price.toLocaleString('vi-VN')}đ/tháng` : 'Miễn phí';
+      const createdDateStr = new Date(sub.createdAt).toLocaleDateString('vi-VN');
+      const expireDateStr = sub.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('vi-VN') : 'Vĩnh viễn';
+
+      return `
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 12px 14px;">
+            <div style="font-weight: 800; color: var(--text-primary); font-size: 13px;">${escapeHtml(sub.userEmail)}</div>
+            <div style="font-size: 11px; color: var(--accent); margin-top: 2px;">
+              ${sub.username ? '@' + escapeHtml(sub.username) : 'ID: ' + sub.userId.slice(0, 8)} &bull; SD: ${(sub.userBalance || 0).toLocaleString('vi-VN')}đ
+            </div>
+          </td>
+          <td style="padding: 12px 14px;">
+            <span style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 12px;">${escapeHtml(sub.moduleName || sub.moduleSlug)}</span>
+          </td>
+          <td style="padding: 12px 14px; font-weight: 900; color: #818cf8; font-size: 13px;">Gói ${escapeHtml(sub.tierLabel || sub.tierCode)}</td>
+          <td style="padding: 12px 14px; font-size: 11px;">
+            <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+              <span style="background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); color: var(--text-primary);">Luồng: <strong>${sub.threads}</strong></span>
+              <span style="background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); color: var(--text-primary);">Máy: <strong>${sub.machines}</strong></span>
+              <span style="background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); color: var(--text-primary);">${sub.resolution}</span>
+            </div>
+          </td>
+          <td style="padding: 12px 14px; font-weight: 800; color: #22c55e;">${priceStr}</td>
+          <td style="padding: 12px 14px; color: var(--text-muted); font-size: 11px;">
+            <div>Từ: ${createdDateStr}</div>
+            <div style="color: ${isExpired ? '#ef4444' : 'var(--text-primary)'}; font-weight: 700;">Đến: ${expireDateStr}</div>
+          </td>
+          <td style="padding: 12px 14px;">${statusBadge}</td>
+          <td style="padding: 12px 14px; text-align: center;">
+            <button type="button" class="btn-outline" onclick="openModulePricingModalDesktop('${sub.moduleSlug}')" style="padding: 5px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; margin: 0;">
+              Bảng giá
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+}
 
 function onAdminTxDatePresetChange() {
   const presetEl = document.getElementById('admin-tx-date-preset');
@@ -12,11 +169,18 @@ function onAdminTxDatePresetChange() {
     customContainer.style.display = 'flex';
   } else {
     customContainer.style.display = 'none';
-    loadAdminTransactionData(1);
+    if (activeAdminTxTab === 'deposit') {
+      loadAdminTransactionData(1);
+    }
   }
 }
 
 async function loadAdminTransactionData(page = 1) {
+  if (activeAdminTxTab === 'subscriptions') {
+    filterAndRenderAdminSubscriptions();
+    return;
+  }
+
   adminTxCurrentPage = page;
   const searchInput = document.getElementById('admin-tx-search-input');
   const statusFilter = document.getElementById('admin-tx-status-filter');
@@ -25,6 +189,21 @@ async function loadAdminTransactionData(page = 1) {
   const startDateInput = document.getElementById('admin-tx-start-date');
   const endDateInput = document.getElementById('admin-tx-end-date');
   const tbody = document.getElementById('admin-tx-table-body');
+  const thead = document.getElementById('admin-tx-table-head');
+
+  if (thead) {
+    thead.innerHTML = `
+      <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+        <th style="padding: 12px 14px;" data-i18n="col_code">MÃ ĐƠN</th>
+        <th style="padding: 12px 14px;" data-i18n="col_customer">KHÁCH HÀNG</th>
+        <th style="padding: 12px 14px;" data-i18n="col_amount">SỐ TIỀN</th>
+        <th style="padding: 12px 14px;" data-i18n="col_syntax">CÚ PHÁP / SEPAY TRANS</th>
+        <th style="padding: 12px 14px;" data-i18n="col_status">TRẠNG THÁI</th>
+        <th style="padding: 12px 14px;" data-i18n="col_time">THỜI GIAN</th>
+        <th style="padding: 12px 14px; text-align: center;" data-i18n="col_action">HÀNH ĐỘNG</th>
+      </tr>
+    `;
+  }
 
   const search = searchInput ? searchInput.value.trim() : '';
   const status = statusFilter ? statusFilter.value : 'ALL';
@@ -207,11 +386,170 @@ async function handleCancelTxAdmin(txId, code) {
 
 // ==================== USER TRANSACTION HISTORY & DEPOSIT MODAL ====================
 let userTxCurrentPage = 1;
-let userTxTotalPages = 1;
-let userDepositPollTimer = null;
-let currentDepositData = null;
+let activeUserTxTab = 'deposit';
+
+function switchUserTxTab(tabName) {
+  activeUserTxTab = tabName;
+  const depositBtn = document.getElementById('tx-tab-btn-deposit');
+  const subBtn = document.getElementById('tx-tab-btn-subscriptions');
+  const thead = document.getElementById('user-tx-table-head');
+  const filterToolbar = document.getElementById('user-tx-filter-toolbar');
+
+  if (tabName === 'deposit') {
+    if (depositBtn) {
+      depositBtn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+      depositBtn.style.color = '#ffffff';
+      depositBtn.style.border = 'none';
+      depositBtn.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)';
+    }
+    if (subBtn) {
+      subBtn.style.background = 'rgba(255, 255, 255, 0.04)';
+      subBtn.style.color = 'var(--text-muted)';
+      subBtn.style.border = '1px solid var(--border-color)';
+      subBtn.style.boxShadow = 'none';
+    }
+
+    if (filterToolbar) filterToolbar.style.display = 'flex';
+
+    if (thead) {
+      thead.innerHTML = `
+        <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+          <th style="padding: 12px 14px;">MÃ ĐƠN</th>
+          <th style="padding: 12px 14px;">NỘI DUNG CHUYỂN KHOẢN</th>
+          <th style="padding: 12px 14px;">SỐ TIỀN</th>
+          <th style="padding: 12px 14px;">NGÂN HÀNG</th>
+          <th style="padding: 12px 14px;">TRẠNG THÁI</th>
+          <th style="padding: 12px 14px;">THỜI GIAN</th>
+          <th style="padding: 12px 14px; text-align: center;">HÀNH ĐỘNG</th>
+        </tr>
+      `;
+    }
+    loadUserTransactionHistory(1);
+  } else {
+    if (subBtn) {
+      subBtn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+      subBtn.style.color = '#ffffff';
+      subBtn.style.border = 'none';
+      subBtn.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)';
+    }
+    if (depositBtn) {
+      depositBtn.style.background = 'rgba(255, 255, 255, 0.04)';
+      depositBtn.style.color = 'var(--text-muted)';
+      depositBtn.style.border = '1px solid var(--border-color)';
+      depositBtn.style.boxShadow = 'none';
+    }
+
+    if (filterToolbar) filterToolbar.style.display = 'none';
+
+    if (thead) {
+      thead.innerHTML = `
+        <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+          <th style="padding: 12px 14px;">MÔ-ĐUN DỊCH VỤ</th>
+          <th style="padding: 12px 14px;">GÓI ĐĂNG KÝ</th>
+          <th style="padding: 12px 14px;">CẤU HÌNH GÓI</th>
+          <th style="padding: 12px 14px;">CHI PHÍ THÁNG</th>
+          <th style="padding: 12px 14px;">THỜI HẠN SỬ DỤNG</th>
+          <th style="padding: 12px 14px;">TRẠNG THÁI</th>
+          <th style="padding: 12px 14px; text-align: center;">HÀNH ĐỘNG</th>
+        </tr>
+      `;
+    }
+    loadUserSubscriptionHistory();
+  }
+}
+
+function refreshCurrentTxTab() {
+  if (activeUserTxTab === 'subscriptions') {
+    loadUserSubscriptionHistory();
+  } else {
+    loadUserTransactionHistory(1);
+  }
+}
+
+async function loadUserSubscriptionHistory() {
+  if (activeUserTxTab !== 'subscriptions') return;
+
+  const tbody = document.getElementById('user-tx-table-body');
+  const infoEl = document.getElementById('user-tx-pagination-info');
+  const badgeEl = document.getElementById('user-tx-page-badge');
+
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">
+          Đang tải danh sách gói cước đã đăng ký...
+        </td>
+      </tr>
+    `;
+  }
+
+  try {
+    const res = await apiFetch('/pricing/my-subscriptions');
+    const subs = (res && Array.isArray(res.data)) ? res.data : [];
+
+    if (infoEl) infoEl.textContent = `Tổng cộng ${subs.length} gói cước dịch vụ đã mua`;
+    if (badgeEl) badgeEl.textContent = `1 / 1`;
+
+    if (subs.length === 0) {
+      if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">Bạn chưa đăng ký gói cước dịch vụ nào. Bấm nút [Nâng cấp gói / Bảng giá] ở các mô-đun để trải nghiệm!</td></tr>`;
+      return;
+    }
+
+    if (tbody) {
+      tbody.innerHTML = subs.map(sub => {
+        const isExpired = sub.expiresAt && new Date(sub.expiresAt) < new Date();
+        const statusBadge = !isExpired && sub.status === 'ACTIVE'
+          ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đang hoạt động</span>`
+          : `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px; white-space: nowrap;">Hết hạn</span>`;
+
+        const priceStr = sub.price ? `-${sub.price.toLocaleString('vi-VN')}đ` : 'Miễn phí';
+        const dateStr = sub.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('vi-VN') : 'Vĩnh viễn';
+
+        return `
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 14px; font-weight: 800; color: var(--text-primary);">
+              <span style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 12px; display: inline-block; white-space: nowrap;">${sub.moduleName || sub.moduleSlug}</span>
+            </td>
+            <td style="padding: 14px; font-weight: 900; color: #818cf8; font-size: 14px; white-space: nowrap;">Gói ${sub.tierLabel || sub.tierCode}</td>
+            <td style="padding: 14px; font-size: 12px;">
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.05); padding: 3px 8px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--border-color);">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  <strong>${sub.threads}</strong> luồng
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.05); padding: 3px 8px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--border-color);">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  <strong>${sub.machines}</strong> máy
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.05); padding: 3px 8px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--border-color);">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                  ${sub.resolution}
+                </span>
+              </div>
+            </td>
+            <td style="padding: 14px; font-weight: 900; color: #ef4444; font-size: 14px; white-space: nowrap;">${priceStr}</td>
+            <td style="padding: 14px; color: var(--text-muted); font-size: 12px; white-space: nowrap;">Đến ${dateStr}</td>
+            <td style="padding: 14px;">${statusBadge}</td>
+            <td style="padding: 14px; text-align: center;">
+              <button type="button" class="btn-primary" onclick="openModulePricingModalDesktop('${sub.moduleSlug}')" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; width: auto !important; margin: 0; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);">
+                <span>Gia hạn / Nâng cấp</span>
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+  } catch (err) {
+    console.error('[UserSubsHistory] Error:', err);
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: #ef4444;">Không thể tải danh sách gói cước.</td></tr>`;
+  }
+}
 
 async function loadUserTransactionHistory(page = 1) {
+  if (activeUserTxTab !== 'deposit') return;
+
   userTxCurrentPage = page;
   const searchInput = document.getElementById('user-tx-search-input');
   const statusFilter = document.getElementById('user-tx-status-filter');
@@ -225,7 +563,7 @@ async function loadUserTransactionHistory(page = 1) {
   if (tbody) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
+        <td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">
           Đang tải lịch sử giao dịch...
         </td>
       </tr>
@@ -235,7 +573,7 @@ async function loadUserTransactionHistory(page = 1) {
   try {
     const rawData = await apiFetch('/payment/my-transactions');
     if (!Array.isArray(rawData)) {
-      if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">Không có dữ liệu.</td></tr>`;
+      if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">Không có dữ liệu.</td></tr>`;
       return;
     }
 
@@ -258,7 +596,7 @@ async function loadUserTransactionHistory(page = 1) {
     const paginated = filtered.slice(startIdx, startIdx + limit);
 
     if (paginated.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">Chưa có giao dịch nào phù hợp.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">Chưa có giao dịch nào phù hợp.</td></tr>`;
     } else {
       tbody.innerHTML = paginated.map(item => {
         let statusBadge = '';
@@ -268,6 +606,13 @@ async function loadUserTransactionHistory(page = 1) {
           statusBadge = `<span style="padding: 3px 10px; border-radius: 20px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 700; font-size: 11px;">Đang chờ</span>`;
         } else {
           statusBadge = `<span style="padding: 3px 10px; border-radius: 20px; background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; font-size: 11px;">Đã hủy</span>`;
+        }
+
+        let actionBtn = '';
+        if (item.status === 'PENDING') {
+          actionBtn = `<button type="button" onclick="resumePendingDepositDesktop('${item.code}')" style="padding: 5px 12px; border-radius: 6px; background: var(--accent); color: #ffffff; border: none; font-size: 11px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; white-space: nowrap;">Thanh toán ngay →</button>`;
+        } else {
+          actionBtn = `<span style="font-size: 11px; color: var(--text-muted);">—</span>`;
         }
 
         const dateStr = new Date(item.createdAt).toLocaleString('vi-VN');
@@ -280,6 +625,7 @@ async function loadUserTransactionHistory(page = 1) {
             <td style="padding: 12px 14px; color: var(--text-secondary);">${item.bankName || 'ACB'}</td>
             <td style="padding: 12px 14px;">${statusBadge}</td>
             <td style="padding: 12px 14px; color: var(--text-muted); font-size: 12px;">${dateStr}</td>
+            <td style="padding: 12px 14px; text-align: center;">${actionBtn}</td>
           </tr>
         `;
       }).join('');
@@ -299,7 +645,7 @@ async function loadUserTransactionHistory(page = 1) {
 
   } catch (err) {
     console.error('[UserTx] Error fetching history:', err);
-    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: #ef4444;">Không thể tải lịch sử giao dịch. Vui lòng đăng nhập lại.</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: #ef4444;">Không thể tải lịch sử giao dịch. Vui lòng đăng nhập lại.</td></tr>`;
   }
 }
 
@@ -307,6 +653,35 @@ function userTxChangePage(dir) {
   const targetPage = userTxCurrentPage + dir;
   if (targetPage >= 1 && targetPage <= userTxTotalPages) {
     loadUserTransactionHistory(targetPage);
+  }
+}
+
+async function resumePendingDepositDesktop(code) {
+  try {
+    if (typeof showToast === 'function') {
+      showToast('Đang mở lại mã...', 'info');
+    }
+    const res = await apiFetch(`/payment/status/${code}`);
+    if (res && res.status === 'PENDING') {
+      currentDepositData = res;
+      openDepositModalDesktop();
+      renderDepositStep2(res);
+      startDepositPollingDesktop(code);
+    } else if (res && res.status === 'COMPLETED') {
+      if (typeof showToast === 'function') {
+        showToast('Đơn nạp đã được hoàn tất thành công!', 'success');
+      }
+      loadUserTransactionHistory(userTxCurrentPage);
+    } else {
+      if (typeof showToast === 'function') {
+        showToast('Đơn nạp không còn khả dụng.', 'error');
+      }
+    }
+  } catch (err) {
+    console.error('[ResumeDeposit] Error:', err);
+    if (typeof showToast === 'function') {
+      showToast('Không thể mở lại đơn nạp tiền: ' + (err.message || err), 'error');
+    }
   }
 }
 
@@ -361,7 +736,7 @@ function renderDepositStep1() {
       <div id="desktop-deposit-error" style="display: none; padding: 12px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; font-size: 13px;"></div>
 
       <button type="button" class="btn-primary" id="desktop-create-qr-btn" onclick="handleCreateDepositDesktop()" style="width: 100% !important; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 800; margin: 0;">
-        Tạo mã VietQR nạp tiền →
+        Tạo mã QR nạp tiền →
       </button>
     </div>
   `;
@@ -370,6 +745,22 @@ function renderDepositStep1() {
 function selectDepositPreset(amt) {
   const input = document.getElementById('desktop-custom-amount');
   if (input) input.value = amt.toLocaleString('vi-VN');
+
+  const presetAmounts = [50000, 100000, 200000, 500000, 1000000, 2000000, 5000000];
+  presetAmounts.forEach(a => {
+    const btn = document.getElementById(`preset-btn-${a}`);
+    if (btn) {
+      if (a === amt) {
+        btn.style.background = 'var(--accent)';
+        btn.style.color = '#ffffff';
+        btn.style.borderColor = 'var(--accent)';
+      } else {
+        btn.style.background = 'var(--bg-primary)';
+        btn.style.color = 'var(--text-primary)';
+        btn.style.borderColor = 'var(--border-color)';
+      }
+    }
+  });
 }
 
 function onCustomAmountInput(val) {
@@ -399,7 +790,7 @@ async function handleCreateDepositDesktop() {
   if (errDiv) errDiv.style.display = 'none';
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Đang tạo mã VietQR...';
+    btn.textContent = 'Đang tạo mã QR...';
   }
 
   try {
@@ -416,11 +807,11 @@ async function handleCreateDepositDesktop() {
   } catch (err) {
     if (errDiv) {
       errDiv.style.display = 'block';
-      errDiv.textContent = err.message || 'Lỗi kết nối tạo mã VietQR';
+      errDiv.textContent = err.message || 'Lỗi kết nối tạo mã QR';
     }
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Tạo mã VietQR nạp tiền →';
+      btn.textContent = 'Tạo mã QR nạp tiền →';
     }
   }
 }

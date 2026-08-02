@@ -12,7 +12,7 @@ export class PaymentService {
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly auditLogsService: AuditLogsService,
-  ) {}
+  ) { }
 
   /**
    * Tạo giao dịch nạp tiền PENDING và trả về thông tin VietQR SePay
@@ -141,11 +141,24 @@ export class PaymentService {
         throw new NotFoundException('Không tìm thấy đơn nạp tiền');
       }
 
+      const bankName = transaction.bankName || process.env.SEPAY_BANK_NAME || 'MBBank';
+      const accountNumber = transaction.accountNumber || process.env.SEPAY_ACCOUNT_NO || '';
+      const accountHolder = process.env.SEPAY_ACCOUNT_HOLDER || 'EIGU PLATFORM';
+      const fullContent = transaction.fullContent;
+      const amount = Number(transaction.amount);
+
+      const qrCodeUrl = `https://img.vietqr.io/image/${bankName}-${accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(fullContent)}&accountName=${encodeURIComponent(accountHolder)}`;
+
       return {
         code: transaction.code,
         status: transaction.status,
-        amount: Number(transaction.amount),
+        amount,
         completedAt: transaction.completedAt ? transaction.completedAt.toISOString() : null,
+        fullContent,
+        bankName,
+        accountNumber,
+        accountHolder,
+        qrCodeUrl,
       };
     } catch (error: any) {
       if (error instanceof NotFoundException) throw error;
@@ -238,7 +251,7 @@ export class PaymentService {
       const formattedAmt = finalAmount.toLocaleString('vi-VN') + 'đ';
       await this.notificationsService.create(
         'Nạp tiền thành công',
-        `Tài khoản của bạn đã được cộng thành công +${formattedAmt} qua SePay (Đơn #${matchedTx.code}).`,
+        `Tài khoản của bạn đã được cộng thành công +${formattedAmt} qua Ngân hàng (Đơn #${matchedTx.code}).`,
         'user',
         '24h',
       );

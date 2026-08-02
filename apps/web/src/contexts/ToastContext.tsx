@@ -89,7 +89,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div id="toast-container" style={{ position: 'fixed', top: 24, right: 24, zIndex: 999999, display: 'flex', flexDirection: 'column', gap: 12, pointerEvents: 'none' }}>
+      <div id="toast-container" style={{ position: 'fixed', top: 88, right: 24, zIndex: 9999999, display: 'flex', flexDirection: 'column', gap: 12, pointerEvents: 'none' }}>
         {toasts.map(t => (
           <div key={t.id} className={`toast toast-${t.type} ${t.leaving ? 'out' : ''}`}>
             <div className="toast-icon-wrapper">

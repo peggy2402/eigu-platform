@@ -10,6 +10,19 @@ const ViewsComponent = `
 
 <!-- Cat View (Tu dong cat) -->
 <div id="view-cut" class="view">
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(34, 197, 94, 0.06) 100%); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div id="module-tier-badge-cut">
+        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(99, 102, 241, 0.15); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.3); font-size: 11px; font-weight: 800;">Gói Dùng Thử / Free</span>
+      </div>
+      <span style="font-size: 12px; color: var(--text-muted);">Tự động cắt video MP4 / YouTube 9:16 tối ưu phần cứng</span>
+    </div>
+
+    <button type="button" class="btn-upgrade-glow" onclick="openModulePricingModalDesktop('cut')">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span>Nâng cấp gói / Bảng giá</span>
+    </button>
+  </div>
   <div class="automation-container">
     <div class="automation-grid">
       <div class="input-section">
@@ -274,8 +287,9 @@ const ViewsComponent = `
           Sinh video hàng loạt bằng AI Provider (Veo, Gemini Omni, Kling) &bull; Xuất file .mp4 về máy local
         </p>
       </div>
-      <button class="btn-outline" onclick="openPricingModal()" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px;">
-        <span data-icon="tag" style="color: #f59e0b;"></span> Nâng cấp gói / Bảng giá
+      <button type="button" class="btn-upgrade-glow" onclick="openModulePricingModalDesktop('ai-video')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        <span>Nâng cấp gói / Bảng giá</span>
       </button>
     </div>
 
@@ -622,62 +636,133 @@ const ViewsComponent = `
 </div>
 
 <div id="view-hot-niche" class="view">
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(34, 197, 94, 0.06) 100%); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div id="module-tier-badge-hot-niche">
+        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(99, 102, 241, 0.15); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.3); font-size: 11px; font-weight: 800;">Gói Dùng Thử / Free</span>
+      </div>
+      <span style="font-size: 12px; color: var(--text-muted);">Tìm ngách hot & Phân tích xu hướng TikTok / Douyin</span>
+    </div>
+    <button type="button" class="btn-upgrade-glow" onclick="openModulePricingModalDesktop('hot-niche')">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span>Nâng cấp gói / Bảng giá</span>
+    </button>
+  </div>
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="trendingUp" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="sub_hot_niche">Tìm ngách hot</h3><p style="color:var(--text-muted);" data-i18n="feature_developing">Tính năng đang phát triển</p></div>
   </div>
 </div>
+
 <div id="view-bulk-download" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="downloadCloud" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="sub_bulk_download">Tải video hàng loạt</h3><p style="color:var(--text-muted);" data-i18n="feature_developing">Tính năng đang phát triển</p></div>
   </div>
 </div>
+
 <div id="view-reup" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="refreshCw" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="sub_reup">Tạo video Reup</h3><p style="color:var(--text-muted);" data-i18n="feature_developing">Tính năng đang phát triển</p></div>
   </div>
 </div>
+
 <div id="view-workflow" class="view">
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(34, 197, 94, 0.06) 100%); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div id="module-tier-badge-workflow">
+        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(99, 102, 241, 0.15); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.3); font-size: 11px; font-weight: 800;">Gói Dùng Thử / Free</span>
+      </div>
+      <span style="font-size: 12px; color: var(--text-muted);">Tự động hóa luồng công việc đa nhiệm</span>
+    </div>
+    <button type="button" class="btn-upgrade-glow" onclick="openModulePricingModalDesktop('workflow')">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span>Nâng cấp gói / Bảng giá</span>
+    </button>
+  </div>
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="refreshCw" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="sub_workflow">Tạo workflow</h3><p style="color:var(--text-muted);" data-i18n="feature_developing">Tính năng đang phát triển</p></div>
   </div>
 </div>
+
 <div id="view-record" class="view">
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(34, 197, 94, 0.06) 100%); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div id="module-tier-badge-record">
+        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(99, 102, 241, 0.15); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.3); font-size: 11px; font-weight: 800;">Gói Dùng Thử / Free</span>
+      </div>
+      <span style="font-size: 12px; color: var(--text-muted);">Ghi lại và tái tạo hành động thao tác tự động</span>
+    </div>
+    <button type="button" class="btn-upgrade-glow" onclick="openModulePricingModalDesktop('record')">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span>Nâng cấp gói / Bảng giá</span>
+    </button>
+  </div>
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="mic" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="sub_record">Ghi thao tác</h3><p style="color:var(--text-muted);" data-i18n="feature_developing">Tính năng đang phát triển</p></div>
   </div>
 </div>
+
 <!-- Social Account Views -->
 <div id="view-tk-tiktok" class="view">
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(34, 197, 94, 0.06) 100%); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div id="module-tier-badge-tk-tiktok">
+        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(99, 102, 241, 0.15); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.3); font-size: 11px; font-weight: 800;">Gói Dùng Thử / Free</span>
+      </div>
+      <span style="font-size: 12px; color: var(--text-muted);">Quản lý tài khoản TikTok & Đăng video tự động</span>
+    </div>
+    <button type="button" class="btn-upgrade-glow" onclick="openModulePricingModalDesktop('tk-tiktok')">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span>Nâng cấp gói / Bảng giá</span>
+    </button>
+  </div>
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="tiktok" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#ff0050;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_tiktok_title">TikTok Accounts</h3><p style="color:var(--text-muted);" data-i18n="tiktok_desc">Quản lý tài khoản TikTok — thêm, xóa, theo dõi trạng thái</p></div>
   </div>
 </div>
+
 <div id="view-tk-facebook" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="facebook" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#1877F2;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_facebook_title">Facebook Accounts</h3><p style="color:var(--text-muted);" data-i18n="facebook_desc">Quản lý tài khoản Facebook & Fanpage</p></div>
   </div>
 </div>
+
 <div id="view-tk-youtube" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="youtube" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#FF0000;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_youtube_title">YouTube Channels</h3><p style="color:var(--text-muted);" data-i18n="youtube_desc">Quản lý kênh YouTube & đăng tải tự động</p></div>
   </div>
 </div>
+
 <div id="view-tk-x" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="twitter" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_x_title">X (Twitter) Accounts</h3><p style="color:var(--text-muted);" data-i18n="x_desc">Quản lý tài khoản X & đăng Tweet tự động</p></div>
   </div>
 </div>
+
 <div id="view-tk-instagram" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="instagram" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;color:#E4405F;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_instagram_title">Instagram Accounts</h3><p style="color:var(--text-muted);" data-i18n="instagram_desc">Quản lý tài khoản Instagram & đăng bài tự động</p></div>
   </div>
 </div>
+
 <div id="view-tk-threads" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="threads" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="social_threads_title">Threads Accounts</h3><p style="color:var(--text-muted);" data-i18n="threads_desc">Quản lý tài khoản Threads</p></div>
   </div>
 </div>
+
 <div id="view-tiep-thi" class="view">
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(34, 197, 94, 0.06) 100%); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div id="module-tier-badge-tiep-thi">
+        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(99, 102, 241, 0.15); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.3); font-size: 11px; font-weight: 800;">Gói Dùng Thử / Free</span>
+      </div>
+      <span style="font-size: 12px; color: var(--text-muted);">Chương trình Tiếp thị liên kết & Chiết khấu hoa hồng Affiliate</span>
+    </div>
+    <button type="button" class="btn-upgrade-glow" onclick="openModulePricingModalDesktop('tiep-thi')">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span>Nâng cấp gói / Bảng giá</span>
+    </button>
+  </div>
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="link" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="affiliate">Tiếp thị liên kết</h3><p style="color:var(--text-muted);" data-i18n="feature_developing">Tính năng đang phát triển</p></div>
   </div>
@@ -1766,11 +1851,23 @@ const ViewsComponent = `
     </div>
   </div>
 
+  <!-- Sub-Tabs: Nạp tiền VietQR & Quản lý Đăng ký Gói của User -->
+  <div style="display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-wrap: wrap;">
+    <button type="button" id="admin-tx-tab-btn-deposit" onclick="switchAdminTxTab('deposit')" style="padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 800; border: none; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); display: inline-flex; align-items: center; gap: 8px;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <span>Lịch sử Nạp tiền VietQR (+)</span>
+    </button>
+    <button type="button" id="admin-tx-tab-btn-subscriptions" onclick="switchAdminTxTab('subscriptions')" style="padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.04); color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      <span>Gói cước đã Mua / Nâng cấp (-) của User</span>
+    </button>
+  </div>
+
   <!-- Data Table -->
   <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
     <div style="overflow-x: auto;">
       <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-        <thead>
+        <thead id="admin-tx-table-head">
           <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
             <th style="padding: 12px 14px;" data-i18n="col_code">MÃ ĐƠN</th>
             <th style="padding: 12px 14px;" data-i18n="col_customer">KHÁCH HÀNG</th>
@@ -1818,32 +1915,34 @@ const ViewsComponent = `
 
 <!-- Client User Transaction History View -->
 <div id="view-transaction-history" class="view" style="padding: 16px;">
-  <!-- Header Bar -->
-  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
-    <div>
-      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
-        <span data-i18n="tx_history_title">Lịch sử Nạp tiền SePay</span>
-      </h2>
-      <p style="color: var(--text-muted); font-size: 13px; margin: 4px 0 0 0;" data-i18n="tx_history_desc">
-        Quản lý và đối soát tự động toàn bộ giao dịch ngân hàng VietQR của bạn.
-      </p>
+  <!-- Header Bar with Sub-Tabs & Actions -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+    <!-- Sub-Tabs: Nạp tiền QR & Mua Gói dịch vụ (No Emojis - Inline SVG Icons) -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button type="button" id="tx-tab-btn-deposit" onclick="switchUserTxTab('deposit')" style="padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 800; border: none; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); display: inline-flex; align-items: center; gap: 8px;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span>Lịch sử Nạp tiền QR (+)</span>
+      </button>
+      <button type="button" id="tx-tab-btn-subscriptions" onclick="switchUserTxTab('subscriptions')" style="padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.04); color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <span>Gói cước đã Mua / Nâng cấp (-)</span>
+      </button>
     </div>
 
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-      <button type="button" class="btn-outline" style="padding: 9px 16px; font-size: 13px; border-radius: 10px; margin: 0; display: inline-flex; align-items: center; gap: 6px;" onclick="loadUserTransactionHistory()" data-i18n="reload_btn">
+      <button type="button" class="btn-outline" style="padding: 8px 16px; font-size: 13px; border-radius: 10px; margin: 0; display: inline-flex; align-items: center; gap: 6px;" onclick="refreshCurrentTxTab()">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
         <span>Làm mới</span>
       </button>
 
-      <button type="button" class="btn-primary" style="width: auto !important; padding: 9px 20px; font-size: 13px; font-weight: 700; border-radius: 10px; margin: 0; display: inline-flex; align-items: center; gap: 6px;" onclick="openDepositModalDesktop()">
+      <button type="button" class="btn-primary" style="width: auto !important; padding: 8px 18px; font-size: 13px; font-weight: 700; border-radius: 10px; margin: 0; display: inline-flex; align-items: center; gap: 6px;" onclick="openDepositModalDesktop()">
         <span>+ Nạp tiền ngay</span>
       </button>
     </div>
   </div>
 
   <!-- Filter & Search Toolbar -->
-  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px;">
+  <div id="user-tx-filter-toolbar" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px;">
     <!-- Search Input -->
     <div style="display: flex; align-items: center; gap: 8px; flex: 1 1 280px;">
       <div style="position: relative; flex: 1;">
@@ -1868,7 +1967,7 @@ const ViewsComponent = `
   <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
     <div style="overflow-x: auto;">
       <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-        <thead>
+        <thead id="user-tx-table-head">
           <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
             <th style="padding: 12px 14px;">MÃ ĐƠN</th>
             <th style="padding: 12px 14px;">NỘI DUNG CHUYỂN KHOẢN</th>
@@ -1876,11 +1975,12 @@ const ViewsComponent = `
             <th style="padding: 12px 14px;">NGÂN HÀNG</th>
             <th style="padding: 12px 14px;">TRẠNG THÁI</th>
             <th style="padding: 12px 14px;">THỜI GIAN</th>
+            <th style="padding: 12px 14px; text-align: center;">HÀNH ĐỘNG</th>
           </tr>
         </thead>
         <tbody id="user-tx-table-body">
           <tr>
-            <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">Đang tải lịch sử giao dịch...</td>
+            <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">Đang tải lịch sử giao dịch...</td>
           </tr>
         </tbody>
       </table>
@@ -1923,8 +2023,8 @@ const ViewsComponent = `
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
         </div>
         <div>
-          <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-primary);">Nạp tiền tự động SePay</h3>
-          <span style="font-size: 12px; color: var(--text-muted);">Ngân hàng VietQR • Khớp lệnh 24/7</span>
+          <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-primary);">Nạp tiền tự động</h3>
+          <span style="font-size: 12px; color: var(--text-muted);">Ngân hàng • Khớp lệnh 24/7</span>
         </div>
       </div>
       <button type="button" onclick="closeDepositModalDesktop()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 8px;">
@@ -1935,6 +2035,26 @@ const ViewsComponent = `
     <!-- Content Render Target -->
     <div id="desktop-deposit-modal-content">
       <!-- Dynamically filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- Dedicated Checkout View Page -->
+<div id="view-checkout" class="view">
+  <!-- Dynamically filled by checkout.component.js -->
+</div>
+
+<!-- Module Pricing Upgrade Modal Overlay -->
+<div id="desktop-module-pricing-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; z-index: 999999; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center; padding: 16px;" onclick="closeModulePricingModalDesktop()">
+  <div style="width: 100%; max-width: 1060px; max-height: 85vh; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 30px 80px rgba(0,0,0,0.9); padding: 20px 24px 28px; position: relative;" onclick="event.stopPropagation()">
+    <!-- Close button -->
+    <button type="button" onclick="closeModulePricingModalDesktop()" style="position: absolute; right: 18px; top: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10;">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <!-- Render Container -->
+    <div id="desktop-pricing-modal-content">
+      <!-- Dynamically filled by pricing-ui.js -->
     </div>
   </div>
 </div>

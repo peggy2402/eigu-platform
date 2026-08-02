@@ -8,158 +8,189 @@ const FALLBACK_MODULES: PricingModuleDto[] = [
     id: 'fb-cut',
     slug: 'cut',
     name: 'Tự động cắt video',
-    tagline: 'Tự động phân đoạn video 1-20 phút và tối ưu 9:16',
+    tagline: 'Cắt highlight và dựng clip TikTok/Reels tự động',
     icon: 'Scissors',
     isActive: true,
     sortOrder: 0,
     tiers: [
       {
-        id: 'fb-cut-trial',
-        code: 'trial',
-        label: 'Trial',
-        tagline: 'Gói trải nghiệm miễn phí 7 ngày',
-        price: 0,
+        id: 'fb-cut-basic',
+        code: 'basic',
+        label: 'Basic',
+        tagline: 'Cắt video cơ bản',
+        price: 120000,
         originalPrice: 0,
         discount: 0,
-        formattedPrice: 'Miễn phí',
+        formattedPrice: '120.000đ',
         formattedOriginalPrice: null,
-        billingPeriod: 'trial',
-        trialDays: 7,
+        billingPeriod: 'monthly',
+        trialDays: 0,
         machines: 1,
-        threads: 2,
+        threads: 4,
         resolution: '720p',
-        badge: 'TRẢI NGHIỆM MIỄN PHÍ',
+        badge: null,
         badgeId: null,
         isActive: true,
         sortOrder: 0,
-        features: ['Cắt video 1-20 phút', 'Silence Detection', 'Định dạng 9:16'],
+        features: ['Cắt phân đoạn 1-20 phút', 'Tải link YouTube', 'Xuất chuẩn 9:16'],
       },
       {
         id: 'fb-cut-pro',
         code: 'pro',
         label: 'Pro',
-        tagline: 'Dành cho Creator & Reuper chuyên nghiệp',
-        price: 350000,
-        originalPrice: 0,
-        discount: 0,
-        formattedPrice: '350.000đ',
-        formattedOriginalPrice: null,
+        tagline: 'Dành cho Channel Rebuilder',
+        price: 299000,
+        originalPrice: 500000,
+        discount: 40,
+        formattedPrice: '299.000đ',
+        formattedOriginalPrice: '500.000đ',
         billingPeriod: 'monthly',
         trialDays: 0,
-        machines: 1,
-        threads: 8,
-        resolution: '1080p/2K/4K',
+        machines: 2,
+        threads: 10,
+        resolution: '1080p',
         badge: 'PHỔ BIẾN NHẤT',
         badgeId: null,
         isActive: true,
         sortOrder: 1,
-        features: ['Tối ưu GPU Hardware', 'Export 1080p/2K/4K', 'Hỗ trợ ưu tiên 24/7'],
+        features: ['Silence Detection (Nhận diện khoảng nghỉ)', 'Tiêm filter Anti-Detect MD5', 'Hỗ trợ Render GPU Hardware'],
+      },
+      {
+        id: 'fb-cut-team',
+        code: 'team',
+        label: 'Team',
+        tagline: 'Hệ thống cắt ghép tự động hóa',
+        price: 990000,
+        originalPrice: 1650000,
+        discount: 40,
+        formattedPrice: '990.000đ',
+        formattedOriginalPrice: '1.650.000đ',
+        billingPeriod: 'monthly',
+        trialDays: 0,
+        machines: 5,
+        threads: 25,
+        resolution: '1080p/4K',
+        badge: 'TIẾT KIỆM',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 2,
+        features: ['Tạo Part 1/N tự động', 'Tích hợp Voice Subtitles (WhisperX)', 'Tải kênh hàng loạt'],
+      },
+      {
+        id: 'fb-cut-enterprise',
+        code: 'enterprise',
+        label: 'Enterprise',
+        tagline: 'Hệ thống Render Studio cho Agency',
+        price: 2990000,
+        originalPrice: 5000000,
+        discount: 40,
+        formattedPrice: '2.990.000đ',
+        formattedOriginalPrice: '5.000.000đ',
+        billingPeriod: 'monthly',
+        trialDays: 0,
+        machines: 20,
+        threads: 0,
+        resolution: '4K',
+        badge: 'GIẢM 40%',
+        badgeId: null,
+        isActive: true,
+        sortOrder: 3,
+        features: ['Render siêu tốc độ 60fps', 'Không giới hạn dung lượng', '24/7 Priority Support'],
       },
     ],
   },
   {
     id: 'fb-ai-video',
     slug: 'ai-video',
-    name: 'Tạo video AI',
-    tagline: 'Tạo video chuyên nghiệp từ ý tưởng bằng AI',
+    name: 'Bảng Giá Tạo Video AI (nhanh)',
+    tagline: 'Tạo video không giới hạn lượt trong thời hạn gói. Mở khóa toàn bộ 4 mode đỉnh cao.',
     icon: 'Sparkles',
     isActive: true,
     sortOrder: 1,
     tiers: [
       {
-        id: 'fb-ai-trial',
-        code: 'trial',
-        label: 'Trial',
-        tagline: 'Gói trải nghiệm miễn phí',
-        price: 500000,
-        originalPrice: 650000,
-        discount: 23,
-        formattedPrice: '500.000 đ',
-        formattedOriginalPrice: '650.000 đ',
+        id: 'fb-ai-basic',
+        code: 'basic',
+        label: 'Basic',
+        tagline: 'Gói tạo video AI cơ bản',
+        price: 150000,
+        originalPrice: 0,
+        discount: 0,
+        formattedPrice: '150.000đ',
+        formattedOriginalPrice: null,
         billingPeriod: 'monthly',
         trialDays: 0,
         machines: 1,
-        threads: 8,
+        threads: 4,
         resolution: '720p',
-        badge: 'GIÁ ĐÃ BAO GỒM VAT',
+        badge: null,
         badgeId: null,
         isActive: true,
         sortOrder: 0,
-        features: ['Tải video 720p - Max 8 luồng', 'Tạo Video từ Ảnh / Đồng nhất / Whisk'],
+        features: ['Tối đa 4 luồng song song', 'Độ phân giải 720p', 'Mở 2 mode: Copy Video & Ý Tưởng', 'Dùng trên 1 máy'],
       },
       {
         id: 'fb-ai-pro',
         code: 'pro',
         label: 'Pro',
-        tagline: 'Dành cho người chuyên nghiệp',
-        price: 650000,
+        tagline: 'Dành cho Channel Rebuilder',
+        price: 450000,
         originalPrice: 0,
         discount: 0,
-        formattedPrice: '650.000 đ',
+        formattedPrice: '450.000đ',
         formattedOriginalPrice: null,
         billingPeriod: 'monthly',
         trialDays: 0,
         machines: 1,
-        threads: 20,
-        resolution: '1080p/2K/4K',
+        threads: 8,
+        resolution: '1080p / 2K / 4K',
         badge: 'PHỔ BIẾN NHẤT',
         badgeId: null,
         isActive: true,
         sortOrder: 1,
-        features: [
-          'Tạo giọng đọc bằng AI / Clone giọng nói miễn phí',
-          'Nâng/Tải video chất lượng 1080p/2K/4K',
-          'Tạo video cùng lúc Max 20 luồng tùy thời điểm',
-          'Sử dụng tất cả chức năng trong Phần mềm.',
-        ],
+        features: ['Tối đa 8 luồng song song', 'Độ phân giải 1080p / 2K / 4K', 'Full 4 mode (Copy, Ý tưởng, Ảnh, Mẫu)', 'Dùng trên 1 máy'],
       },
       {
         id: 'fb-ai-team',
         code: 'team',
         label: 'Team',
-        tagline: 'Ưu đãi cực tốt cho nhóm/công ty nhỏ',
-        price: 1999000,
-        originalPrice: 3250000,
-        discount: 38,
-        formattedPrice: '1.999.000 đ',
-        formattedOriginalPrice: '3.250.000 đ',
+        tagline: 'Hệ thống Render AI chuyên nghiệp',
+        price: 1800000,
+        originalPrice: 3000000,
+        discount: 40,
+        formattedPrice: '1.800.000đ',
+        formattedOriginalPrice: '3.000.000đ',
         billingPeriod: 'monthly',
         trialDays: 0,
         machines: 5,
-        threads: 50,
-        resolution: '1080p/2K/4K',
-        badge: 'TIẾT KIỆM 38%',
+        threads: 20,
+        resolution: '1080p / 2K / 4K',
+        badge: 'GIẢM -40%',
         badgeId: null,
         isActive: true,
         sortOrder: 2,
-        features: ['Hỗ trợ nhanh hơn khi có lỗi'],
+        features: ['Tối đa 20 luồng song song', 'Độ phân giải 1080p / 2K / 4K', 'Full 4 mode', 'Dùng đồng thời 5 máy'],
       },
       {
         id: 'fb-ai-enterprise',
         code: 'enterprise',
-        label: 'Gói Doanh Nghiệp (30 Máy)',
-        tagline: 'Giải pháp toàn diện tối ưu chi phí cho công ty media/marketing.',
-        price: 9999000,
-        originalPrice: 20000000,
-        discount: 50,
-        formattedPrice: '9.999.000 đ',
-        formattedOriginalPrice: '20.000.000 đ',
+        label: 'Enterprise',
+        tagline: 'Giải pháp Doanh nghiệp / Agency',
+        price: 5400000,
+        originalPrice: 9000000,
+        discount: 40,
+        formattedPrice: '5.400.000đ',
+        formattedOriginalPrice: '9.000.000đ',
         billingPeriod: 'monthly',
         trialDays: 0,
         machines: 30,
-        threads: 0,
-        resolution: '1080p/2K/4K',
-        badge: 'GIẢM 50%',
+        threads: 20,
+        resolution: '4K+',
+        badge: 'DOANH NGHIỆP',
         badgeId: null,
         isActive: true,
         sortOrder: 3,
-        features: [
-          'Full tính năng Gói Pro',
-          '30 máy hoạt động cùng lúc',
-          'Hỗ trợ ưu tiên 24/7',
-          'Không giới hạn Video/tháng',
-          'Giảm thêm 10% khi thanh toán năm',
-        ],
+        features: ['20 luồng trần tối đa', 'Độ phân giải 4K+', 'Full 4 mode', 'Dùng đồng thời 30 máy & 24/7 Priority Support'],
       },
     ],
   },
@@ -447,6 +478,207 @@ export class PricingService {
       isActive: t.isActive,
       sortOrder: t.sortOrder,
       features: (t.features || []).map((f: any) => f.text),
+    };
+  }
+
+  // --- USER SUBSCRIPTION ACTIONS ---
+
+  /**
+   * Lấy danh sách các gói dịch vụ active hiện tại của User theo từng module
+   */
+  async getUserSubscriptions(userId: string) {
+    const subs = await (this.prisma as any).userSubscription.findMany({
+      where: { userId, status: 'ACTIVE' },
+      include: {
+        module: { select: { id: true, slug: true, name: true } },
+        tier: { select: { id: true, code: true, label: true, price: true, machines: true, threads: true, resolution: true } },
+      },
+    });
+
+    return (subs || []).map((s: any) => ({
+      id: s.id,
+      moduleId: s.moduleId,
+      moduleSlug: s.module?.slug || '',
+      moduleName: s.module?.name || '',
+      tierId: s.tierId,
+      tierCode: s.tier?.code || '',
+      tierLabel: s.tier?.label || '',
+      price: Number(s.tier?.price || 0),
+      machines: s.machines,
+      threads: s.threads,
+      resolution: s.resolution,
+      status: s.status,
+      expiresAt: s.expiresAt ? s.expiresAt.toISOString() : null,
+      createdAt: s.createdAt.toISOString(),
+    }));
+  }
+
+  /**
+   * Admin: Lấy danh sách đăng ký gói cước dịch vụ của toàn bộ User trên hệ thống
+   */
+  async getAllUserSubscriptionsAdmin() {
+    const subs = await (this.prisma as any).userSubscription.findMany({
+      include: {
+        user: { select: { id: true, email: true, username: true, balance: true } },
+        module: { select: { id: true, slug: true, name: true } },
+        tier: { select: { id: true, code: true, label: true, price: true, machines: true, threads: true, resolution: true } },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    return (subs || []).map((s: any) => ({
+      id: s.id,
+      userId: s.userId,
+      userEmail: s.user?.email || 'N/A',
+      username: s.user?.username || '',
+      userBalance: Number(s.user?.balance || 0),
+      moduleId: s.moduleId,
+      moduleSlug: s.module?.slug || '',
+      moduleName: s.module?.name || '',
+      tierId: s.tierId,
+      tierCode: s.tier?.code || '',
+      tierLabel: s.tier?.label || '',
+      price: Number(s.tier?.price || 0),
+      machines: s.machines,
+      threads: s.threads,
+      resolution: s.resolution,
+      status: s.status,
+      expiresAt: s.expiresAt ? s.expiresAt.toISOString() : null,
+      createdAt: s.createdAt.toISOString(),
+      updatedAt: s.updatedAt ? s.updatedAt.toISOString() : s.createdAt.toISOString(),
+    }));
+  }
+
+  /**
+   * Mua / Nâng cấp gói cước mô-đun bằng số dư tài khoản
+   */
+  async subscribeModuleTier(userId: string, moduleId: string, tierId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Không tìm thấy tài khoản người dùng');
+
+    const tier = await this.prisma.pricingTier.findFirst({
+      where: { id: tierId, moduleId, isActive: true },
+      include: { module: true },
+    });
+
+    if (!tier) throw new NotFoundException('Gói cước không tồn tại hoặc đã bị ẩn');
+
+    // Kiểm tra xem User đã có gói cước active nào thuộc mô-đun này chưa
+    const existingSub = await (this.prisma as any).userSubscription.findFirst({
+      where: { userId, moduleId, status: 'ACTIVE' },
+      include: { tier: true },
+    });
+
+    let payableAmount = Number(tier.price);
+    let isUpgrade = false;
+
+    if (existingSub && existingSub.tier) {
+      const currentPrice = Number(existingSub.tier.price || 0);
+      if (existingSub.tierId === tierId) {
+        throw new BadRequestException('Bạn đang sử dụng gói này rồi!');
+      }
+      if (payableAmount > currentPrice) {
+        // Nâng cấp lên gói cao hơn: Chỉ tính chênh lệch!
+        payableAmount = payableAmount - currentPrice;
+        isUpgrade = true;
+      }
+    }
+
+    const userBalance = Number(user.balance || 0);
+
+    if (userBalance < payableAmount) {
+      throw new BadRequestException(
+        `Số dư không đủ. Cần thanh toán ${payableAmount.toLocaleString('vi-VN')}đ${isUpgrade ? ' (tiền chênh lệch nâng cấp)' : ''}, số dư hiện tại của bạn là ${userBalance.toLocaleString('vi-VN')}đ. Vui lòng nạp thêm tiền!`,
+      );
+    }
+
+    // Tính thời gian hết hạn (30 ngày cho gói tháng, 365 ngày cho gói năm)
+    const now = new Date();
+    const durationDays = tier.billingPeriod === 'yearly' ? 365 : (tier.billingPeriod === 'trial' ? (tier.trialDays || 7) : 30);
+    const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+    let updatedBalance = userBalance;
+    let subscriptionRecord: any = null;
+
+    await this.prisma.$transaction(async (db) => {
+      // 1. Trừ số dư chênh lệch (nếu > 0)
+      if (payableAmount > 0) {
+        const updatedUser = await db.user.update({
+          where: { id: userId },
+          data: {
+            balance: {
+              decrement: payableAmount,
+            },
+          },
+        });
+        updatedBalance = Number(updatedUser.balance);
+      }
+
+      // 2. Tạo hoặc Cập nhật UserSubscription
+      subscriptionRecord = await (db as any).userSubscription.upsert({
+        where: {
+          userId_moduleId: {
+            userId,
+            moduleId,
+          },
+        },
+        create: {
+          userId,
+          moduleId,
+          tierId,
+          status: 'ACTIVE',
+          expiresAt,
+          machines: tier.machines,
+          threads: tier.threads,
+          resolution: tier.resolution,
+        },
+        update: {
+          tierId,
+          status: 'ACTIVE',
+          expiresAt,
+          machines: tier.machines,
+          threads: tier.threads,
+          resolution: tier.resolution,
+        },
+      });
+
+      // 3. Ghi log
+      await db.auditLog.create({
+        data: {
+          userId,
+          userEmail: user.email,
+          username: user.username || undefined,
+          userRole: user.role,
+          action: 'SUBSCRIBE_MODULE_TIER',
+          module: 'PRICING',
+          payload: JSON.stringify({
+            moduleSlug: tier.module.slug,
+            tierCode: tier.code,
+            price: Number(tier.price),
+            payableAmount,
+            isUpgrade,
+            newBalance: updatedBalance,
+          }),
+        },
+      });
+    });
+
+    return {
+      success: true,
+      message: isUpgrade 
+        ? `Đã nâng cấp lên Gói ${tier.label} thành công (Chỉ trả thêm ${payableAmount.toLocaleString('vi-VN')}đ chênh lệch)!`
+        : `Đã đăng ký thành công Gói ${tier.label} cho mô-đun "${tier.module.name}"!`,
+      newBalance: updatedBalance,
+      subscription: {
+        id: subscriptionRecord.id,
+        moduleSlug: tier.module.slug,
+        tierCode: tier.code,
+        tierLabel: tier.label,
+        machines: tier.machines,
+        threads: tier.threads,
+        resolution: tier.resolution,
+        expiresAt: expiresAt.toISOString(),
+      },
     };
   }
 }

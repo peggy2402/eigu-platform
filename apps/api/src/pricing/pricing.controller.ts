@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Req } from '@nestjs/common';
 import { PricingService } from './pricing.service';
 import { CreateModuleDto, UpdateModuleDto, CreateTierDto, UpdateTierDto, CreateBadgeDto } from './dto/create-pricing.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 @Controller()
 export class PricingController {
@@ -23,6 +25,36 @@ export class PricingController {
   }
 
   /**
+   * User GET /pricing/my-subscriptions
+   * Lấy danh sách gói cước đang kích hoạt của User
+   */
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('pricing/my-subscriptions')
+  @ApiOperation({ summary: 'Lấy danh sách các gói dịch vụ mô-đun đang kích hoạt của tôi' })
+  async getMySubscriptions(@Req() req: any) {
+    const userId = req.user?.id || req.user?.userId;
+    const data = await this.pricingService.getUserSubscriptions(userId);
+    return { success: true, data };
+  }
+
+  /**
+   * User POST /pricing/subscribe
+   * Nâng cấp / Mua gói cước mô-đun bằng số dư
+   */
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('pricing/subscribe')
+  @ApiOperation({ summary: 'Nâng cấp / Mua gói dịch vụ mô-đun bằng số dư tài khoản' })
+  async subscribeTier(
+    @Req() req: any,
+    @Body() body: { moduleId: string; tierId: string },
+  ) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.pricingService.subscribeModuleTier(userId, body.moduleId, body.tierId);
+  }
+
+  /**
    * Admin GET /pricing/admin
    * Lấy toàn bộ dữ liệu modules, tiers (kể cả inactive) & badges
    */
@@ -30,6 +62,19 @@ export class PricingController {
   async getAdminPricing() {
     const data = await this.pricingService.getAdminPricing();
     return { success: true, ...data };
+  }
+
+  /**
+   * Admin GET /pricing/admin/all-subscriptions
+   * Lấy danh sách đăng ký gói cước dịch vụ của toàn bộ User
+   */
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('pricing/admin/all-subscriptions')
+  @ApiOperation({ summary: 'Admin xem tất cả gói cước dịch vụ đã mua của mọi User' })
+  async getAllUserSubscriptionsAdmin() {
+    const data = await this.pricingService.getAllUserSubscriptionsAdmin();
+    return { success: true, data };
   }
 
   /**

@@ -58,6 +58,7 @@ function switchView(view, navEl, sub, e) {
     'transaction-management': lang === 'en' ? ['Transaction Management', 'Manage deposit transactions, manual approval & revenue stats'] : ['Quản lý Giao dịch', 'Quản lý lịch sử nạp tiền, phê duyệt thủ công & doanh thu hệ thống'],
     'transaction-history': lang === 'en' ? ['Transaction History', 'VietQR automatic deposit history & balance tracking'] : ['Lịch sử giao dịch', 'Lịch sử nạp tiền tự động VietQR & đối soát số dư'],
     'user-activity-logs': lang === 'en' ? ['Activity Logs', 'System user access & action trail'] : ['Nhật ký hoạt động', 'Theo dõi lịch sử thao tác của các tài khoản hệ thống'],
+    'checkout': lang === 'en' ? ['Checkout & Payment', 'VietQR automatic deposit & instant package activation'] : ['Thanh toán Đơn hàng', 'Thanh toán VietQR tự động & Kích hoạt gói cước tức thì'],
   };
   const [t, s] = titles[view] || ['', ''];
   const viewTitleEl = document.getElementById('view-title');
@@ -117,8 +118,12 @@ function switchView(view, navEl, sub, e) {
     loadAdminTransactionData();
   }
 
-  if (view === 'transaction-history' && typeof loadUserTransactionHistory === 'function') {
-    loadUserTransactionHistory();
+  if (view === 'transaction-history') {
+    if (typeof refreshCurrentTxTab === 'function') {
+      refreshCurrentTxTab();
+    } else if (typeof loadUserTransactionHistory === 'function') {
+      loadUserTransactionHistory();
+    }
   }
 
   // Load Real Chat Console if entering Chat Support view

@@ -38,7 +38,12 @@ const HeaderComponent = `
         <div style="padding: 12px 14px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(34, 197, 94, 0.08) 100%); border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border-color);" onclick="event.stopPropagation()">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
             <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="user_balance_label">Số dư tài khoản</span>
-            <span style="font-size: 10px; font-weight: 700; background: rgba(34, 197, 94, 0.15); color: #22c55e; padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(34, 197, 94, 0.3);">VND</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button type="button" title="Làm mới số dư real-time" onclick="refreshUserProfileDesktop(); event.stopPropagation();" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              </button>
+              <span style="font-size: 10px; font-weight: 700; background: rgba(34, 197, 94, 0.15); color: #22c55e; padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(34, 197, 94, 0.3);">VND</span>
+            </div>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">

@@ -33,13 +33,22 @@ async function handleLogin() {
 }
 
 function loadRememberedEmail() {
+  const loginEmailEl = document.getElementById('login-email');
+  const loginPassEl = document.getElementById('login-pass');
+  if (!loginEmailEl) return;
+
+  // Do not overwrite if user is actively typing or input is non-empty
+  if (document.activeElement === loginEmailEl || document.activeElement === loginPassEl) return;
+  if (loginEmailEl.value && loginEmailEl.value.trim() !== '') return;
+
   const savedEmail = localStorage.getItem('eigu_saved_email');
   const savedPass = localStorage.getItem('eigu_saved_password');
   if (savedEmail) {
-    document.getElementById('login-email').value = savedEmail;
-    document.getElementById('remember-me').checked = true;
-    if (savedPass) {
-      document.getElementById('login-pass').value = savedPass;
+    loginEmailEl.value = savedEmail;
+    const remMe = document.getElementById('remember-me');
+    if (remMe) remMe.checked = true;
+    if (savedPass && loginPassEl) {
+      loginPassEl.value = savedPass;
     }
   }
 }

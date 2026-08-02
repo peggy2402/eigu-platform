@@ -39,10 +39,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  proxies        Proxy[]
-  accounts       TikTokAccount[]
-  feedbacks      Feedback[]
+  proxies             Proxy[]
+  accounts            TikTokAccount[]
+  feedbacks           Feedback[]
   depositTransactions DepositTransaction[]
+  subscriptions       UserSubscription[]
 }
 
 model Proxy {
@@ -205,16 +206,17 @@ model AuditLog {
 }
 
 model PricingModule {
-  id          String        @id @default(uuid())
-  slug        String        @unique // "cut", "ai-video", "ai-studio", "reup", "hot-niche", "bulk-download"
+  id          String             @id @default(uuid())
+  slug        String             @unique // "cut", "ai-video", "ai-studio", "reup", "hot-niche", "bulk-download"
   name        String
   tagline     String
   icon        String
-  isActive    Boolean       @default(true)
-  sortOrder   Int           @default(0)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  isActive    Boolean            @default(true)
+  sortOrder   Int                @default(0)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
   tiers       PricingTier[]
+  subscriptions UserSubscription[]
 }
 
 model PricingTier {
@@ -239,6 +241,7 @@ model PricingTier {
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
   features      PricingTierFeature[]
+  subscriptions UserSubscription[]
 
   @@unique([moduleId, code])
 }
@@ -283,6 +286,27 @@ model DepositTransaction {
   @@index([userId])
   @@index([code])
   @@index([status])
+}
+
+model UserSubscription {
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moduleId     String
+  module       PricingModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  tierId       String
+  tier         PricingTier   @relation(fields: [tierId], references: [id], onDelete: Cascade)
+  status       String        @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  expiresAt    DateTime?
+  machines     Int           @default(1)
+  threads      Int           @default(4)
+  resolution   String        @default("1080p")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([userId, moduleId])
+  @@index([userId])
+  @@index([moduleId])
 }
 
 

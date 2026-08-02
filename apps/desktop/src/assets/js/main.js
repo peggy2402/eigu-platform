@@ -187,6 +187,9 @@ async function enterApp(showToastNotice = false) {
     try { userProfile = await apiFetch('/auth/me'); } catch (e) { }
   }
   updateProfile();
+  if (typeof loadUserSubscriptionsDesktop === 'function') {
+    loadUserSubscriptionsDesktop();
+  }
 }
 
 let bannedCountdownInterval = null;
@@ -299,11 +302,37 @@ async function checkAuth() {
 
 
 
+async function refreshUserProfileDesktop() {
+  try {
+    if (typeof apiFetch === 'function') {
+      const updated = await apiFetch('/auth/me');
+      if (updated && updated.id) {
+        userProfile = updated;
+        if (typeof updateProfile === 'function') {
+          updateProfile();
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[ProfileRefresh] Failed to refresh profile:', err);
+  }
+}
+
+// Auto background periodic profile balance sync every 12 seconds
+setInterval(() => {
+  if (typeof userProfile !== 'undefined' && userProfile && userProfile.id) {
+    refreshUserProfileDesktop();
+  }
+}, 12000);
+
 function toggleProfileMenu(e) {
   if (e) e.stopPropagation();
   const wrapper = document.querySelector('.profile-menu-wrapper');
   if (wrapper) {
     wrapper.classList.toggle('open');
+    if (wrapper.classList.contains('open')) {
+      refreshUserProfileDesktop();
+    }
   }
 }
 

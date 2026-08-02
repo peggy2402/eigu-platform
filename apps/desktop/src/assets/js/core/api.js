@@ -154,6 +154,19 @@ async function apiFetch(path, options = {}, isRetry = false) {
         } else {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
+
+          // Stop all background timers if checkout component is polling
+          if (window.__CHECKOUT_STATE__) {
+            if (window.__CHECKOUT_STATE__.pollTimer) {
+              clearInterval(window.__CHECKOUT_STATE__.pollTimer);
+              window.__CHECKOUT_STATE__.pollTimer = null;
+            }
+            if (window.__CHECKOUT_STATE__.countdownTimer) {
+              clearInterval(window.__CHECKOUT_STATE__.countdownTimer);
+              window.__CHECKOUT_STATE__.countdownTimer = null;
+            }
+          }
+
           const authContainer = document.getElementById('auth-container');
           if (authContainer) authContainer.style.display = 'flex';
           const appContainer = document.getElementById('app-container');

@@ -73,25 +73,33 @@ function renderThemeEventForm(cfg) {
 
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:18px;">
           <div class="season-card ${cfg.season === 'autumn' ? 'selected' : ''}" onclick="selectSeasonOption('autumn', '#f59e0b', 'Giao diện Mùa Thu (Amber Autumn)')" style="border:2px solid ${cfg.season === 'autumn' ? 'var(--accent)' : 'var(--border-color)'}; background:var(--bg-card); padding:14px; border-radius:10px; cursor:pointer; text-align:center;">
-            <div style="font-size:24px; margin-bottom:6px;">🍁</div>
+            <div style="display:flex; justify-content:center; margin-bottom:6px;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+            </div>
             <strong style="display:block; font-size:14px; color:var(--text-primary);">Mùa Thu</strong>
             <span style="font-size:11px; color:var(--text-muted);">Tông Vàng Amber & Lá Thu</span>
           </div>
 
           <div class="season-card ${cfg.season === 'spring' ? 'selected' : ''}" onclick="selectSeasonOption('spring', '#ec4899', 'Giao diện Mùa Xuân (Cherry Blossom)')" style="border:2px solid ${cfg.season === 'spring' ? 'var(--accent)' : 'var(--border-color)'}; background:var(--bg-card); padding:14px; border-radius:10px; cursor:pointer; text-align:center;">
-            <div style="font-size:24px; margin-bottom:6px;">🌸</div>
+            <div style="display:flex; justify-content:center; margin-bottom:6px;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2a4 4 0 0 0 0 8 4 4 0 0 0 0-8z"/><path d="M12 14a4 4 0 0 0 0 8 4 4 0 0 0 0-8z"/><path d="M2 12a4 4 0 0 0 8 0 4 4 0 0 0-8 0z"/><path d="M14 12a4 4 0 0 0 8 0 4 4 0 0 0-8 0z"/></svg>
+            </div>
             <strong style="display:block; font-size:14px; color:var(--text-primary);">Mùa Xuân</strong>
             <span style="font-size:11px; color:var(--text-muted);">Tông Hồng Phấn Tươi Mới</span>
           </div>
 
           <div class="season-card ${cfg.season === 'summer' ? 'selected' : ''}" onclick="selectSeasonOption('summer', '#06b6d4', 'Giao diện Mùa Hạ (Cyan Summer)')" style="border:2px solid ${cfg.season === 'summer' ? 'var(--accent)' : 'var(--border-color)'}; background:var(--bg-card); padding:14px; border-radius:10px; cursor:pointer; text-align:center;">
-            <div style="font-size:24px; margin-bottom:6px;">🌊</div>
+            <div style="display:flex; justify-content:center; margin-bottom:6px;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            </div>
             <strong style="display:block; font-size:14px; color:var(--text-primary);">Mùa Hạ</strong>
             <span style="font-size:11px; color:var(--text-muted);">Tông Xanh Ngọc Mát Mẻ</span>
           </div>
 
           <div class="season-card ${cfg.season === 'winter' ? 'selected' : ''}" onclick="selectSeasonOption('winter', '#3b82f6', 'Giao diện Mùa Đông (Frost Winter)')" style="border:2px solid ${cfg.season === 'winter' ? 'var(--accent)' : 'var(--border-color)'}; background:var(--bg-card); padding:14px; border-radius:10px; cursor:pointer; text-align:center;">
-            <div style="font-size:24px; margin-bottom:6px;">❄️</div>
+            <div style="display:flex; justify-content:center; margin-bottom:6px;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><line x1="20" y1="7" x2="4" y2="17"/><line x1="4" y1="7" x2="20" y2="17"/><polyline points="10 4 12 2 14 4"/><polyline points="10 20 12 22 14 20"/></svg>
+            </div>
             <strong style="display:block; font-size:14px; color:var(--text-primary);">Mùa Đông</strong>
             <span style="font-size:11px; color:var(--text-muted);">Tông Xanh Băng Tuyết</span>
           </div>

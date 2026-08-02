@@ -13,8 +13,9 @@
   display: flex; align-items: center; justify-content: space-between;
   -webkit-app-region: drag;
 }
-.search-mini, .notif-btn {
-  -webkit-app-region: no-drag;
+.search-mini, .notif-btn, .btn-upgrade-glow, .main-header-right {
+  -webkit-app-region: no-drag !important;
+  pointer-events: auto !important;
 }
 .main-header-left {
   flex: 1;
@@ -23,7 +24,60 @@
 }
 .main-header-left h2 { font-size: 22px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .main-header-left p { color: var(--text-secondary); font-size: 13px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.main-header-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.main-header-right {
+  display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+  -webkit-app-region: no-drag !important;
+  pointer-events: auto !important;
+}
+
+/* Dedicated Glow Upgrade Button Styling */
+.btn-upgrade-glow {
+  -webkit-app-region: no-drag !important;
+  pointer-events: auto !important;
+  background: #141724 !important;
+  border: 1.5px solid #4f46e5 !important;
+  border-radius: 12px !important;
+  padding: 8px 18px !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  outline: none !important;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.3) !important;
+  transition: all 0.25s ease !important;
+  animation: pulse-upgrade-glow 2.5s infinite ease-in-out !important;
+}
+
+.btn-upgrade-glow *,
+.btn-upgrade-glow span {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+.btn-upgrade-glow:hover,
+.btn-upgrade-glow:focus,
+.btn-upgrade-glow:active,
+.btn-upgrade-glow:focus-visible {
+  background: #1e2238 !important;
+  color: #ffffff !important;
+  border-color: #6366f1 !important;
+  outline: none !important;
+  box-shadow: 0 0 18px rgba(99, 102, 241, 0.6) !important;
+}
+
+@keyframes pulse-upgrade-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+    border-color: rgba(99, 102, 241, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 18px 4px rgba(99, 102, 241, 0.65), inset 0 0 8px rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.9);
+  }
+}
 
 .search-mini {
   display: flex; align-items: center; gap: 8px;

@@ -122,6 +122,12 @@ export const pricingApi = {
     const query = moduleSlug ? `?m=${encodeURIComponent(moduleSlug)}` : '';
     return request(`${API_ENDPOINTS.PRICING.BASE}${query}`);
   },
+  getMySubscriptions: () => request('/pricing/my-subscriptions'),
+  subscribe: (moduleId: string, tierId: string) =>
+    request('/pricing/subscribe', {
+      method: 'POST',
+      body: JSON.stringify({ moduleId, tierId }),
+    }),
 };
 
 export const themeEventApi = {

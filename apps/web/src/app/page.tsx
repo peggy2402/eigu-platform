@@ -23,6 +23,7 @@ import PricingGrid from '../components/pricing/PricingGrid';
 import EventPopupModal from '../components/event/EventPopupModal';
 import DepositModal from '../components/payment/DepositModal';
 import TransactionHistoryView from '../components/payment/TransactionHistoryView';
+import CheckoutView from '../components/pricing/CheckoutView';
 import { pricingApi, themeEventApi, contactApi } from '../lib/api';
 import type { PricingModuleDto, PricingTierDto } from '@eigu-platform/shared';
 import TypewriterText from '../components/TypewriterText';
@@ -356,9 +357,11 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
           }
           if (cfg.primaryColor) {
             document.documentElement.style.setProperty('--accent', cfg.primaryColor);
-            document.documentElement.style.setProperty('--accent-glow', `${cfg.primaryColor}33`);
+            document.documentElement.style.setProperty('--accent-glow', `${cfg.primaryColor}44`);
+            document.documentElement.style.setProperty('--accent-glow-subtle', `${cfg.primaryColor}1a`);
             localStorage.setItem('eigu_accent', cfg.primaryColor);
-            localStorage.setItem('eigu_accent_glow', `${cfg.primaryColor}33`);
+            localStorage.setItem('eigu_accent_glow', `${cfg.primaryColor}44`);
+            localStorage.setItem('eigu_accent_glow_subtle', `${cfg.primaryColor}1a`);
             // Derive hover color (slightly darker)
             const accentHover = cfg.accentHover || cfg.primaryColor;
             document.documentElement.style.setProperty('--accent-hover', accentHover);
@@ -1605,62 +1608,24 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
 
         {/* ==================== 7. CHECKOUT HOOK PAGE (/checkout) ==================== */}
         {activePath === '/checkout' && (
-          <section style={{ padding: '60px 24px', maxWidth: 640, margin: '0 auto' }}>
-            <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 24, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-              <ShoppingCart style={{ color: 'var(--accent)' }} /> {language === 'en' ? 'Confirm Plan Subscription' : 'Xác Nhận Đăng Ký Gói Dịch Vụ'}
-            </h1>
-
-            {selectedCheckout ? (
-              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 32 }}>
-                <div style={{ padding: 16, background: 'rgba(99, 102, 241, 0.12)', borderRadius: 12, border: '1px solid rgba(99, 102, 241, 0.25)', marginBottom: 24 }}>
-                  <div style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 700, marginBottom: 4 }}>
-                    {language === 'en' ? 'Selected Module:' : 'Mô-đun đã chọn:'} {selectedCheckout.moduleSlug.toUpperCase()}
-                  </div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>
-                    {language === 'en' ? 'Plan' : 'Gói'} {selectedCheckout.tier.label}
-                  </div>
-                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 4 }}>{selectedCheckout.tier.tagline}</div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border-color)', fontSize: 14 }}>
-                  <span>{language === 'en' ? 'Price:' : 'Giá bán:'}</span>
-                  <strong style={{ color: 'var(--accent)', fontSize: 18 }}>{selectedCheckout.tier.formattedPrice}</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border-color)', fontSize: 14 }}>
-                  <span>{language === 'en' ? 'Concurrent Machines:' : 'Số máy dùng đồng thời:'}</span>
-                  <strong>{selectedCheckout.tier.machines === 0 ? (language === 'en' ? 'Unlimited' : 'Không giới hạn') : `${selectedCheckout.tier.machines} ${language === 'en' ? 'machines' : 'máy'}`}</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border-color)', fontSize: 14 }}>
-                  <span>{language === 'en' ? 'Processing Threads:' : 'Số luồng xử lý:'}</span>
-                  <strong>{selectedCheckout.tier.threads === 0 ? (language === 'en' ? 'Unlimited' : 'Không giới hạn') : `${selectedCheckout.tier.threads} ${language === 'en' ? 'threads' : 'luồng'}`}</strong>
-                </div>
-
-                <div style={{ marginTop: 24 }}>
-                  <button
-                    onClick={() => alert(language === 'en' ? 'Payment gateway connecting! Contact Admin to activate.' : 'Cổng thanh toán đang kết nối! Vui lòng liên hệ Admin để kích hoạt gói.')}
-                    style={{ width: '100%', padding: 14, borderRadius: 8, background: 'var(--accent)', color: '#fff', fontSize: 16, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 8px 20px rgba(99, 102, 241, 0.35)' }}
-                  >
-                    {language === 'en' ? `Pay Now (${selectedCheckout.tier.formattedPrice})` : `Thanh Toán Ngay (${selectedCheckout.tier.formattedPrice})`}
-                  </button>
-                  <button
-                    onClick={() => handleNavigate('/pricing')}
-                    style={{ width: '100%', padding: 12, borderRadius: 8, background: 'transparent', color: 'var(--text-secondary)', border: 'none', fontSize: 14, cursor: 'pointer', marginTop: 8 }}
-                  >
-                    {language === 'en' ? 'Back to pricing plans' : 'Quay lại chọn gói khác'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: 48, background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border-color)' }}>
-                <p style={{ color: 'var(--text-secondary)' }}>
+          selectedCheckout ? (
+            <CheckoutView
+              selectedCheckout={selectedCheckout}
+              onBack={() => handleNavigate('/pricing')}
+              onSuccess={() => handleNavigate('/dashboard')}
+            />
+          ) : (
+            <section style={{ padding: '60px 24px', maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
+              <div style={{ padding: 48, background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border-color)' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginBottom: 16 }}>
                   {language === 'en' ? 'No plan selected yet.' : 'Chưa có gói dịch vụ nào được chọn.'}
                 </p>
-                <button onClick={() => handleNavigate('/pricing')} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--accent)', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', marginTop: 12 }}>
-                  {language === 'en' ? 'Go to Pricing Page' : 'Đến Trang Bảng Giá'}
+                <button onClick={() => handleNavigate('/pricing')} style={{ padding: '12px 24px', borderRadius: 10, background: 'var(--accent)', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
+                  {language === 'en' ? 'Go to Pricing Page' : 'Khám phá Bảng Giá'}
                 </button>
               </div>
-            )}
-          </section>
+            </section>
+          )
         )}
 
         {/* ==================== 8. STANDALONE ROUTE VIEWS (/transactions, /affiliate, /guide, /audit-log) ==================== */}

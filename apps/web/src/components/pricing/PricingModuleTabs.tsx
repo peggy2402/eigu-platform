@@ -31,12 +31,14 @@ export default function PricingModuleTabs({ modules, activeSlug, onSelectModule 
         display: 'flex',
         gap: 8,
         overflowX: 'auto',
-        padding: '10px 4px',
+        padding: '10px 16px',
         marginBottom: 28,
-        justifyContent: 'center',
         alignItems: 'center',
         flexWrap: 'nowrap',
         width: '100%',
+        boxSizing: 'border-box',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
       }}
     >
       {modules.map(mod => {
