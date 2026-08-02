@@ -1019,3 +1019,48 @@ Xử lý:
 - `npx nx build desktop`: `✓ Successfully ran target build` (0 error).
 - `npx nx build api`: `✓ Webpack compiled successfully` (0 error).
 
+## Phase 22: Phiên làm việc 02/08/2026 — Tích hợp Thanh toán Nạp tiền Tự động SePay (VietQR), Giải mã Obfuscation Gateway, Tối ưu hóa UI/UX Routing & Responsive Mobile Navigation
+
+### 22.1 Tích hợp Thanh toán Nạp tiền Tự động SePay (VietQR Automatic Deposit)
+- **Tạo bảng `DepositTransaction` trong Prisma Database (`schema.prisma`)**:
+  - Lưu mã đơn (`code`), số tiền (`amount`), ngân hàng (`bankName`), trạng thái (`COMPLETED`/`PENDING`/`CANCELLED`), full `payload`, `fullContent`, `gateway`, `referenceCode`, `transactionDate`.
+  - Chạy `npx dotenv -e apps/api/.env -- npx prisma db push --config apps/api/prisma.config.ts` để đồng bộ bảng lên Supabase PostgreSQL.
+- **Backend API Gateway (`apps/api/src/payment/`)**:
+  - Tạo `PaymentModule`, `PaymentController`, `PaymentService`, `SepayWebhookDto`, `CreateDepositDto`.
+  - **Tối ưu Webhook Validation Pipe**: Sử dụng `@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true }))` để chấp nhận payload SePay phong phú mà không bị trả về 400 Bad Request khi có thuộc tính bổ sung như `accumulated`, `code: null`.
+  - **Xác thực linh hoạt SePay Token**: Làm sạch header `Authorization` (hỗ trợ cả dạng `Apikey token` và `token` thuần), đối soát chính xác với `SEPAY_WEBHOOK_SECRET`.
+  - **Xử lý Obfuscation Gateway**: Thêm `/api/payment` vào Section 1 (Top-level bypass) trong `obfuscation-prefix.middleware.ts` để ngắt hoàn toàn cơ chế mã hóa obfuscation/stealth 404 cho webhook SePay.
+  - **Xử lý lỗi Prisma an toàn (Error Sanitization)**: Bọc tất cả thao tác Database trong try-catch, chuyển hóa lỗi Prisma DB thành thông báo Tiếng Việt thân thiện.
+- **Frontend Modal Nạp tiền (`DepositModal.tsx`) & Lịch sử Giao dịch (`TransactionHistoryView.tsx`)**:
+  - Tạo QR Code VietQR động SePay với thông tin Ngân hàng ACB, Số tài khoản `LOCSPAY000339797`, Chủ tài khoản `TRAN VAN CHIEN`.
+  - Hiển thị cú pháp nạp tiền chuẩn xác `EIGU [username] [mã đơn]`.
+  - Nút Copy 1-Click cú pháp & số tiền.
+  - Tự động Polling kiểm tra trạng thái giao dịch mỗi 3 giây và tự động cộng tiền số dư tài khoản User khi SePay gửi webhook thành công.
+
+### 22.2 Tái Cấu Trúc Điều Hướng (Navigation Restructuring & Standalone Routes)
+- **Loại bỏ `Thanh Tab Ngang` cũ**: Xóa hoàn toàn dải pill tab ngang trùng lặp ở đầu trang Web Portal (`apps/web/src/app/page.tsx`).
+- **Gom nhóm mục "Hồ sơ" vào "Cài đặt"**: Di chuyển phần Hồ sơ (thông tin cá nhân) vào gọn gàng trong `SettingsModal.tsx` bên cạnh Đổi mật khẩu, Giao diện, Ngôn ngữ & Xóa tài khoản.
+- **Tạo các Standalone Next.js Route Pages**:
+  - `apps/web/src/app/transactions/page.tsx` $\rightarrow$ `http://localhost:3000/transactions` (Bỏ hẳn prefix `/dashboard`).
+  - `apps/web/src/app/affiliate/page.tsx` $\rightarrow$ `http://localhost:3000/affiliate`
+  - `apps/web/src/app/guide/page.tsx` $\rightarrow$ `http://localhost:3000/guide`
+  - `apps/web/src/app/audit-log/page.tsx` $\rightarrow$ `http://localhost:3000/audit-log`
+  - `apps/web/src/app/dashboard/transactions/page.tsx` $\rightarrow$ Tự động chuyển hướng mượt mà sang `/transactions`.
+  - **Khắc phục lỗi 404 khi bấm F5**: Các file route page giúp Next.js App Router trả về HTTP 200 tức thì khi hard reload ở bất kỳ URL nào.
+
+### 22.3 Tối Ưu Giao Diện Di Động (Mobile Navigation Drawer & Mobile Card List)
+- **Menu Di Động Nhỏ Gọn (Mobile Drawer in `Header.tsx`)**:
+  - Đảo vị trí **Khối Tài Khoản người dùng** (Avatar, Username, Email, Số dư, Nút `+ Nạp tiền`) lên vị trí đầu tiên trên cùng của Menu.
+  - Gom các nút cá nhân (**Lịch sử, Affiliate, Hướng dẫn, Nhật ký, Cài đặt, Góp ý**) thành **Lưới 2 Cột**.
+  - Gom các liên kết hệ thống (**Trang chủ, Bảng giá, Giới thiệu, Tin tức, FAQ, Liên hệ**) thành **Lưới 3 Cột dạng Thẻ**.
+  - Rút ngắn 60% chiều cao Menu, giúp vừa khít 1 màn hình di động mà không phải cuộn.
+- **Dạng Thẻ Cho Lịch Sử Giao Dịch Di Động (`TransactionHistoryView.tsx`)**:
+  - Sử dụng CSS Media Queries (`@media max-width: 768px` / `@media min-width: 769px`).
+  - Trên Máy tính: Giữ nguyên Bảng dữ liệu (Table) chuẩn.
+  - Trên Điện thoại: Tự động chuyển đổi thành **Danh sách các Thẻ Giao Dịch (Card List)** sắc nét, dễ nhìn với Mã đơn, Copy 1-Click, Badge trạng thái, Số tiền nạp, Cú pháp & Thời gian.
+
+### 22.4 Kiểm Tra Biên Dịch & Đồng Bộ Codebase (Git Merge)
+- Chạy `npx nx build web`: `✓ Compiled successfully in 3.4s` (0 error, static prerender 12 pages thành công).
+- Đồng bộ nhánh Git: `git checkout developer` $\rightarrow$ `git merge main` $\rightarrow$ `git checkout vanchien` $\rightarrow$ `git merge developer`.
+
+
