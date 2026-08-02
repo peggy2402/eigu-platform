@@ -195,8 +195,29 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
 
   if (!token || !user) {
     return (
-      <div style={{ maxWidth: 520, margin: '60px auto', padding: 36, background: 'var(--bg-card)', border: '1.5px solid var(--border-color)', borderRadius: 24, textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(99, 102, 241, 0.15)', border: '1px solid rgba(99, 102, 241, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#818cf8' }}>
+      <div style={{
+        maxWidth: 520,
+        margin: '60px auto',
+        padding: 36,
+        background: 'var(--bg-card)',
+        border: '1.5px solid var(--accent-glow, var(--border-color))',
+        borderRadius: 24,
+        textAlign: 'center',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+      }}>
+        {/* Icon Avatar - màu theo theme */}
+        <div style={{
+          width: 64,
+          height: 64,
+          borderRadius: '50%',
+          background: 'var(--accent-glow)',
+          border: '1.5px solid var(--accent)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 20px',
+          color: 'var(--accent)',
+        }}>
           <User size={32} />
         </div>
 
@@ -211,6 +232,7 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Nút đăng nhập - màu chủ đạo động */}
           <button
             type="button"
             onClick={() => {
@@ -221,23 +243,27 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
             style={{
               padding: '14px 24px',
               borderRadius: 12,
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              background: 'var(--accent)',
               color: '#ffffff',
               fontSize: 15,
               fontWeight: 800,
               border: 'none',
               cursor: 'pointer',
-              boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
+              boxShadow: '0 8px 24px var(--accent-glow)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
+              transition: 'background 0.2s, box-shadow 0.2s',
             }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent-hover, var(--accent))'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent)'; }}
           >
             <LogIn size={18} />
             <span>{language === 'en' ? 'Log In Now' : 'Đăng nhập ngay'}</span>
           </button>
 
+          {/* Nút đăng ký - viền theo màu theme */}
           <button
             type="button"
             onClick={() => {
@@ -248,17 +274,21 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
             style={{
               padding: '12px 24px',
               borderRadius: 12,
-              background: 'rgba(255, 255, 255, 0.05)',
-              color: 'var(--text-primary)',
+              background: 'var(--accent-glow)',
+              color: 'var(--accent)',
               fontSize: 14,
               fontWeight: 700,
-              border: '1px solid var(--border-color)',
+              border: '1.5px solid var(--accent)',
               cursor: 'pointer',
+              transition: 'background 0.2s',
             }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent-glow)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent-glow)'; }}
           >
             {language === 'en' ? 'Create a New Account' : 'Đăng ký tài khoản mới'}
           </button>
 
+          {/* Nút quay lại */}
           <button
             type="button"
             onClick={onBack}
@@ -279,6 +309,7 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
       </div>
     );
   }
+
 
   return (
     <div style={{ maxWidth: 1040, margin: '0 auto', padding: '24px 16px 60px' }}>
