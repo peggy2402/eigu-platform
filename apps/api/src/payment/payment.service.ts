@@ -267,4 +267,238 @@ export class PaymentService {
       throw new InternalServerErrorException('Lỗi hệ thống xử lý SePay Webhook');
     }
   }
+
+  /**
+   * [ADMIN] Lấy tất cả danh sách đơn nạp tiền hệ thống
+   */
+  async getAllTransactionsAdmin(
+    page = 1,
+    limit = 10,
+    search?: string,
+    status?: string,
+    datePreset?: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    try {
+      const take = Number(limit) || 10;
+      const skip = (Number(page) - 1) * take;
+
+      const where: any = {};
+
+      if (status && status !== 'ALL') {
+        where.status = status;
+      }
+
+      if (search && search.trim()) {
+        const q = search.trim();
+        where.OR = [
+          { code: { contains: q, mode: 'insensitive' } },
+          { fullContent: { contains: q, mode: 'insensitive' } },
+          { bankName: { contains: q, mode: 'insensitive' } },
+          { user: { email: { contains: q, mode: 'insensitive' } } },
+          { user: { username: { contains: q, mode: 'insensitive' } } },
+        ];
+      }
+
+      // Date filtering logic
+      let fromDate: Date | null = null;
+      let toDate: Date | null = null;
+      const now = new Date();
+
+      if (datePreset && datePreset !== 'ALL') {
+        if (datePreset === 'TODAY') {
+          fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+          toDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+        } else if (datePreset === 'YESTERDAY') {
+          const y = new Date(now);
+          y.setDate(y.getDate() - 1);
+          fromDate = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 0, 0, 0);
+          toDate = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 23, 59, 59);
+        } else if (datePreset === 'THIS_WEEK') {
+          const day = now.getDay();
+          const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+          fromDate = new Date(now.getFullYear(), now.getMonth(), diff, 0, 0, 0);
+        } else if (datePreset === 'THIS_MONTH') {
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+        } else if (datePreset === 'LAST_MONTH') {
+          fromDate = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0);
+          toDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+        } else if (datePreset === 'THIS_QUARTER') {
+          const qMonth = Math.floor(now.getMonth() / 3) * 3;
+          fromDate = new Date(now.getFullYear(), qMonth, 1, 0, 0, 0);
+        } else if (datePreset === 'LAST_QUARTER') {
+          const qMonth = Math.floor(now.getMonth() / 3) * 3 - 3;
+          fromDate = new Date(now.getFullYear(), qMonth, 1, 0, 0, 0);
+          toDate = new Date(now.getFullYear(), qMonth + 3, 0, 23, 59, 59);
+        } else if (datePreset === 'THIS_YEAR') {
+          fromDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
+        } else if (datePreset === 'CUSTOM') {
+          if (startDate) fromDate = new Date(startDate + 'T00:00:00');
+          if (endDate) toDate = new Date(endDate + 'T23:59:59');
+        }
+      }
+
+      if (fromDate || toDate) {
+        where.createdAt = {};
+        if (fromDate) where.createdAt.gte = fromDate;
+        if (toDate) where.createdAt.lte = toDate;
+      }
+
+      const [total, items, totalCompletedAgg, pendingCount, completedCount] = await Promise.all([
+        this.prisma.depositTransaction.count({ where }),
+        this.prisma.depositTransaction.findMany({
+          where,
+          include: {
+            user: {
+              select: { id: true, email: true, username: true, balance: true },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take,
+        }),
+        this.prisma.depositTransaction.aggregate({
+          where: { ...where, status: 'COMPLETED' },
+          _sum: { amount: true },
+          _count: true,
+        }),
+        this.prisma.depositTransaction.count({ where: { ...where, status: 'PENDING' } }),
+        this.prisma.depositTransaction.count({ where: { ...where, status: 'COMPLETED' } }),
+      ]);
+
+      const formattedItems = items.map(t => ({
+        id: t.id,
+        code: t.code,
+        fullContent: t.fullContent,
+        userId: t.userId,
+        userEmail: t.user?.email || 'N/A',
+        username: t.user?.username || t.user?.email?.split('@')[0] || 'N/A',
+        userBalance: Number(t.user?.balance || 0),
+        amount: Number(t.amount),
+        status: t.status,
+        paymentMethod: t.paymentMethod,
+        sepayTransId: t.sepayTransId,
+        bankName: t.bankName || 'ACB',
+        accountNumber: t.accountNumber || '',
+        createdAt: t.createdAt.toISOString(),
+        completedAt: t.completedAt ? t.completedAt.toISOString() : null,
+      }));
+
+      return {
+        data: formattedItems,
+        total,
+        page: Number(page),
+        limit: take,
+        totalPages: Math.ceil(total / take) || 1,
+        stats: {
+          totalRevenue: Number(totalCompletedAgg._sum.amount || 0),
+          totalCompletedCount: totalCompletedAgg._count || 0,
+          totalTransactions: (totalCompletedAgg._count || 0) + pendingCount,
+          pendingCount,
+          completedCount,
+        },
+      };
+    } catch (error: any) {
+      this.logger.error('[PaymentAdmin] Lỗi lấy danh sách giao dịch admin:', error?.stack || error);
+      throw new InternalServerErrorException('Không thể nạp danh sách giao dịch');
+    }
+  }
+
+  /**
+   * [ADMIN] Phê duyệt thủ công đơn nạp PENDING -> COMPLETED (+Cộng tiền User)
+   */
+  async approveTransactionAdmin(adminUserId: string, txId: string) {
+    try {
+      const txItem = await this.prisma.depositTransaction.findUnique({
+        where: { id: txId },
+        include: { user: true },
+      });
+
+      if (!txItem) {
+        throw new NotFoundException('Không tìm thấy đơn nạp tiền');
+      }
+
+      if (txItem.status === 'COMPLETED') {
+        throw new BadRequestException('Đơn nạp tiền này đã được hoàn tất trước đó!');
+      }
+
+      const amount = Number(txItem.amount);
+
+      await this.prisma.$transaction(async (db) => {
+        await db.depositTransaction.update({
+          where: { id: txId },
+          data: {
+            status: 'COMPLETED',
+            sepayTransId: `MANUAL_ADMIN_${Date.now()}`,
+            completedAt: new Date(),
+          },
+        });
+
+        await db.user.update({
+          where: { id: txItem.userId },
+          data: {
+            balance: { increment: amount },
+          },
+        });
+      });
+
+      // Audit log & Notif
+      const adminUser = await this.prisma.user.findUnique({ where: { id: adminUserId }, select: { email: true, username: true, role: true } });
+      await this.notificationsService.create(
+        'Nạp tiền thành công',
+        `Đơn nạp #${txItem.code} (${amount.toLocaleString('vi-VN')}đ) của bạn đã được Admin phê duyệt thành công!`,
+        'user',
+        '24h',
+      );
+
+      await this.auditLogsService.createLog({
+        userId: adminUserId,
+        userEmail: adminUser?.email || 'admin@eigu.vn',
+        username: adminUser?.username || 'Admin',
+        userRole: adminUser?.role || 'ADMIN',
+        action: 'ADMIN_APPROVE_DEPOSIT',
+        module: 'PAYMENT',
+        payload: JSON.stringify({ txId, code: txItem.code, amount, targetUser: txItem.user.email }),
+      });
+
+      return {
+        success: true,
+        message: `Đã duyệt thành công đơn #${txItem.code} và cộng +${amount.toLocaleString('vi-VN')}đ cho tài khoản ${txItem.user.email}!`,
+      };
+    } catch (error: any) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
+      this.logger.error(`[PaymentAdmin] Lỗi duyệt đơn #${txId}:`, error?.stack || error);
+      throw new InternalServerErrorException('Lỗi duyệt giao dịch');
+    }
+  }
+
+  /**
+   * [ADMIN] Hủy đơn nạp tiền
+   */
+  async cancelTransactionAdmin(adminUserId: string, txId: string) {
+    try {
+      const txItem = await this.prisma.depositTransaction.findUnique({
+        where: { id: txId },
+      });
+
+      if (!txItem) {
+        throw new NotFoundException('Không tìm thấy đơn nạp tiền');
+      }
+
+      await this.prisma.depositTransaction.update({
+        where: { id: txId },
+        data: { status: 'CANCELLED' },
+      });
+
+      return {
+        success: true,
+        message: `Đã chuyển trạng thái đơn #${txItem.code} sang Đã Hủy!`,
+      };
+    } catch (error: any) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`[PaymentAdmin] Lỗi hủy đơn #${txId}:`, error?.stack || error);
+      throw new InternalServerErrorException('Lỗi hủy giao dịch');
+    }
+  }
 }

@@ -1662,6 +1662,159 @@ const ViewsComponent = `
     </form>
   </div>
 </div>
+
+<!-- Admin Transaction Management View -->
+<div id="view-transaction-management" class="view" style="padding: 16px;">
+  <!-- Header Stats Summary Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 14px;">
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;" data-i18n="admin_tx_total_revenue">TỔNG DOANH THU</div>
+        <div id="admin-tx-total-revenue" style="font-size: 18px; font-weight: 800; color: #22c55e; margin-top: 2px;">0đ</div>
+      </div>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 14px;">
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;" data-i18n="admin_tx_total_count">TỔNG GIAO DỊCH</div>
+        <div id="admin-tx-total-count" style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">0 đơn</div>
+      </div>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 14px;">
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;" data-i18n="admin_tx_pending_count">ĐANG CHỜ (PENDING)</div>
+        <div id="admin-tx-pending-count" style="font-size: 18px; font-weight: 800; color: #f59e0b; margin-top: 2px;">0 đơn</div>
+      </div>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 14px;">
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #3b82f6; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;" data-i18n="admin_tx_completed_count">HOÀN TẤT (COMPLETED)</div>
+        <div id="admin-tx-completed-count" style="font-size: 18px; font-weight: 800; color: #3b82f6; margin-top: 2px;">0 đơn</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px 16px; border-radius: 12px;">
+    <!-- Row 1: Search & Status & Date Presets -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+      <!-- Search Input Container -->
+      <div style="display: flex; align-items: center; gap: 8px; flex: 1 1 300px; min-width: 260px;">
+        <div style="position: relative; flex: 1;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="admin-tx-search-input" placeholder="Tìm theo Mã đơn, Email, Username, Cú pháp..." style="width: 100%; box-sizing: border-box; padding: 9px 12px 9px 36px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" onkeyup="if(event.key==='Enter') loadAdminTransactionData(1)" data-i18n-placeholder="admin_tx_search_placeholder" />
+        </div>
+        <button type="button" class="btn-primary" style="width: auto !important; padding: 9px 18px; font-size: 13px; border-radius: 8px; margin: 0; white-space: nowrap; flex-shrink: 0;" onclick="loadAdminTransactionData(1)" data-i18n="search">Tìm kiếm</button>
+      </div>
+
+      <!-- Filters & Actions -->
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <!-- Status Filter -->
+        <select id="admin-tx-status-filter" style="padding: 9px 12px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none; cursor: pointer;" onchange="loadAdminTransactionData(1)">
+          <option value="ALL" data-i18n="admin_tx_status_all">Tất cả trạng thái</option>
+          <option value="PENDING" data-i18n="admin_tx_status_pending">Đang chờ (PENDING)</option>
+          <option value="COMPLETED" data-i18n="admin_tx_status_completed">Thành công (COMPLETED)</option>
+          <option value="CANCELLED" data-i18n="admin_tx_status_cancelled">Đã hủy (CANCELLED)</option>
+        </select>
+
+        <!-- Date Range Preset -->
+        <select id="admin-tx-date-preset" style="padding: 9px 12px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none; cursor: pointer;" onchange="onAdminTxDatePresetChange()">
+          <option value="ALL" data-i18n="date_all">Tất cả thời gian</option>
+          <option value="TODAY" data-i18n="date_today">Hôm nay</option>
+          <option value="YESTERDAY" data-i18n="date_yesterday">Hôm qua</option>
+          <option value="THIS_WEEK" data-i18n="date_this_week">Tuần này</option>
+          <option value="THIS_MONTH" data-i18n="date_this_month">Tháng này</option>
+          <option value="LAST_MONTH" data-i18n="date_last_month">Tháng trước</option>
+          <option value="THIS_QUARTER" data-i18n="date_this_quarter">Quý này</option>
+          <option value="LAST_QUARTER" data-i18n="date_last_quarter">Quý trước</option>
+          <option value="THIS_YEAR" data-i18n="date_this_year">Năm nay</option>
+          <option value="CUSTOM" data-i18n="date_custom">Tùy chọn từ ngày - đến ngày</option>
+        </select>
+
+        <button type="button" class="btn-outline" style="padding: 9px 14px; font-size: 13px; border-radius: 8px; margin: 0; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;" onclick="loadAdminTransactionData()" data-i18n="reload_btn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          <span data-i18n="reload_btn">Làm mới</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Row 2: Custom Date Inputs (Only visible when CUSTOM date preset selected) -->
+    <div id="admin-tx-custom-date-container" style="display: none; align-items: center; gap: 12px; background: var(--bg-primary); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;" data-i18n="from_date">Từ ngày:</span>
+        <input type="date" id="admin-tx-start-date" style="padding: 6px 10px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" onchange="loadAdminTransactionData(1)" />
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;" data-i18n="to_date">Đến ngày:</span>
+        <input type="date" id="admin-tx-end-date" style="padding: 6px 10px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" onchange="loadAdminTransactionData(1)" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+        <thead>
+          <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+            <th style="padding: 12px 14px;" data-i18n="col_code">MÃ ĐƠN</th>
+            <th style="padding: 12px 14px;" data-i18n="col_customer">KHÁCH HÀNG</th>
+            <th style="padding: 12px 14px;" data-i18n="col_amount">SỐ TIỀN</th>
+            <th style="padding: 12px 14px;" data-i18n="col_syntax">CÚ PHÁP / SEPAY TRANS</th>
+            <th style="padding: 12px 14px;" data-i18n="col_status">TRẠNG THÁI</th>
+            <th style="padding: 12px 14px;" data-i18n="col_time">THỜI GIAN</th>
+            <th style="padding: 12px 14px; text-align: center;" data-i18n="col_action">HÀNH ĐỘNG</th>
+          </tr>
+        </thead>
+        <tbody id="admin-tx-table-body">
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);" data-i18n="loading">Đang tải dữ liệu giao dịch...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border-color); background: var(--bg-primary); font-size: 13px;">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <div id="admin-tx-pagination-info" style="color: var(--text-muted);">Hiển thị 0 - 0 trên tổng 0 giao dịch</div>
+
+        <!-- Page Size Select -->
+        <div style="display: flex; align-items: center; gap: 6px; color: var(--text-secondary);">
+          <span data-i18n="show">Hiển thị:</span>
+          <select id="admin-tx-page-size" style="padding: 4px 8px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; outline: none; cursor: pointer;" onchange="loadAdminTransactionData(1)">
+            <option value="5">5 / trang</option>
+            <option value="10" selected>10 / trang</option>
+            <option value="20">20 / trang</option>
+            <option value="50">50 / trang</option>
+            <option value="100">100 / trang</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button id="admin-tx-prev-btn" class="btn-outline" style="padding: 4px 10px; font-size: 12px; border-radius: 6px; margin: 0;" disabled onclick="adminTxChangePage(-1)" data-i18n="prev_page">← Trang trước</button>
+        <span id="admin-tx-page-badge" style="font-weight: 700; color: var(--accent); padding: 2px 8px;">1 / 1</span>
+        <button id="admin-tx-next-btn" class="btn-outline" style="padding: 4px 10px; font-size: 12px; border-radius: 6px; margin: 0;" disabled onclick="adminTxChangePage(1)" data-i18n="next_page">Trang sau →</button>
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 function renderViews() {

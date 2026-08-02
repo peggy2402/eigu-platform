@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req, Headers, HttpCode, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Req, Headers, HttpCode, HttpStatus, UsePipes, ValidationPipe, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaymentService } from './payment.service';
@@ -95,5 +95,54 @@ export class PaymentController {
   ) {
     const token = authHeader || sepaySecretHeader || xApiKeyHeader || apiKeyHeader;
     return this.paymentService.handleSepayWebhook(payload as any, token);
+  }
+
+  // ==================== ADMIN PAYMENT ENDPOINTS ====================
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/all')
+  @ApiOperation({ summary: '[ADMIN] Lấy toàn bộ danh sách giao dịch nạp tiền hệ thống' })
+  async getAllTransactionsAdmin(
+    @Req() req: any,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('datePreset') datePreset?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const role = (req.user?.role || '').toLowerCase();
+    if (role !== 'admin') {
+      throw new ForbiddenException('Chỉ tài khoản Admin mới có quyền truy cập');
+    }
+    return this.paymentService.getAllTransactionsAdmin(page, limit, search, status, datePreset, startDate, endDate);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch('admin/approve/:id')
+  @ApiOperation({ summary: '[ADMIN] Phê duyệt thủ công đơn nạp PENDING (+Cộng tiền User)' })
+  async approveTransactionAdmin(@Req() req: any, @Param('id') id: string) {
+    const role = (req.user?.role || '').toLowerCase();
+    if (role !== 'admin') {
+      throw new ForbiddenException('Chỉ tài khoản Admin mới có quyền truy cập');
+    }
+    const adminId = req.user.id || req.user.userId || req.user.sub;
+    return this.paymentService.approveTransactionAdmin(adminId, id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch('admin/cancel/:id')
+  @ApiOperation({ summary: '[ADMIN] Hủy đơn nạp tiền' })
+  async cancelTransactionAdmin(@Req() req: any, @Param('id') id: string) {
+    const role = (req.user?.role || '').toLowerCase();
+    if (role !== 'admin') {
+      throw new ForbiddenException('Chỉ tài khoản Admin mới có quyền truy cập');
+    }
+    const adminId = req.user.id || req.user.userId || req.user.sub;
+    return this.paymentService.cancelTransactionAdmin(adminId, id);
   }
 }

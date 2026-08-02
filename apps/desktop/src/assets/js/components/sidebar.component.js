@@ -91,6 +91,10 @@ const SidebarComponent = `
       <span class="nav-icon" data-icon="sun"></span>
       <span class="nav-label" data-i18n="theme_event_management">Giao diện & Sự kiện</span>
     </div>
+    <div class="nav-item admin-only hidden" data-view="transaction-management" onclick="switchView('transaction-management', this, null, event)">
+      <span class="nav-icon" data-icon="creditCard"></span>
+      <span class="nav-label" data-i18n="transaction_management">Quản lý Giao dịch</span>
+    </div>
 
     <div class="nav-item" data-view="tiep-thi" onclick="switchView('tiep-thi', this, null, event)">
       <span class="nav-icon" data-icon="link"></span>
@@ -125,5 +129,14 @@ function renderSidebar() {
   const root = document.getElementById('sidebar-root');
   if (root) {
     root.outerHTML = SidebarComponent;
+    if (typeof ICONS !== 'undefined') {
+      document.querySelectorAll('#sidebar [data-icon]').forEach(e => {
+        const iconName = e.dataset.icon;
+        if (ICONS[iconName]) {
+          e.innerHTML = ICONS[iconName];
+          e.removeAttribute('data-icon');
+        }
+      });
+    }
   }
 }
