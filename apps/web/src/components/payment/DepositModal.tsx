@@ -14,7 +14,7 @@ interface DepositModalProps {
 const PRESET_AMOUNTS = [50000, 100000, 200000, 500000, 1000000, 2000000, 5000000];
 
 export default function DepositModal({ onClose, onSuccess }: DepositModalProps) {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
 
   const [selectedAmount, setSelectedAmount] = useState<number>(200000);
@@ -82,14 +82,11 @@ export default function DepositModal({ onClose, onSuccess }: DepositModalProps) 
           setStatus('COMPLETED');
           if (pollTimerRef.current) clearInterval(pollTimerRef.current);
 
-          // Trigger balance refresh in user context
-          try {
-            const meRes = await authApi.getMe();
-            if (meRes && meRes.user && (window as any).__EIGU_REFRESH_USER__) {
-              (window as any).__EIGU_REFRESH_USER__();
-            }
-          } catch {
-            // ignore
+          // Trigger balance refresh in user context immediately
+          if (refreshUser) {
+            refreshUser();
+          } else if ((window as any).__EIGU_REFRESH_USER__) {
+            (window as any).__EIGU_REFRESH_USER__();
           }
 
           if (onSuccess) onSuccess();

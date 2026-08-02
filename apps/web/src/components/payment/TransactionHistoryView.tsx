@@ -7,7 +7,7 @@ import DepositModal from './DepositModal';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function TransactionHistoryView() {
-  const { token, loading: authLoading } = useAuth();
+  const { token, loading: authLoading, refreshUser } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [unauthenticated, setUnauthenticated] = useState(false);
@@ -35,6 +35,9 @@ export default function TransactionHistoryView() {
       if (Array.isArray(data)) {
         setTransactions(data);
       }
+      if (refreshUser) {
+        refreshUser();
+      }
     } catch (err: any) {
       console.warn('[PaymentHistory] Could not fetch transactions:', err?.message || err);
       if (err?.message === 'Unauthorized' || err?.message?.includes('Unauthorized')) {
@@ -43,7 +46,7 @@ export default function TransactionHistoryView() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, refreshUser]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -278,7 +281,7 @@ export default function TransactionHistoryView() {
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--border-color)' }}>
         <div>
           <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Wallet style={{ color: 'var(--accent)' }} /> Lịch sử Nạp tiền SePay
+            <Wallet style={{ color: 'var(--accent)' }} /> Lịch sử Nạp tiền
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: '4px 0 0 0' }}>
             Quản lý và đối soát tự động toàn bộ giao dịch ngân hàng VietQR của bạn.
