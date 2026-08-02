@@ -90,8 +90,10 @@ export class PaymentController {
     @Body() payload: SepayWebhookDto,
     @Headers('authorization') authHeader?: string,
     @Headers('sepay-secret') sepaySecretHeader?: string,
+    @Headers('x-api-key') xApiKeyHeader?: string,
+    @Headers('apikey') apiKeyHeader?: string,
   ) {
-    const token = authHeader || sepaySecretHeader;
+    const token = authHeader || sepaySecretHeader || xApiKeyHeader || apiKeyHeader;
     return this.paymentService.handleSepayWebhook(payload as any, token);
   }
 }

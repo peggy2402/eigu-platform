@@ -161,12 +161,23 @@ export class PaymentService {
     this.logger.log(`[SePay Webhook Received] Payload: ${JSON.stringify(payload)}`);
 
     try {
-      // 1. Kiểm tra Secret Token nếu có cấu hình SEPAY_WEBHOOK_SECRET
-      const expectedSecret = process.env.SEPAY_WEBHOOK_SECRET;
+      // 1. Kiểm tra Secret Token / API Key nếu có cấu hình SEPAY_WEBHOOK_SECRET hoặc SEPAY_API_KEY
+      const expectedSecret = (process.env.SEPAY_WEBHOOK_SECRET || process.env.SEPAY_API_KEY || '').trim();
       if (expectedSecret) {
-        const cleanHeader = (authHeader || '').replace(/^Bearer\s+/i, '').trim();
-        if (cleanHeader !== expectedSecret) {
-          this.logger.warn(`[SePay Webhook] Invalid Webhook Secret Header: ${authHeader}`);
+        const rawToken = (authHeader || '').trim();
+        const cleanHeader = rawToken
+          .replace(/^Bearer\s+/i, '')
+          .replace(/^Apikey\s+/i, '')
+          .replace(/^API-Key\s+/i, '')
+          .trim();
+
+        const isValid =
+          cleanHeader === expectedSecret ||
+          rawToken === expectedSecret ||
+          rawToken.includes(expectedSecret);
+
+        if (!isValid) {
+          this.logger.warn(`[SePay Webhook] Xác thực thất bại. Header nhận: "${authHeader}", Secret kỳ vọng: "${expectedSecret.substring(0, 4)}***"`);
           throw new UnauthorizedException('Xác thực SePay Webhook thất bại');
         }
       }
