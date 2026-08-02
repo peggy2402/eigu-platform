@@ -17,10 +17,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'EIGU Platform - Giải Pháp SaaS Tự Động Hóa Video AI & MMO Reup Hàng Đầu',
+    default: 'EIGU Platform - Giải Pháp Tự Động Hóa Video AI & MMO Reup Hàng Đầu',
     template: '%s | EIGU Platform',
   },
-  description: 'EIGU Platform là giải pháp SaaS tự động hóa video ngắn đa nền tảng (TikTok, YouTube Shorts, Reels). Tích hợp 6 mô-đun AI Video Studio, Auto Clipper, Puppeteer Anti-Detect và Niche Finder giúp bứt phá doanh số MMO.',
+  description: 'EIGU Platform là giải pháp tự động hóa video ngắn đa nền tảng (TikTok, YouTube Shorts, Reels). Tích hợp 6 mô-đun AI Video Studio, Auto Clipper, Puppeteer Anti-Detect và Niche Finder giúp bứt phá doanh số MMO.',
   keywords: [
     'EIGU Platform',
     'Tự động hóa TikTok',
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     locale: 'vi_VN',
     url: siteUrl,
     siteName: 'EIGU Platform',
-    title: 'EIGU Platform - Giải Pháp SaaS Tự Động Hóa Video AI & MMO Reup Hàng Đầu',
+    title: 'EIGU Platform - Giải Pháp Tự Động Hóa Video AI & MMO Reup Hàng Đầu',
     description: 'Nền tảng tự động hóa video ngắn AI chuyên sâu dành riêng cho Creator & Reuper tại Châu Âu, Mỹ và Châu Á.',
     images: [
       {

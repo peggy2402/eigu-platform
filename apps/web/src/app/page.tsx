@@ -932,7 +932,7 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
               <p style={{ fontSize: 17, color: 'var(--text-secondary)', lineHeight: 1.8, maxWidth: 840, margin: '0 auto', fontWeight: 500 }}>
                 {language === 'en'
                   ? 'EIGU Platform is a comprehensive SaaS solution purpose-built for MMO creators, video reuploaders, and short-form content publishers in Europe, US, and Asia. EIGU has evolved into a 6-module synchronized platform — from clipping and AI generation to anti-detect copyright shield and niche discovery.'
-                  : 'EIGU Platform là giải pháp SaaS toàn diện, được xây dựng dành riêng cho cộng đồng làm MMO, Reup và Sáng tạo nội dung video ngắn tại thị trường Châu Âu, Mỹ và Châu Á. Từ một công cụ tự động hoá đơn lẻ, EIGU đã phát triển thành nền tảng 6 mô-đun hoạt động đồng bộ — từ cắt dựng, tạo video AI, đến chống gậy bản quyền và khai thác ngách thị trường — giúp người sáng tạo tiết kiệm hàng giờ mỗi ngày.'}
+                  : 'EIGU Platform là giải pháp toàn diện, được xây dựng dành riêng cho cộng đồng làm MMO, Reup và Sáng tạo nội dung video ngắn tại thị trường Châu Âu, Mỹ và Châu Á. Từ một công cụ tự động hoá đơn lẻ, EIGU đã phát triển thành nền tảng 6 mô-đun hoạt động đồng bộ — từ cắt dựng, tạo video AI, đến chống gậy bản quyền và khai thác ngách thị trường — giúp người sáng tạo tiết kiệm hàng giờ mỗi ngày.'}
               </p>
             </div>
 

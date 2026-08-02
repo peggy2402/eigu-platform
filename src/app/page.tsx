@@ -446,7 +446,7 @@ export default function Home() {
             <p style={{ fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: 24 }}>
               {language === 'en'
                 ? 'EIGU Platform is an all-in-one SaaS automation engine purpose-built for MMO creators, video reuploaders, and short-form content publishers in Europe, US, and Asia.'
-                : 'EIGU Platform là giải pháp SaaS toàn diện được thiết kế chuyên biệt cho cộng đồng làm MMO, Reup và Sáng tạo nội dung video ngắn tại thị trường Châu Âu, Mỹ và Châu Á.'}
+                : 'EIGU Platform là giải pháp toàn diện được thiết kế chuyên biệt cho cộng đồng làm MMO, Reup và Sáng tạo nội dung video ngắn tại thị trường Châu Âu, Mỹ và Châu Á.'}
             </p>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 32, marginBottom: 32 }}>
               <h3 style={{ fontSize: 20, marginBottom: 16 }}>
