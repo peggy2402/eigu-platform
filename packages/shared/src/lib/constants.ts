@@ -104,4 +104,12 @@ export const API_ENDPOINTS = {
     TIERS: '/pricing/tiers',
     BADGES: '/pricing/badges',
   },
+  PAYMENT: {
+    BASE: '/payment',
+    CREATE_DEPOSIT: '/payment/create-deposit',
+    MY_TRANSACTIONS: '/payment/my-transactions',
+    CHECK_STATUS: (code: string) => `/payment/status/${code}`,
+    SEPAY_WEBHOOK: '/payment/sepay-webhook',
+  },
 } as const;
+

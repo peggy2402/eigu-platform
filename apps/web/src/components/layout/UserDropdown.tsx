@@ -9,10 +9,11 @@ import { useLanguage } from '../../contexts/LanguageContext';
 interface UserDropdownProps {
   onOpenSettings: () => void;
   onOpenFeedback: () => void;
+  onOpenDeposit?: () => void;
   onNavigate: (path: string) => void;
 }
 
-export default function UserDropdown({ onOpenSettings, onOpenFeedback, onNavigate }: UserDropdownProps) {
+export default function UserDropdown({ onOpenSettings, onOpenFeedback, onOpenDeposit, onNavigate }: UserDropdownProps) {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -102,7 +103,7 @@ export default function UserDropdown({ onOpenSettings, onOpenFeedback, onNavigat
           {/* Actions Menu */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <button
-              onClick={() => { setOpen(false); onNavigate('/dashboard/transactions'); }}
+              onClick={() => { setOpen(false); if (onOpenDeposit) { onOpenDeposit(); } else { onNavigate('/dashboard/transactions'); } }}
               style={{
                 display: 'flex',
                 alignItems: 'center',

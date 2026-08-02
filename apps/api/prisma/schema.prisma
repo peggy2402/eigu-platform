@@ -42,6 +42,7 @@ model User {
   proxies        Proxy[]
   accounts       TikTokAccount[]
   feedbacks      Feedback[]
+  depositTransactions DepositTransaction[]
 }
 
 model Proxy {
@@ -261,5 +262,28 @@ model PricingTierFeature {
   sortOrder Int         @default(0)
   createdAt DateTime    @default(now())
 }
+
+model DepositTransaction {
+  id            String    @id @default(uuid())
+  code          String    @unique
+  fullContent   String
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Decimal   @db.Decimal(14, 2)
+  status        String    @default("PENDING") // PENDING, COMPLETED, CANCELLED, EXPIRED
+  paymentMethod String    @default("sepay_bank")
+  sepayTransId  String?
+  bankName      String?
+  accountNumber String?
+  content       String?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([code])
+  @@index([status])
+}
+
 
 

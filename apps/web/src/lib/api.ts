@@ -134,3 +134,16 @@ export const contactApi = {
     request('/feedback/public', { method: 'POST', body: JSON.stringify(data) }),
 };
 
+export const paymentApi = {
+  createDeposit: (amount: number) =>
+    request(API_ENDPOINTS.PAYMENT.CREATE_DEPOSIT, {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    }),
+
+  getMyTransactions: () => request(API_ENDPOINTS.PAYMENT.MY_TRANSACTIONS),
+
+  checkStatus: (code: string) => request(API_ENDPOINTS.PAYMENT.CHECK_STATUS(code)),
+};
+
+

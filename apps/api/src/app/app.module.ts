@@ -17,6 +17,7 @@ import { SecurityCenterModule } from '../security-center/security-center.module'
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { PricingModule } from '../pricing/pricing.module';
 import { ThemeEventModule } from '../theme-event/theme-event.module';
+import { PaymentModule } from '../payment/payment.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ThemeEventModule } from '../theme-event/theme-event.module';
     AuditLogsModule,
     PricingModule,
     ThemeEventModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [

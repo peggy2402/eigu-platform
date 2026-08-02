@@ -21,6 +21,8 @@ import ProfileView from '../components/profile/ProfileView';
 import PricingModuleTabs from '../components/pricing/PricingModuleTabs';
 import PricingGrid from '../components/pricing/PricingGrid';
 import EventPopupModal from '../components/event/EventPopupModal';
+import DepositModal from '../components/payment/DepositModal';
+import TransactionHistoryView from '../components/payment/TransactionHistoryView';
 import { pricingApi, themeEventApi, contactApi } from '../lib/api';
 import type { PricingModuleDto, PricingTierDto } from '@eigu-platform/shared';
 import TypewriterText from '../components/TypewriterText';
@@ -270,6 +272,7 @@ export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [depositOpen, setDepositOpen] = useState(false);
 
   // Pricing State
   const [pricingModules, setPricingModules] = useState<PricingModuleDto[]>(FALLBACK_PRICING_MODULES);
@@ -394,7 +397,12 @@ export default function Home() {
       router.push(path);
       return;
     }
-    setActivePath(path);
+    if (path === '/dashboard/transactions') {
+      setActivePath('/dashboard');
+      setActiveUserView('lich-su');
+    } else {
+      setActivePath(path);
+    }
     if (typeof window !== 'undefined') {
       window.history.pushState({}, '', path);
     }
@@ -551,12 +559,16 @@ export default function Home() {
         onNavigate={handleNavigate}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenFeedback={() => setFeedbackOpen(true)}
+        onOpenDeposit={() => setDepositOpen(true)}
       />
       {/* Scroll Edge Dissolve Mask (Soft gradient dissolve behind navbar) */}
       <div className="nav-scroll-dissolve-mask" aria-hidden="true" />
 
       {/* Settings Modal */}
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+
+      {/* Deposit Modal */}
+      {depositOpen && <DepositModal onClose={() => setDepositOpen(false)} />}
 
       {/* Feedback Modal */}
       {feedbackOpen && (
@@ -1695,19 +1707,7 @@ export default function Home() {
             <div style={{ flex: 1, padding: 32, maxWidth: 1200 }}>
               {activeUserView === 'ho-so' && user && <ProfileView user={user} />}
 
-              {activeUserView === 'lich-su' && (
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
-                  <h3 style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Wallet size={20} style={{ color: 'var(--accent)' }} /> {language === 'en' ? 'Transaction & Deposit History' : 'Lịch Sử Giao Dịch & Nạp Tiền'}
-                  </h3>
-                  <div style={{ padding: 16, background: 'var(--bg-primary)', borderRadius: 8, marginBottom: 20 }}>
-                    {language === 'en' ? 'Current Balance:' : 'Số dư hiện tại:'} <strong style={{ color: 'var(--accent)', fontSize: 18 }}>{(user?.balance || 0).toLocaleString('vi-VN')}đ</strong>
-                  </div>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-                    {language === 'en' ? 'No recent transactions found.' : 'Chưa có lịch sử biến động số dư nào gần đây.'}
-                  </p>
-                </div>
-              )}
+              {activeUserView === 'lich-su' && <TransactionHistoryView />}
 
               {activeUserView === 'affiliate' && (
                 <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 24 }}>

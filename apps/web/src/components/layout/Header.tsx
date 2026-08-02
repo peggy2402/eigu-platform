@@ -14,6 +14,7 @@ interface HeaderProps {
   onNavigate: (path: string) => void;
   onOpenSettings: () => void;
   onOpenFeedback: () => void;
+  onOpenDeposit?: () => void;
 }
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
@@ -25,7 +26,7 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   '/contact': <Mail size={16} />,
 };
 
-export default function Header({ activePath = '/', onNavigate, onOpenSettings, onOpenFeedback }: HeaderProps) {
+export default function Header({ activePath = '/', onNavigate, onOpenSettings, onOpenFeedback, onOpenDeposit }: HeaderProps) {
   const { user, token, loading, logout } = useAuth();
   const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
@@ -160,6 +161,7 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
                 <UserDropdown
                   onOpenSettings={onOpenSettings}
                   onOpenFeedback={onOpenFeedback}
+                  onOpenDeposit={onOpenDeposit}
                   onNavigate={onNavigate}
                 />
               </div>
@@ -271,7 +273,7 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
                       <div className="mobile-balance-val">{(user?.balance || 0).toLocaleString('vi-VN')}đ</div>
                     </div>
                     <button
-                      onClick={() => { setMobileOpen(false); onNavigate('/dashboard/transactions'); }}
+                      onClick={() => { setMobileOpen(false); if (onOpenDeposit) { onOpenDeposit(); } else { onNavigate('/dashboard/transactions'); } }}
                       className="mobile-deposit-btn"
                     >
                       <Wallet size={14} />

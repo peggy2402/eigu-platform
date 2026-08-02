@@ -12,7 +12,7 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
     const rawUrl = req.originalUrl || req.url;
     const isDev = process.env.NODE_ENV !== 'production';
 
-    // 1. Bypass Static / Docs / Health / Root API / System Config Bootstrap / Security
+    // 1. Bypass Static / Docs / Health / Root API / System Config Bootstrap / Security / Payment
     if (
       rawUrl === '/api' ||
       rawUrl === '/api/' ||
@@ -21,7 +21,8 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
       rawUrl === '/api/bootstrap' ||
       rawUrl.startsWith('/api/bootstrap') ||
       rawUrl.startsWith('/api/system-config') ||
-      rawUrl.startsWith('/api/security')
+      rawUrl.startsWith('/api/security') ||
+      rawUrl.startsWith('/api/payment')
     ) {
       return next();
     }
@@ -50,7 +51,7 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
     const candidateCode = parts[2];
 
     // If candidateCode is a known controller path, bypass
-    const systemBypassRoutes = ['auth', 'users', 'pricing', 'GetInfoPrice', 'notifications', 'chat', 'feedback', 'voice', 'system-config', 'security', 'docs', 'bootstrap'];
+    const systemBypassRoutes = ['auth', 'users', 'pricing', 'GetInfoPrice', 'payment', 'notifications', 'chat', 'feedback', 'voice', 'system-config', 'security', 'docs', 'bootstrap'];
     if (systemBypassRoutes.includes(candidateCode)) {
       return next();
     }
