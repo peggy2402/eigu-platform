@@ -26,6 +26,7 @@ import TransactionHistoryView from '../components/payment/TransactionHistoryView
 import { pricingApi, themeEventApi, contactApi } from '../lib/api';
 import type { PricingModuleDto, PricingTierDto } from '@eigu-platform/shared';
 import TypewriterText from '../components/TypewriterText';
+import FeatureModulesSection from '../components/modules/FeatureModulesSection';
 
 const TESTIMONIALS_COL1 = [
   { name: 'Quỳnh Mai', handle: '@quynhmai_mmo', avatar: 'https://scontent.fhan2-5.fna.fbcdn.net/v/t1.15752-9/759188241_1776425700453909_6966335744454354739_n.jpg?stp=dst-jpg_tt6&cstp=mx1086x1086&ctp=s1086x1086&_nc_cat=106&ccb=1-7&_nc_sid=9f807c&_nc_ohc=YXc0j8wUbUgQ7kNvwEWGZZQ&_nc_oc=Ado1Pzc1RXZik11wE0uAy5OKmD5HXI7gmueCmDkeT4BfqYy_LuAQaBKeSjdshfP4OJfLNq-DQvr9JhWSo2FwP0Co&_nc_zt=23&_nc_ht=scontent.fhan2-5.fna&_nc_ss=7b2a8&oh=03_Q7cD6AHPtH3npzIp-myWNjM6y7xTS8sREvdbz2ChqX0u-2p5FQ&oe=6A9439E3', text: 'Giao diện dễ dùng, nạp tiền tự động nhanh gọn. Via Facebook ở đây trâu thật sự.' },
@@ -772,40 +773,8 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
               </div>
             </section>
 
-            {/* Feature Modules Grid with Airplanes Illustration */}
-            <section style={{ padding: '40px 24px 60px', maxWidth: 1200, margin: '0 auto' }}>
-              <div style={{ textAlign: 'center', marginBottom: 48 }}>
-                {/* Airplanes Illustration */}
-                <div style={{ marginBottom: 16 }}>
-                  <img
-                    src="https://static.9proxy-cdn.net/media/assets/web-images/images/home/airplanes.webp"
-                    alt="Airplanes Illustration"
-                    style={{ maxWidth: 100, width: '100%', height: 'auto', objectFit: 'contain', margin: '0 auto', display: 'block', filter: 'drop-shadow(0 10px 20px var(--accent-glow))' }}
-                  />
-                </div>
-                <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 12, color: 'var(--text-primary)' }}>{t('feat_title')}</h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 16 }}>{language === 'en' ? 'Tailored for every stage of high-scale MMO content creation' : 'Được thiết kế chuyên biệt cho từng giai đoạn sáng tạo nội dung MMO'}</p>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
-                {[
-                  { icon: <Scissors size={24} />, title: language === 'en' ? '1. Auto Video Clipper' : '1. Tự động cắt video', desc: language === 'en' ? 'Clip 1-20 min videos with Silence Detection and automatic 9:16 aspect ratio fitting.' : 'Cắt phân đoạn 1-20 phút, nhận diện khoảng nghỉ Silence Detection, tự động chỉnh tỉ lệ khung hình 9:16.' },
-                  { icon: <Sparkles size={24} />, title: language === 'en' ? '2. AI Video Generator' : '2. Tạo video AI', desc: language === 'en' ? 'Generate high quality short viral videos from prompts, images or templates using AI.' : 'Sinh video ngắn chất lượng cao từ ý tưởng, hình ảnh hoặc mẫu video có sẵn bằng AI.' },
-                  { icon: <Clapperboard size={24} />, title: language === 'en' ? '3. AI Video Studio' : '3. AI Video Studio', desc: language === 'en' ? 'Full editing studio with multi-language AI dubbing and precise auto subtitles.' : 'Dựng phim, lồng tiếng AI đa ngôn ngữ, tự tạo phụ đề tự động chuẩn xác.' },
-                  { icon: <RefreshCw size={24} />, title: language === 'en' ? '4. Reup Video Engine' : '4. Tạo video reup', desc: language === 'en' ? 'Bypass TikTok & Reels Content ID algorithms via Noise Injection, Video Flip & 3D Audio.' : 'Bypass thuật toán Content ID TikTok & Reels qua Noise Injection, Lật video & 3D Audio.' },
-                  { icon: <TrendingUp size={24} />, title: language === 'en' ? '5. Hot Niche Finder' : '5. Tìm ngách hot', desc: language === 'en' ? 'Auto scan viral trends, extract lucrative niches and analyze competitor channels.' : 'Tự động quét xu hướng thị trường, bóc tách ngách viral và phân tích đối thủ cạnh tranh.' },
-                  { icon: <DownloadCloud size={24} />, title: language === 'en' ? '6. Bulk Downloader' : '6. Tải video hàng loạt', desc: language === 'en' ? 'Download entire TikTok/YouTube channels without watermark logos at ultra high speed.' : 'Tải hàng loạt trọn bộ Kênh TikTok / YouTube không logo watermark tốc độ cực nhanh.' },
-                ].map((item, idx) => (
-                  <div key={idx} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 28, transition: 'all 0.2s' }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-                      {item.icon}
-                    </div>
-                    <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 10, color: 'var(--text-primary)' }}>{item.title}</h3>
-                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {/* Feature Modules Grid with Hover Glow & Detail Modal */}
+            <FeatureModulesSection />
 
             {/* Testimonial Section - 3 Compact Marquee Columns with Top & Bottom Fade Mask */}
             <section style={{ padding: '30px 24px 70px', maxWidth: 1240, margin: '0 auto' }}>
