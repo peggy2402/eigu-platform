@@ -26,8 +26,9 @@ export interface SepayWebhookDto {
   subAccount?: string;
   code?: string;
   content?: string;
-  transferType?: 'in' | 'out';
+  transferType?: 'in' | 'out' | string;
   transferAmount?: number;
+  accumulated?: number;
   accumulative?: number;
   referenceCode?: string;
   description?: string;

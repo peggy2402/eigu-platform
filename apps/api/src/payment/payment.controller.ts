@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req, Headers, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Req, Headers, HttpCode, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaymentService } from './payment.service';
@@ -32,10 +32,13 @@ export class SepayWebhookDto {
   content?: string;
 
   @IsOptional()
-  transferType?: 'in' | 'out';
+  transferType?: string;
 
   @IsOptional()
   transferAmount?: number;
+
+  @IsOptional()
+  accumulated?: number;
 
   @IsOptional()
   accumulative?: number;
@@ -81,6 +84,7 @@ export class PaymentController {
 
   @Post('sepay-webhook')
   @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true }))
   @ApiOperation({ summary: 'Endpoint công khai tiếp nhận Webhook thanh toán tự động từ SePay' })
   async handleSepayWebhook(
     @Body() payload: SepayWebhookDto,

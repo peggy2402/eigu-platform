@@ -172,7 +172,7 @@ export class PaymentService {
       }
 
       // 2. Chỉ xử lý giao dịch nạp tiền vào (transferType === 'in' hoặc transferAmount > 0)
-      const transferAmount = Number(payload.transferAmount || payload.accumulative || 0);
+      const transferAmount = Number(payload.transferAmount || payload.accumulated || payload.accumulative || 0);
       if (payload.transferType && payload.transferType !== 'in' && transferAmount <= 0) {
         return { success: true, message: 'Bỏ qua giao dịch tiền ra' };
       }
