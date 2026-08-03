@@ -2394,3 +2394,35 @@ input[type="submit"]:active {
     z-index: 9999999 !important;
   }
 }
+
+/* Mobile Floating Navbar Scale Adjustment (+4% to +5% Total Width & Elements Scale) */
+@media (max-width: 768px) {
+  .apple-nav-wrapper {
+    width: 97% !important;
+  }
+  .apple-nav-wrapper.nav-scrolled {
+    width: 99% !important;
+  }
+  .apple-nav {
+    padding: 0.78rem 1.25rem !important;
+    gap: 12px !important;
+  }
+  .nav-scrolled .apple-nav {
+    padding: 0.68rem 1.15rem !important;
+  }
+  .header-brand-title {
+    font-size: 18px !important;
+  }
+  .theme-toggle-btn,
+  .mobile-menu-btn,
+  .lang-switcher-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+  .mobile-menu-btn svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+}
