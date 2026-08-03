@@ -1120,4 +1120,25 @@ Xử lý:
 - Kiểm tra TypeScript Web: `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`.
 - Kiểm tra Webpack/Next.js Dev Server: Cả `web` (Port 3000) và `api` (Port 3001) hoạt động ổn định 100%.
 
+## Phase 24: Phiên làm việc 03/08/2026 — Sửa Lỗi Hiển Thị Menu Mobile Ở Chế Độ Giao Diện Sáng (Light Mode Theme Fix) & Cập Nhật Quy Tắc Nền Tảng Trong AI_CONTEXT.md
+- **Thời gian ghi nhận:** 03/08/2026 10:34:31 GMT+7
+
+### 24.1 Sửa Lỗi Menu Mobile Bị Nền Tối Khi Ở Chế Độ Giao Diện Sáng (`Header.tsx` & `global.css`)
+- **Phân tích nguyên nhân gốc rễ**: Lớp CSS `.mobile-nav-drawer` trong `global.css` bị hardcode màu nền tối cố định `background: rgba(20, 20, 25, 0.96)`. Khi người dùng chuyển sang Chế độ Sáng (Light Mode), biến `--text-primary` đổi thành màu chữ tối `#1c1917`, dẫn tới hiện tượng chữ màu đen hiển thị trên phông nền tối đen (Black text on Dark background) làm các mục điều hướng ("Giới thiệu", "Bảng giá", "Tin tức", "FAQ", "Liên hệ") bị mờ nhạt đục và cực kỳ khó đọc.
+- **Tối ưu hóa trong `global.css`**:
+  - Chuyển màu nền `.mobile-nav-drawer` từ màu tối cố định sang biến CSS theme `background: var(--bg-card);` và điều chỉnh bóng đổ `box-shadow: -15px 0 45px rgba(0, 0, 0, 0.2)`. Khi bật chế độ Sáng, menu di động tự động đổi thành nền trắng `#ffffff` sắc nét; khi bật chế độ Tối, menu duy trì màu phông tối cao cấp.
+- **Chuẩn hóa biến CSS trong `Header.tsx`**:
+  - Loại bỏ hoàn toàn các màu mờ đục hardcode inline kiểu `rgba(255, 255, 255, 0.03)` hay `rgba(255,255,255,0.08)`.
+  - Chuyển 100% các phần tử bên trong Mobile Drawer (Nút đóng `X`, Thẻ tài khoản cá nhân, Khối hiển thị số dư, Lưới 2 cột thao tác nhanh, Danh sách mục điều hướng xếp dọc, Nút Đăng xuất/Đăng nhập/Đăng ký) sang sử dụng các biến CSS theme chuẩn: `var(--bg-secondary)`, `var(--bg-card)`, `var(--bg-elevated)`, `var(--danger-bg)`, `var(--border-color)`.
+- **Đồng bộ hóa Modal Chi Tiết (`ModuleDetailModal.tsx`)**:
+  - Chuyển màu nền panel modal từ `rgba(20, 20, 25, 0.78)` và header bar `rgba(24, 24, 30, 0.85)` sang `var(--bg-card)` và `var(--bg-secondary)`, đảm bảo các cửa sổ Modal cũng tương thích hoàn hảo ở Chế độ Sáng.
+
+### 24.2 Cập Nhật Quy Tắc Phát Triển Vào `docs/docs_guide/AI_CONTEXT.md`
+- Cập nhật và nâng cấp Quy tắc Chuyển đổi Theme Tự động (Mục 2 - *CHUYỂN ĐỔI THEME TỰ ĐỘNG KHÔNG HARDCODE MÀU NỀN TỐI HỘP CỨNG (CRITICAL THEME RULE)*).
+- Quy định nghiêm cấm hardcode màu nền tối cố định (`rgba(20, 20, 25, ...)`, `rgba(15, 23, 42, ...)`, `#0f172a`) cho bất kỳ container, card, mobile menu drawer (`.mobile-nav-drawer`), header hay popup modal nào trong CSS/HTML/JS inline, đảm bảo không bao giờ tái diễn lỗi hiển thị chữ đen trên nền đen ở giao diện sáng.
+
+### 24.3 Kiểm Tra Biên Dịch Hệ Thống (System Build Verification)
+- Chạy lệnh `npx nx build web` $\rightarrow$ `✓ Compiled successfully in 3.5s`, static prerender 12 trang thành công, 0 cảnh báo hay lỗi biên dịch.
+
+
 
