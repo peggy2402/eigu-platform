@@ -119,7 +119,7 @@ export default function FeatureModulesSection() {
                   fontSize: 18,
                   fontWeight: 700,
                   marginBottom: 10,
-                  color: isHovered ? '#ffffff' : 'var(--text-primary)',
+                  color: isHovered ? item.accentColor : 'var(--text-primary)',
                   transition: 'color 0.2s ease',
                 }}
               >

@@ -1140,5 +1140,18 @@ Xử lý:
 ### 24.3 Kiểm Tra Biên Dịch Hệ Thống (System Build Verification)
 - Chạy lệnh `npx nx build web` $\rightarrow$ `✓ Compiled successfully in 3.5s`, static prerender 12 trang thành công, 0 cảnh báo hay lỗi biên dịch.
 
+## Phase 25: Phiên làm việc 03/08/2026 — Sửa Lỗi Hover Trùng Màu Trắng Tiêu Đề Thẻ Mô-Đun Công Cụ Ở Chế Độ Sáng (`FeatureModulesSection.tsx`)
+- **Thời gian ghi nhận:** 03/08/2026 13:48:00 GMT+7
+
+### 25.1 Sửa Lỗi Tiêu Đề Bị Trùng Màu Trắng Với Background Khi Hover Trong Light Mode
+- **Phân tích nguyên nhân**: Trong `FeatureModulesSection.tsx`, thẻ `<h3>` tiêu đề của 6 thẻ mô-đun công cụ bị gán màu cứng `color: isHovered ? '#ffffff' : 'var(--text-primary)'`. Khi ở Giao diện Tối (Dark Mode), phông nền thẻ là màu đen/tối nên chữ trắng hiển thị bình thường. Tuy nhiên, khi ở Giao diện Sáng (Light Mode), phông nền thẻ card là màu trắng `#ffffff`. Khi người dùng rê chuột (hover) vào thẻ, tiêu đề bị chuyển thành màu trắng `#ffffff` trùng khớp với màu nền card làm cho chữ tiêu đề bị mất tích/biến mất hoàn toàn (White text on White background).
+- **Khắc phục**:
+  - Chuyển `color: isHovered ? item.accentColor : 'var(--text-primary)'` trong `FeatureModulesSection.tsx`. Khi rê chuột vào từng thẻ mô-đun, tiêu đề thẻ sẽ đổi sang màu accent nổi bật tương ứng với mô-đun đó (`#ec4899` hồng cho Cắt video, tím cho AI Video, xanh lục cho Reup...), tạo hiệu ứng tương tác thị giác vô cùng sinh động, nổi bật và tương phản sắc nét trên cả phông nền Trắng (Light Mode) lẫn Tối (Dark Mode).
+
+### 25.2 Cập Nhật Quy Tắc Phát Triển Vào `docs/docs_guide/AI_CONTEXT.md`
+- Bổ sung mục 5 (*MÀU CHỮ VÀ HIỆU ỨNG HOVER TƯƠNG THÍCH ĐA THEME (CRITICAL HOVER COLOR RULE)*) vào `AI_CONTEXT.md`.
+- Nghiêm cấm hardcode màu chữ trắng `color: '#ffffff'` hoặc `#fff` khi hover trên các phông nền card/container dạng `var(--bg-card)` để đảm bảo 100% không bao giờ gặp sự cố trùng màu chữ ở chế độ nền sáng.
+
+
 
 
