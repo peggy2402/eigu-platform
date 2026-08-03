@@ -405,10 +405,10 @@ export class AuthService implements OnModuleInit {
   private async generateTokens(userId: string, email: string, role: string, username?: string | null) {
     const payload = { sub: userId, email, role, username };
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: '15m' as const,
+      expiresIn: (process.env.JWT_EXPIRES_IN || '24h') as any,
     });
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: '7d' as const,
+      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as any,
       secret: process.env.JWT_SECRET || 'eigu-dev-secret-key',
     });
 

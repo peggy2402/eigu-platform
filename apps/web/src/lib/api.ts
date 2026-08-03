@@ -53,6 +53,14 @@ export async function syncApiPrefixFromBootstrap(): Promise<string> {
   return syncPromise;
 }
 
+let isRefreshingWebToken = false;
+let webRefreshSubscribers: ((newToken: string) => void)[] = [];
+
+function onWebTokenRefreshed(newToken: string) {
+  webRefreshSubscribers.forEach((cb) => cb(newToken));
+  webRefreshSubscribers = [];
+}
+
 async function request(path: string, options: RequestInit = {}, isRetry = false): Promise<any> {
   if (typeof window !== 'undefined' && !(window as any).__EIGU_ACTIVE_API_URL__) {
     await syncApiPrefixFromBootstrap();
@@ -72,6 +80,44 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
   const data = await res.json();
 
   if (!res.ok) {
+    // 🔒 Auto Silent Refresh on 401 Unauthorized (AccessToken expired)
+    if (res.status === 401 && !isRetry && !path.includes('/auth/login') && !path.includes('/auth/refresh') && typeof window !== 'undefined') {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        if (!isRefreshingWebToken) {
+          isRefreshingWebToken = true;
+          try {
+            const refreshRes = await fetch(`${baseUrl.replace(/\/$/, '')}/auth/refresh`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refreshToken }),
+            });
+            const refreshData = await refreshRes.json();
+            if (refreshRes.ok && refreshData && (refreshData.accessToken || refreshData.data?.accessToken)) {
+              const newAccToken = refreshData.accessToken || refreshData.data.accessToken;
+              localStorage.setItem('accessToken', newAccToken);
+              if (refreshData.refreshToken || refreshData.data?.refreshToken) {
+                localStorage.setItem('refreshToken', refreshData.refreshToken || refreshData.data.refreshToken);
+              }
+              isRefreshingWebToken = false;
+              onWebTokenRefreshed(newAccToken);
+              return request(path, options, true);
+            }
+          } catch (e) {
+            console.warn('[Web API] Refresh token error:', e);
+          } finally {
+            isRefreshingWebToken = false;
+          }
+        } else {
+          return new Promise((resolve) => {
+            webRefreshSubscribers.push(() => {
+              resolve(request(path, options, true));
+            });
+          });
+        }
+      }
+    }
+
     // If request failed with 404 (possibly outdated obfuscation prefix), resync & retry once
     if (res.status === 404 && !isRetry && typeof window !== 'undefined') {
       console.warn('[Web API] 404 encountered, resyncing API prefix from Gateway...');
@@ -150,6 +196,8 @@ export const paymentApi = {
   getMyTransactions: () => request(API_ENDPOINTS.PAYMENT.MY_TRANSACTIONS),
 
   checkStatus: (code: string) => request(API_ENDPOINTS.PAYMENT.CHECK_STATUS(code)),
+
+  cancelDeposit: (code: string) => request(`/payment/cancel/${code}`, { method: 'PATCH' }),
 };
 
 

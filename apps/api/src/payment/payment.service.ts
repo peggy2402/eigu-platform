@@ -32,7 +32,52 @@ export class PaymentService {
         throw new NotFoundException('Không tìm thấy thông tin tài khoản người dùng');
       }
 
-      // Sinh mã đơn nạp ngẫu nhiên 5-6 số (VD: 88921)
+      const bankName = process.env.SEPAY_BANK_NAME || 'MBBank';
+      const accountNumber = process.env.SEPAY_ACCOUNT_NO || '0399999999';
+      const accountHolder = process.env.SEPAY_ACCOUNT_HOLDER || 'EIGU PLATFORM';
+
+      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+
+      // 1. Tải lại đơn nạp PENDING vừa tạo (trong vòng 15 phút) cùng số tiền để TRÁNH SPAM DB
+      const existingPending = await this.prisma.depositTransaction.findFirst({
+        where: {
+          userId: user.id,
+          amount,
+          status: 'PENDING',
+          createdAt: { gte: fifteenMinutesAgo },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (existingPending) {
+        const qrCodeUrl = `https://qr.sepay.vn/img?bank=${encodeURIComponent(existingPending.bankName || bankName)}&acc=${encodeURIComponent(existingPending.accountNumber || accountNumber)}&template=compact&amount=${amount}&des=${encodeURIComponent(existingPending.fullContent)}`;
+        this.logger.log(`[Payment] Tái sử dụng đơn nạp PENDING #${existingPending.code} (${amount}đ) cho User ${user.email}`);
+
+        return {
+          id: existingPending.id,
+          code: existingPending.code,
+          fullContent: existingPending.fullContent,
+          amount: Number(existingPending.amount),
+          status: existingPending.status,
+          bankName: existingPending.bankName || bankName,
+          accountNumber: existingPending.accountNumber || accountNumber,
+          accountHolder,
+          qrCodeUrl,
+          createdAt: existingPending.createdAt,
+        };
+      }
+
+      // 2. Dọn dẹp tự động chuyển trạng thái CANCELLED các đơn PENDING cũ hơn 15 phút
+      await this.prisma.depositTransaction.updateMany({
+        where: {
+          userId: user.id,
+          status: 'PENDING',
+          createdAt: { lt: fifteenMinutesAgo },
+        },
+        data: { status: 'CANCELLED' },
+      });
+
+      // 3. Sinh mã đơn nạp mới ngẫu nhiên 5-6 số (VD: 88921)
       let code = '';
       let isUnique = false;
       let attempts = 0;
@@ -46,12 +91,7 @@ export class PaymentService {
       }
 
       const displayUsername = user.username || user.email.split('@')[0];
-      // Định dạng cú pháp chuyển khoản: EIGU {{username}} {{code}} (Ví dụ: EIGU peggy 88921)
       const fullContent = `EIGU ${displayUsername} ${code}`.trim();
-
-      const bankName = process.env.SEPAY_BANK_NAME || 'MBBank';
-      const accountNumber = process.env.SEPAY_ACCOUNT_NO || '0399999999';
-      const accountHolder = process.env.SEPAY_ACCOUNT_HOLDER || 'EIGU PLATFORM';
 
       const transaction = await this.prisma.depositTransaction.create({
         data: {
@@ -66,10 +106,9 @@ export class PaymentService {
         },
       });
 
-      // Tạo link QR Code VietQR SePay điền sẵn thông tin
       const qrCodeUrl = `https://qr.sepay.vn/img?bank=${encodeURIComponent(bankName)}&acc=${encodeURIComponent(accountNumber)}&template=compact&amount=${amount}&des=${encodeURIComponent(fullContent)}`;
 
-      this.logger.log(`[Payment] Đã tạo đơn nạp PENDING #${code} (${amount}đ) cho User ${user.email}`);
+      this.logger.log(`[Payment] Đã tạo đơn nạp PENDING mới #${code} (${amount}đ) cho User ${user.email}`);
 
       return {
         id: transaction.id,
@@ -147,7 +186,7 @@ export class PaymentService {
       const fullContent = transaction.fullContent;
       const amount = Number(transaction.amount);
 
-      const qrCodeUrl = `https://img.vietqr.io/image/${bankName}-${accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(fullContent)}&accountName=${encodeURIComponent(accountHolder)}`;
+      const qrCodeUrl = `https://qr.sepay.vn/img?bank=${encodeURIComponent(bankName)}&acc=${encodeURIComponent(accountNumber)}&template=compact&amount=${amount}&des=${encodeURIComponent(fullContent)}`;
 
       return {
         code: transaction.code,
@@ -162,9 +201,30 @@ export class PaymentService {
       };
     } catch (error: any) {
       if (error instanceof NotFoundException) throw error;
-      this.logger.error(`[Payment] Lỗi lấy trạng thái đơn #${code}:`, error?.stack || error);
-      throw new InternalServerErrorException('Lỗi hệ thống khi kiểm tra trạng thái đơn nạp');
+      this.logger.error(`[Payment] Lỗi kiểm tra trạng thái đơn nạp #${code}:`, error?.stack || error);
+      throw new InternalServerErrorException('Không thể lấy trạng thái đơn nạp.');
     }
+  }
+
+  /**
+   * Hủy đơn nạp tiền PENDING của chính User
+   */
+  async cancelUserTransaction(userId: string, code: string) {
+    const tx = await this.prisma.depositTransaction.findFirst({
+      where: { code, userId },
+    });
+    if (!tx) {
+      throw new NotFoundException('Không tìm thấy đơn nạp tiền');
+    }
+    if (tx.status !== 'PENDING') {
+      return { success: true, message: `Đơn nạp #${code} hiện đã ở trạng thái ${tx.status}` };
+    }
+    await this.prisma.depositTransaction.update({
+      where: { id: tx.id },
+      data: { status: 'CANCELLED' },
+    });
+    this.logger.log(`[Payment] User ${userId} đã hủy đơn nạp PENDING #${code}`);
+    return { success: true, message: `Đã hủy đơn nạp #${code} thành công` };
   }
 
   /**

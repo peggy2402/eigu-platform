@@ -105,3 +105,24 @@ Du an duoc quan ly trong mot **Nx Workspace** (`npx nx ...`) bao gom 4 ung dung 
 - Trieu khai thuat toan xu ly FFmpeg that (Decimation, Noise Injection).
 - Viet kich ban Puppeteer phuc tap hon: Fake Fingerprint, vuot Captcha, tu dong dien form Upload TikTok.
 - Thiet ke co so du lieu (Database) tren API de luu lai lich su cac video da upload.
+
+## 5. Quy tac Bao mat, Chong Spam & Bai hoc He thong (Security & Protection Best Practices)
+
+1. **Rate Limiting & Chong Spam Nut bam (Max 5 Requests Guard):**
+   - Ap dung Rate Limiter (Thoi gian cho toi da 5 lan thu / 5 phut) cho tat ca cac API thanh toan, tao don nạp, authentication va thao tac ghi quan trong de ngan chan spam nut bam, click trung va tan cong brute force.
+   - Vo hieu hoa (disabled) nut bam ngay khi nguoi dung nhap va hien thi trang thai "Dang xu ly..." de tranh gui trung request.
+
+2. **Chong Spam Don Nap PENDING (Transaction Deduplication & Reuse):**
+   - Khi nguoi dung khoi tao don nap VietQR hoac chon goi nhung chua thanh toan, backend BẮT BUỘC kiem tra va **tai su dung don nap PENDING con hieu luc (< 15 phut)** cung han muc neu co, thay vi chen lien tuc hang chuc ban ghi PENDING trung lap vao Database.
+   - Khi nguoi dung nhan "Huy thanh toan" hoac khoi tao don nap voi han muc moi, he thong phai tu dong cap nhat cac don PENDING cu thanh `CANCELLED`.
+
+3. **Quet Secret & Protection Codebase (No Hardcoded API Keys):**
+   - TUYET DOI KHONG hardcode API Key, Access Token, DB Passwords, Webhook Secrets trong ma nguon (.ts, .js, .json). Tat ca phai duoc dua vao tyeu tuc `.env` va doc qua `process.env`.
+
+4. **Sanitize Data & Guard Request Payload (Chon Injection / Crash App):**
+   - Kiem tra, validate va lam sach (sanitize/strip tags) tat ca du lieu dau vao tu Client (Body, Query, Params) qua `ValidationPipe` & Class-Validator.
+   - Tu choi tat ca cac request co do dai qua muc cho phép hoac sai dinh dang de ngan chan SQL/NoSQL Injection, XSS, va tranh crash ung dung do OOM (Out of Memory).
+
+5. **Audit Logs & Stack Trace Tracking (Truy vet Bug & Hanh vi):**
+   - Moi thao tac quan trong (thanh toan, thay doi quyen, dang nhap, huy don, cap nhat theme...) BẮT BUỘC phai duoc ghi nhan vao `AuditLogService` co day du `userId`, `action`, `ip`, `userAgent` va `details`.
+   - Log loi phai bao gom Stack Trace (`error.stack`) o moi truong Dev/Staging de giup dev & AI truy vet chinh xac nguyen nhan goc (Root Cause) ma khong phai do doan.
