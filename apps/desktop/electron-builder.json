@@ -14,7 +14,8 @@
     {
       "provider": "github",
       "owner": "peggy2402",
-      "repo": "eigu-platform"
+      "repo": "eigu-platform",
+      "releaseType": "release"
     }
   ],
   "win": {
