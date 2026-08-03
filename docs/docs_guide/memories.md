@@ -1063,4 +1063,61 @@ Xử lý:
 - Chạy `npx nx build web`: `✓ Compiled successfully in 3.4s` (0 error, static prerender 12 pages thành công).
 - Đồng bộ nhánh Git: `git checkout developer` $\rightarrow$ `git merge main` $\rightarrow$ `git checkout vanchien` $\rightarrow$ `git merge developer`.
 
+## Phase 23: Phiên làm việc 02/08/2026 - 03/08/2026 — Phát triển Thẻ 6 Mô-Đun Công Cụ Glassmorphism, Modal Portal Chi Tiết, Tách Trang Giới Thiệu Độc Lập, Tái Cấu Trúc Menu Mobile 70% & Đa Ngôn Ngữ i18n
+- **Thời gian ghi nhận:** 03/08/2026 08:46:17 GMT+7
+
+### 23.1 Phát Triển Section 6 Thẻ Mô-Đun Công Cụ & Modal Portal Chi Tiết Glassmorphism
+- **Thời gian xử lý:** 03/08/2026 00:15:32 GMT+7
+- **Cấu hình dữ liệu 6 Mô-đun độc lập (`featureModules.ts`)**:
+  - Xây dựng danh sách 6 mô-đun công cụ chuyên sâu (`id`, `title`, `desc`, `detailDescription`, `videoUrl`, `accentColor`, `accentGlow`, `highlights`).
+  - Gồm: Cắt video tự động, Tạo video AI, AI Video Studio, Chống gậy bản quyền, Tìm ngách hot, Tải video hàng loạt.
+- **Hiệu ứng Glow Border Hover (`FeatureModulesSection.tsx`)**:
+  - Khi rê chuột vào thẻ mô-đun, thẻ phát sáng viền theo màu accent riêng với transition mượt `0.25s`. Khi rời chuột viền trở lại trạng thái ban đầu.
+- **Modal / Panel Chi Tiết Kính Tối Mờ (`ModuleDetailModal.tsx`)**:
+  - **Sử dụng React Portal**: Render `createPortal` trực tiếp vào `document.body` với `z-index: 999999` che phủ hoàn toàn phía trước thanh Header navbar.
+  - **Glassmorphism Spec**: Chất liệu kính tối mờ (`rgba(20, 20, 25, 0.78)` kết hợp `backdrop-filter: blur(24px)`) và lớp nền mờ tối (`rgba(0, 0, 0, 0.65)` + `backdrop-filter: blur(12px)`).
+  - Tích hợp video YouTube 16:9 embed responsive, danh sách tính năng nổi bật, nút đóng X, click lớp nền ngoài hoặc phím `ESC` để đóng.
+
+### 23.2 Quản Lý Điều Hướng & Tách Riêng Trang "Giới Thiệu" (`/about`) Độc Lập
+- **Thời gian xử lý:** 03/08/2026 01:12:35 GMT+7
+- **Tách Trang Giới Thiệu Độc Lập (`/about`)**:
+  - Chuyển toàn bộ nội dung Giới thiệu (Về chúng tôi, Sứ mệnh, Kiến trúc đột phá, Con số ấn tượng) ra khỏi Trang chủ và đặt thành view riêng biệt khi chọn `/about`.
+  - Phục hồi đường dẫn `Giới thiệu` (`/about`) vào danh sách `navItems` và `NAV_ICONS` (`<Info size={16} />`) trên `Header.tsx` (cả Desktop Navbar và Mobile Drawer Menu).
+  - Giữ Trang chủ (`/`) sạch sẽ, tập trung vào Hero, 6 Thẻ Mô-đun Công cụ, Tính năng, Đánh giá & FAQ.
+
+### 23.3 Tái Cấu Trúc Menu Di Động (Mobile Drawer 70% & React Portal Blur Overlay)
+- **Thời gian xử lý:** 03/08/2026 00:41:46 GMT+7
+- **Dạng Hàng Xếp Dọc (Vertical Rows Layout)**:
+  - Chuyển các mục điều hướng trang từ dạng grid ngang sang **dạng danh sách xếp dọc từng hàng (`flex-direction: column`)**, tràn viền 100% width với icon, tiêu đề và hiệu ứng active accent glow.
+  - Xếp dọc hai nút Đăng nhập / Đăng ký ở dưới cùng menu.
+- **Khung Menu Chiếm 70% Màn Hình (70% Screen Width Slide-In)**:
+  - Thiết lập chiều rộng khung trượt menu di động chiếm đúng **70% màn hình** (`width: 70%`, `max-width: 340px`, trượt từ phải sang).
+- **Che Phủ Nền Mờ Thanh Header Phía Sau (React Portal Mounting)**:
+  - Sử dụng `createPortal` đưa `mobile-nav-overlay` và `mobile-nav-drawer` ra `document.body` ở cấp cao nhất (`z-index: 999999 !important`).
+  - Khi mở menu 3 gạch, lớp nền mờ tối (`backdrop-filter: blur(14px)` + `rgba(0, 0, 0, 0.75)`) che phủ 100% màn hình **bao gồm cả thanh Header floating navbar** (đưa thanh Header ra phía sau nền mờ).
+
+### 23.4 Tăng Kích Thước & Khắc Phục Lỗi Hiển Thị Thanh Header Floating Navbar Mobile
+- **Thời gian xử lý:** 03/08/2026 01:06:18 GMT+7
+- **Tăng Kích Thước & Độ Rộng Mobile (+4-5% Overall Scale)**:
+  - Tăng chiều rộng thanh Header mobile từ 92% lên **97%** (khi cuộn: **99%**).
+  - Tăng độ dày padding dọc lên **0.78rem** (scrolled: `0.68rem`).
+  - Tăng kích thước nút 3 gạch, ThemeToggle, LangSwitcher lên **40px x 40px** và icon 3 gạch lên **22px**.
+- **Khắc Phục Lỗi Mất Chữ "Platform" (`EIGU Platf...`)**:
+  - Thiết lập `flex-shrink: 0` và `white-space: nowrap` cho khối `.header-brand-wrapper`.
+  - Đặt font-size tiêu đề thương hiệu `.header-brand-title` đạt **17.5px** kết hợp tối ưu padding lề ngang (`0.65rem`) và gap (`6px`).
+  - Đảm bảo hiển thị trọn vẹn 100% tên thương hiệu **"EIGU Platform"** trên mọi kích thước màn hình mobile không bao giờ bị cắt thành dấu `...`.
+
+### 23.5 Sửa Lỗi Chuyển Đổi Đa Ngôn Ngữ i18n Cho Menu Tài Khoản (Multilingual User Dropdown Fix)
+- **Thời gian xử lý:** 03/08/2026 01:26:30 GMT+7
+- **Bổ sung từ điển đa ngôn ngữ (`LanguageContext.tsx`)**:
+  - Khai báo các key dịch thuật song ngữ Tiếng Việt & Tiếng Anh: `user_history` (Lịch sử giao dịch / Transaction History), `user_affiliate` (Tiếp thị liên kết / Affiliate Program), `user_guide` (Hướng dẫn sử dụng / User Guide), `user_logs` (Nhật ký hoạt động / Activity Logs).
+- **Cập nhật Component `UserDropdown.tsx` & `Header.tsx`**:
+  - Thay thế toàn bộ các chuỗi văn bản cứng (hardcoded) bằng hàm dịch thuật `t()`.
+  - Đảm bảo khi chọn ngôn ngữ **EN**, 100% mục trong User Dropdown menu (Desktop) và Mobile Menu Drawer lập tức chuyển sang Tiếng Anh đồng bộ.
+
+### 23.6 Kiểm Tra Biên Dịch Hệ Thống (System Build Verification)
+- **Thời gian kiểm tra:** 03/08/2026 01:26:37 GMT+7
+- Kiểm tra TypeScript Web: `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`.
+- Kiểm tra Webpack/Next.js Dev Server: Cả `web` (Port 3000) và `api` (Port 3001) hoạt động ổn định 100%.
+
 
