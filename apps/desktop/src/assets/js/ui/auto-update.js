@@ -1,6 +1,6 @@
 // Auto Update Management Logic (VS Code style)
 
-let CURRENT_VERSION = '1.0.2';
+let CURRENT_VERSION = '1.0.3';
 let latestVersionInfo = null;
 let isUpdateReadyToInstall = false;
 
