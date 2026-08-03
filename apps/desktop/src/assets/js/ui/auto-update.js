@@ -1,6 +1,6 @@
 // Auto Update Management Logic (VS Code style)
 
-let CURRENT_VERSION = '1.0.3';
+let CURRENT_VERSION = '1.0.4';
 let latestVersionInfo = null;
 let isUpdateReadyToInstall = false;
 
@@ -131,7 +131,7 @@ if (window.ipcRenderer) {
         btn.style.background = '#10b981';
       }
     } else if (data.type === 'error') {
-      console.warn('[AutoUpdate] Error:', data.error);
+      console.warn('[AutoUpdate] autoUpdater check skipped or artifact not found (will fallback to GitHub API):', data.error);
     }
   });
 }

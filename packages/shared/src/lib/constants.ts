@@ -31,12 +31,12 @@ export function getApiBaseUrl(): string {
       prefix = rawPrefix.startsWith('api/') ? rawPrefix : `api/${rawPrefix}`;
     }
 
-    let rawUrl = env['NEXT_PUBLIC_API_URL'] || env['EIGU_API_URL'] || env['API_URL'] || 'http://localhost:3001';
+    const defaultHost = (env['NODE_ENV'] === 'production') ? 'https://eigu-api.onrender.com' : 'http://localhost:3001';
+    let rawUrl = env['NEXT_PUBLIC_API_URL'] || env['EIGU_API_URL'] || env['API_URL'] || defaultHost;
     rawUrl = rawUrl.replace(/\/$/, '');
 
     let baseHost = rawUrl.replace(/\/api\/.*$/, '').replace(/\/api$/, '');
-    // if (!baseHost) baseHost = 'http://localhost:3001';
-    if (!baseHost) baseHost = 'https://eigu-api.onrender.com';
+    if (!baseHost) baseHost = defaultHost;
 
     return `${baseHost}/${prefix}`;
   }

@@ -208,14 +208,20 @@ app.whenReady().then(() => {
   function resolveApiUrl() {
     const port = process.env.PORT || 3001;
     const rawPrefix = (process.env.API_PREFIX || 'api').trim().replace(/^\//, '').replace(/\/$/, '');
-    const prefix = rawPrefix.startsWith('api/') ? rawPrefix : `api/${rawPrefix}`;
+    let prefix = 'api';
+    if (rawPrefix && rawPrefix !== 'api') {
+      prefix = rawPrefix.startsWith('api/') ? rawPrefix : `api/${rawPrefix}`;
+    }
 
-    let rawUrl = process.env.NEXT_PUBLIC_API_URL || process.env.EIGU_API_URL || `http://localhost:${port}`;
+    const defaultHost = (app.isPackaged || process.env.NODE_ENV === 'production')
+      ? 'https://eigu-api.onrender.com'
+      : `http://localhost:${port}`;
+
+    let rawUrl = process.env.NEXT_PUBLIC_API_URL || process.env.EIGU_API_URL || defaultHost;
     rawUrl = rawUrl.replace(/\/$/, '');
 
     let baseHost = rawUrl.replace(/\/api\/.*$/, '').replace(/\/api$/, '');
-    // if (!baseHost) baseHost = `http://localhost:${port}`;
-    if (!baseHost) baseHost = `https://eigu-api.onrender.com`;
+    if (!baseHost) baseHost = defaultHost;
 
     return `${baseHost}/${prefix}`;
   }
@@ -224,8 +230,10 @@ app.whenReady().then(() => {
     const port = process.env.PORT || 3001;
     const apiPrefix = process.env.API_PREFIX || 'api';
     const apiUrl = resolveApiUrl();
-    // const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `http://localhost:${port}`;
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `https://eigu-api.onrender.com`;
+    const defaultWs = (app.isPackaged || process.env.NODE_ENV === 'production')
+      ? 'https://eigu-api.onrender.com'
+      : `http://localhost:${port}`;
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.EIGU_WS_URL || defaultWs;
 
     event.returnValue = { apiUrl, wsUrl, apiPrefix, port };
   });
@@ -234,8 +242,10 @@ app.whenReady().then(() => {
     const port = process.env.PORT || 3001;
     const apiPrefix = process.env.API_PREFIX || 'api';
     const apiUrl = resolveApiUrl();
-    // const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `http://localhost:${port}`;
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `https://eigu-api.onrender.com`;
+    const defaultWs = (app.isPackaged || process.env.NODE_ENV === 'production')
+      ? 'https://eigu-api.onrender.com'
+      : `http://localhost:${port}`;
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.EIGU_WS_URL || defaultWs;
     return { apiUrl, wsUrl, apiPrefix, port };
   });
 
