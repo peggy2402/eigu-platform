@@ -25,6 +25,7 @@
         "arch": ["x64"]
       }
     ],
+    "artifactName": "EIGU-Platform-Setup-${version}.${ext}",
     "icon": "apps/desktop/src/assets/img/icon.ico"
   },
   "nsis": {
@@ -45,6 +46,7 @@
         "arch": ["x64", "arm64"]
       }
     ],
+    "artifactName": "EIGU-Platform-${version}-${arch}.${ext}",
     "category": "public.app-category.utilities",
     "icon": "apps/desktop/src/assets/img/icon.icns"
   }
