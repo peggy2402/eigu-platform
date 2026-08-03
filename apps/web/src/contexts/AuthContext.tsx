@@ -60,7 +60,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(t);
       authApi.getMe()
         .then(d => setUser(d))
-        .catch(() => { localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); })
+        .catch((err) => {
+          console.warn('[AuthContext] getMe fetch error:', err);
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);

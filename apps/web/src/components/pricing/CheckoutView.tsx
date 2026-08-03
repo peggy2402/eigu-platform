@@ -711,10 +711,15 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       // Dừng tất cả timers và polling trước khi huỷ
                       if (pollTimerRef.current) { clearInterval(pollTimerRef.current); pollTimerRef.current = null; }
                       if (countdownTimerRef.current) { clearInterval(countdownTimerRef.current); countdownTimerRef.current = null; }
+                      if (depositTx?.code) {
+                        try {
+                          await paymentApi.cancelDeposit(depositTx.code);
+                        } catch (e) {}
+                      }
                       setCancelled(true);
                     }}
                     style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, borderRadius: 10, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer' }}

@@ -527,7 +527,7 @@ async function verifyCheckoutPaymentDesktop() {
   }
 }
 
-function cancelCheckoutDesktop() {
+async function cancelCheckoutDesktop() {
   const state = window.__CHECKOUT_STATE__;
   if (state.pollTimer) {
     clearInterval(state.pollTimer);
@@ -536,6 +536,11 @@ function cancelCheckoutDesktop() {
   if (state.countdownTimer) {
     clearInterval(state.countdownTimer);
     state.countdownTimer = null;
+  }
+  if (state.depositTx && state.depositTx.code) {
+    try {
+      await apiFetch(`/payment/cancel/${state.depositTx.code}`, { method: 'PATCH' });
+    } catch (e) {}
   }
 
   const container = document.getElementById('view-checkout');

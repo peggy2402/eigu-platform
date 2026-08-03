@@ -3,6 +3,7 @@ let adminTxCurrentPage = 1;
 let adminTxTotalPages = 1;
 let activeAdminTxTab = 'deposit'; // 'deposit' or 'subscriptions'
 let cachedAdminSubscriptions = [];
+let userDepositPollTimer = null;
 
 function switchAdminTxTab(tab) {
   activeAdminTxTab = tab;
@@ -659,7 +660,7 @@ function userTxChangePage(dir) {
 async function resumePendingDepositDesktop(code) {
   try {
     if (typeof showToast === 'function') {
-      showToast('Đang mở lại mã...', 'info');
+      // showToast('Đang mở lại mã...', 'info');
     }
     const res = await apiFetch(`/payment/status/${code}`);
     if (res && res.status === 'PENDING') {

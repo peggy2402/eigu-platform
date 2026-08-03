@@ -82,6 +82,15 @@ export class PaymentController {
     return this.paymentService.getTransactionStatus(userId, code);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch('cancel/:code')
+  @ApiOperation({ summary: 'User chủ động hủy đơn nạp tiền PENDING' })
+  async cancelUserTransaction(@Req() req: any, @Param('code') code: string) {
+    const userId = req.user.id || req.user.userId || req.user.sub;
+    return this.paymentService.cancelUserTransaction(userId, code);
+  }
+
   @Post('sepay-webhook')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true }))
