@@ -389,9 +389,7 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
     fetchPricing();
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
-      if (currentPath === '/about') {
-        setActivePath('/');
-      } else if (['/pricing', '/news', '/faq', '/contact', '/'].includes(currentPath)) {
+      if (['/pricing', '/news', '/faq', '/contact', '/about', '/'].includes(currentPath)) {
         setActivePath(currentPath);
       }
     }
@@ -403,16 +401,14 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
       router.push(path);
       return;
     }
-    if (path === '/about') {
-      setActivePath('/');
-    } else if (path === '/dashboard/transactions') {
+    if (path === '/dashboard/transactions') {
       setActivePath('/dashboard');
       setActiveUserView('lich-su');
     } else {
       setActivePath(path);
     }
     if (typeof window !== 'undefined') {
-      window.history.pushState({}, '', path === '/about' ? '/' : path);
+      window.history.pushState({}, '', path);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -783,121 +779,6 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
             {/* Feature Modules Grid with Hover Glow & Detail Modal */}
             <FeatureModulesSection />
 
-            {/* About & Architecture Section (Merged from Giới Thiệu) */}
-            <section style={{ padding: '40px 24px 60px', maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 10 }}>
-              {/* Section Header */}
-              <div style={{ textAlign: 'center', marginBottom: 40 }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 20, background: 'var(--accent-glow)', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: 13, fontWeight: 700, marginBottom: 20 }}>
-                  <Sparkles size={16} />
-                  <span>{language === 'en' ? 'About EIGU Platform' : 'Về Chúng Tôi'}</span>
-                </div>
-                <h2 style={{ fontSize: 'min(2.75rem, 7vw)', fontWeight: 900, marginBottom: 18, color: 'var(--text-primary)', lineHeight: 1.2 }}>
-                  {language === 'en' ? 'About EIGU Platform' : 'Giới Thiệu Về EIGU Platform'}
-                </h2>
-                <p style={{ fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.8, maxWidth: 840, margin: '0 auto', fontWeight: 500 }}>
-                  {language === 'en'
-                    ? 'EIGU Platform is a comprehensive SaaS solution purpose-built for MMO creators, video reuploaders, and short-form content publishers in Europe, US, and Asia. EIGU has evolved into a 6-module synchronized platform — from clipping and AI generation to anti-detect copyright shield and niche discovery.'
-                    : 'EIGU Platform là giải pháp toàn diện, được xây dựng dành riêng cho cộng đồng làm MMO, Reup và Sáng tạo nội dung video ngắn tại thị trường Châu Âu, Mỹ và Châu Á. Từ một công cụ tự động hoá đơn lẻ, EIGU đã phát triển thành nền tảng 6 mô-đun hoạt động đồng bộ — từ cắt dựng, tạo video AI, đến chống gậy bản quyền và khai thác ngách thị trường — giúp người sáng tạo tiết kiệm hàng giờ mỗi ngày.'}
-                </p>
-              </div>
-
-              {/* Mission Card */}
-              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '28px 32px', marginBottom: 40, boxShadow: '0 12px 32px rgba(0,0,0,0.2)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, width: 4, height: '100%', background: 'var(--accent)' }} />
-                <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Sparkles size={20} style={{ color: 'var(--accent)' }} />
-                  <span>{language === 'en' ? 'Our Mission' : 'Sứ Mệnh'}</span>
-                </h3>
-                <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0, fontWeight: 500 }}>
-                  {language === 'en'
-                    ? 'Automating repetitive, time-consuming tasks in content production so users can focus on what matters most: creativity and channel scaling.'
-                    : 'Tự động hoá những công việc lặp lại, tốn thời gian nhất trong quy trình sản xuất nội dung, để người dùng tập trung vào điều quan trọng hơn: sáng tạo và mở rộng quy mô kênh.'}
-                </p>
-              </div>
-
-              {/* Architecture Breakthroughs */}
-              <div style={{ marginBottom: 44 }}>
-                <h3 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 24, textAlign: 'center' }}>
-                  {language === 'en' ? 'Breakthrough Architecture' : 'Kiến Trúc Đột Phá'}
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-                  {/* Engine Card 1 */}
-                  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 26, transition: 'all 0.25s' }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                      <Zap size={22} />
-                    </div>
-                    <h4 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>
-                      Desktop Heavy Worker Engine
-                    </h4>
-                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
-                      {language === 'en'
-                        ? 'Hardware-accelerated FFmpeg GPU rendering right on your workstation — zero server dependence, zero queue limits.'
-                        : 'Xử lý render FFmpeg GPU tận dụng phần cứng, mượt mà ngay trên máy trạm của bạn — không phụ thuộc server, không giới hạn hàng chờ.'}
-                    </p>
-                  </div>
-
-                  {/* Engine Card 2 */}
-                  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 26, transition: 'all 0.25s' }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                      <Shield size={22} />
-                    </div>
-                    <h4 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>
-                      Puppeteer Anti-Detect Stealth
-                    </h4>
-                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
-                      {language === 'en'
-                        ? 'Browser fingerprint spoofing, SOCKS5 proxy rotation to bypass detection and mitigate copyright risks across multi-account ops.'
-                        : 'Giả lập vân tay trình duyệt, xoay vòng Proxy SOCKS5, giúp né tránh phát hiện và hạn chế rủi ro bản quyền khi vận hành đa tài khoản.'}
-                    </p>
-                  </div>
-
-                  {/* Engine Card 3 */}
-                  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 26, transition: 'all 0.25s' }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                      <Globe size={22} />
-                    </div>
-                    <h4 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>
-                      Supabase & NestJS Cloud Gateway
-                    </h4>
-                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
-                      {language === 'en'
-                        ? 'Real-time data sync, telemetry tracking, and dynamic pricing management — Desktop App and Website stay in sync instantly.'
-                        : 'Đồng bộ dữ liệu thời gian thực, quản lý telemetry và bảng giá linh hoạt — Desktop App và Website luôn khớp dữ liệu tức thì.'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Key Metrics Numbers */}
-              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '32px 24px', textAlign: 'center' }}>
-                <h3 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 24 }}>
-                  {language === 'en' ? 'Impressive Metrics' : 'Con Số Ấn Tượng'}
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
-                  <div>
-                    <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>
-                      {language === 'en' ? '6 Modules' : '6 Mô-đun'}
-                    </div>
-                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>
-                      {language === 'en' ? 'Specialized tools operating independently' : 'Công cụ chuyên sâu hoạt động độc lập'}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>100,000+</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>
-                      {language === 'en' ? 'Users who trust & choose us' : 'Người dùng tin tưởng lựa chọn'}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>24/7</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>
-                      {language === 'en' ? 'Support for Team & Enterprise plans' : 'Hỗ trợ dành cho gói Team & Enterprise'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
             {/* Testimonial Section - 3 Compact Marquee Columns with Top & Bottom Fade Mask */}
             <section style={{ padding: '30px 24px 70px', maxWidth: 1240, margin: '0 auto' }}>
               <h2 style={{ fontSize: 'min(2.25rem, 6vw)', fontWeight: 800, textAlign: 'center', marginBottom: 36, color: 'var(--text-primary)' }}>
@@ -971,6 +852,123 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
               </div>
             </section>
           </div>
+        )}
+
+        {/* ==================== ABOUT PAGE (/about) ==================== */}
+        {activePath === '/about' && (
+          <section style={{ padding: '0 24px 80px', maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+            {/* Section Header */}
+            <div style={{ textAlign: 'center', marginBottom: 40 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 20, background: 'var(--accent-glow)', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: 13, fontWeight: 700, marginBottom: 20 }}>
+                <Sparkles size={16} />
+                <span>{language === 'en' ? 'About EIGU Platform' : 'Về Chúng Tôi'}</span>
+              </div>
+              <h1 style={{ fontSize: 'min(2.75rem, 7vw)', fontWeight: 900, marginBottom: 18, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                {language === 'en' ? 'About EIGU Platform' : 'Giới Thiệu Về EIGU Platform'}
+              </h1>
+              <p style={{ fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.8, maxWidth: 840, margin: '0 auto', fontWeight: 500 }}>
+                {language === 'en'
+                  ? 'EIGU Platform is a comprehensive SaaS solution purpose-built for MMO creators, video reuploaders, and short-form content publishers in Europe, US, and Asia. EIGU has evolved into a 6-module synchronized platform — from clipping and AI generation to anti-detect copyright shield and niche discovery.'
+                  : 'EIGU Platform là giải pháp toàn diện, được xây dựng dành riêng cho cộng đồng làm MMO, Reup và Sáng tạo nội dung video ngắn tại thị trường Châu Âu, Mỹ và Châu Á. Từ một công cụ tự động hoá đơn lẻ, EIGU đã phát triển thành nền tảng 6 mô-đun hoạt động đồng bộ — từ cắt dựng, tạo video AI, đến chống gậy bản quyền và khai thác ngách thị trường — giúp người sáng tạo tiết kiệm hàng giờ mỗi ngày.'}
+              </p>
+            </div>
+
+            {/* Mission Card */}
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '28px 32px', marginBottom: 40, boxShadow: '0 12px 32px rgba(0,0,0,0.2)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: 4, height: '100%', background: 'var(--accent)' }} />
+              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Sparkles size={20} style={{ color: 'var(--accent)' }} />
+                <span>{language === 'en' ? 'Our Mission' : 'Sứ Mệnh'}</span>
+              </h3>
+              <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0, fontWeight: 500 }}>
+                {language === 'en'
+                  ? 'Automating repetitive, time-consuming tasks in content production so users can focus on what matters most: creativity and channel scaling.'
+                  : 'Tự động hoá những công việc lặp lại, tốn thời gian nhất trong quy trình sản xuất nội dung, để người dùng tập trung vào điều quan trọng hơn: sáng tạo và mở rộng quy mô kênh.'}
+              </p>
+            </div>
+
+            {/* Architecture Breakthroughs */}
+            <div style={{ marginBottom: 44 }}>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 24, textAlign: 'center' }}>
+                {language === 'en' ? 'Breakthrough Architecture' : 'Kiến Trúc Đột Phá'}
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+                {/* Engine Card 1 */}
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 26, transition: 'all 0.25s' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+                    <Zap size={22} />
+                  </div>
+                  <h4 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>
+                    Desktop Heavy Worker Engine
+                  </h4>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
+                    {language === 'en'
+                      ? 'Hardware-accelerated FFmpeg GPU rendering right on your workstation — zero server dependence, zero queue limits.'
+                      : 'Xử lý render FFmpeg GPU tận dụng phần cứng, mượt mà ngay trên máy trạm của bạn — không phụ thuộc server, không giới hạn hàng chờ.'}
+                  </p>
+                </div>
+
+                {/* Engine Card 2 */}
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 26, transition: 'all 0.25s' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+                    <Shield size={22} />
+                  </div>
+                  <h4 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>
+                    Puppeteer Anti-Detect Stealth
+                  </h4>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
+                    {language === 'en'
+                      ? 'Browser fingerprint spoofing, SOCKS5 proxy rotation to bypass detection and mitigate copyright risks across multi-account ops.'
+                      : 'Giả lập vân tay trình duyệt, xoay vòng Proxy SOCKS5, giúp né tránh phát hiện và hạn chế rủi ro bản quyền khi vận hành đa tài khoản.'}
+                  </p>
+                </div>
+
+                {/* Engine Card 3 */}
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 26, transition: 'all 0.25s' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+                    <Globe size={22} />
+                  </div>
+                  <h4 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>
+                    Supabase & NestJS Cloud Gateway
+                  </h4>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
+                    {language === 'en'
+                      ? 'Real-time data sync, telemetry tracking, and dynamic pricing management — Desktop App and Website stay in sync instantly.'
+                      : 'Đồng bộ dữ liệu thời gian thực, quản lý telemetry và bảng giá linh hoạt — Desktop App và Website luôn khớp dữ liệu tức thì.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Metrics Numbers */}
+            <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '32px 24px', textAlign: 'center' }}>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 24 }}>
+                {language === 'en' ? 'Impressive Metrics' : 'Con Số Ấn Tượng'}
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
+                <div>
+                  <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>
+                    {language === 'en' ? '6 Modules' : '6 Mô-đun'}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {language === 'en' ? 'Specialized tools operating independently' : 'Công cụ chuyên sâu hoạt động độc lập'}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>100,000+</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {language === 'en' ? 'Users who trust & choose us' : 'Người dùng tin tưởng lựa chọn'}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--accent)', marginBottom: 6 }}>24/7</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {language === 'en' ? 'Support for Team & Enterprise plans' : 'Hỗ trợ dành cho gói Team & Enterprise'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         )}
 
         {/* ==================== 2. PUBLIC PRICING PAGE (/pricing) ==================== */}

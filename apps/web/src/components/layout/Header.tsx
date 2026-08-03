@@ -20,6 +20,7 @@ interface HeaderProps {
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
   '/': <Home size={16} />,
+  '/about': <Info size={16} />,
   '/pricing': <CreditCard size={16} />,
   '/news': <Newspaper size={16} />,
   '/faq': <HelpCircle size={16} />,
@@ -64,6 +65,7 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
 
   const navItems = [
     { path: '/', label: t('nav_home') },
+    { path: '/about', label: t('nav_about') },
     { path: '/pricing', label: t('nav_pricing') },
     { path: '/news', label: t('nav_news') },
     { path: '/faq', label: t('nav_faq') },
