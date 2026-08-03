@@ -36,14 +36,15 @@
     "shortcutName": "EIGU Platform"
   },
   "mac": {
+    "identity": null,
     "target": [
       {
         "target": "dmg",
-        "arch": ["x64", "arm64"]
+        "arch": ["arm64", "x64"]
       },
       {
         "target": "zip",
-        "arch": ["x64", "arm64"]
+        "arch": ["arm64", "x64"]
       }
     ],
     "artifactName": "EIGU-Platform-${version}-${arch}.${ext}",
