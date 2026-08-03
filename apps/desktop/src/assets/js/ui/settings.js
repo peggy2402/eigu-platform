@@ -1339,7 +1339,7 @@ async function loadAdminDashboardData() {
         activityContainer.innerHTML = '<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Chưa có nhật ký hoạt động nào ghi nhận.</div>';
       }
 
-      showToast('Dashboard Admin', 'Đã tải dữ liệu chỉ số thực tế từ Database Supabase!', 'success');
+      // showToast('Dashboard Admin', 'Đã tải dữ liệu chỉ số thực tế từ Database Supabase!', 'success');
     }
   } catch (e) {
     console.warn('Load Admin Dashboard data error:', e);
@@ -1379,7 +1379,7 @@ async function loadAnalyticsReportsData() {
         moduleBreakdownEl.innerHTML = '<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Chưa có dữ liệu phân bổ phân hệ.</div>';
       }
 
-      showToast('Báo cáo Thống kê', 'Đã tải dữ liệu phân tích thực tế từ Database Supabase!', 'success');
+      // showToast('Báo cáo Thống kê', 'Đã tải dữ liệu phân tích thực tế từ Database Supabase!', 'success');
     }
   } catch (e) {
     console.warn('Load Analytics Reports data error:', e);
