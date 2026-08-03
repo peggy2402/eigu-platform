@@ -143,7 +143,7 @@ export default function UserDropdown({ onOpenSettings, onOpenFeedback, onOpenDep
               }}
               className="dropdown-item"
             >
-              <History size={14} /> Lịch sử giao dịch
+              <History size={14} /> {t('user_history')}
             </button>
 
             <button
@@ -164,7 +164,7 @@ export default function UserDropdown({ onOpenSettings, onOpenFeedback, onOpenDep
               }}
               className="dropdown-item"
             >
-              <Link size={14} /> Tiếp thị liên kết
+              <Link size={14} /> {t('user_affiliate')}
             </button>
 
             <button
@@ -185,7 +185,7 @@ export default function UserDropdown({ onOpenSettings, onOpenFeedback, onOpenDep
               }}
               className="dropdown-item"
             >
-              <BookOpen size={14} /> Hướng dẫn sử dụng
+              <BookOpen size={14} /> {t('user_guide')}
             </button>
 
             <button
@@ -206,7 +206,7 @@ export default function UserDropdown({ onOpenSettings, onOpenFeedback, onOpenDep
               }}
               className="dropdown-item"
             >
-              <History size={14} /> Nhật ký hoạt động
+              <History size={14} /> {t('user_logs')}
             </button>
 
             <button

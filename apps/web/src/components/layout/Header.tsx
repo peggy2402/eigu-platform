@@ -271,22 +271,22 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
             {!loading && token && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
                 <button onClick={() => handleNav('/transactions')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
-                  <History size={14} style={{ color: 'var(--accent)' }} /> Lịch sử
+                  <History size={14} style={{ color: 'var(--accent)' }} /> {t('user_history')}
                 </button>
                 <button onClick={() => handleNav('/affiliate')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
-                  <LinkIcon size={14} style={{ color: 'var(--accent)' }} /> Affiliate
+                  <LinkIcon size={14} style={{ color: 'var(--accent)' }} /> {t('user_affiliate')}
                 </button>
                 <button onClick={() => handleNav('/guide')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
-                  <BookOpen size={14} style={{ color: 'var(--accent)' }} /> Hướng dẫn
+                  <BookOpen size={14} style={{ color: 'var(--accent)' }} /> {t('user_guide')}
                 </button>
                 <button onClick={() => handleNav('/audit-log')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
-                  <History size={14} style={{ color: 'var(--accent)' }} /> Nhật ký
+                  <History size={14} style={{ color: 'var(--accent)' }} /> {t('user_logs')}
                 </button>
                 <button onClick={() => { setMobileOpen(false); onOpenSettings(); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
-                  <Settings size={14} style={{ color: 'var(--text-secondary)' }} /> Cài đặt
+                  <Settings size={14} style={{ color: 'var(--text-secondary)' }} /> {t('user_settings')}
                 </button>
                 <button onClick={() => { setMobileOpen(false); onOpenFeedback(); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
-                  <Bug size={14} style={{ color: 'var(--text-secondary)' }} /> Góp ý
+                  <Bug size={14} style={{ color: 'var(--text-secondary)' }} /> {t('user_feedback')}
                 </button>
               </div>
             )}
