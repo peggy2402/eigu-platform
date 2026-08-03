@@ -487,7 +487,10 @@ export class PricingService {
    * Lấy danh sách các gói dịch vụ active hiện tại của User theo từng module
    */
   async getUserSubscriptions(userId: string) {
-    const subs = await (this.prisma as any).userSubscription.findMany({
+    const delegate = (this.prisma as any).userSubscription || (this.prisma as any).UserSubscription;
+    if (!delegate) return [];
+
+    const subs = await delegate.findMany({
       where: { userId, status: 'ACTIVE' },
       include: {
         module: { select: { id: true, slug: true, name: true } },
@@ -517,7 +520,10 @@ export class PricingService {
    * Admin: Lấy danh sách đăng ký gói cước dịch vụ của toàn bộ User trên hệ thống
    */
   async getAllUserSubscriptionsAdmin() {
-    const subs = await (this.prisma as any).userSubscription.findMany({
+    const delegate = (this.prisma as any).userSubscription || (this.prisma as any).UserSubscription;
+    if (!delegate) return [];
+
+    const subs = await delegate.findMany({
       include: {
         user: { select: { id: true, email: true, username: true, balance: true } },
         module: { select: { id: true, slug: true, name: true } },
@@ -583,10 +589,11 @@ export class PricingService {
     const targetModuleId = tier.moduleId || moduleId;
 
     // Kiểm tra xem User đã có gói cước active nào thuộc mô-đun này chưa
-    const existingSub = await (this.prisma as any).userSubscription.findFirst({
+    const delegate = (this.prisma as any).userSubscription || (this.prisma as any).UserSubscription;
+    const existingSub = delegate ? await delegate.findFirst({
       where: { userId, moduleId: targetModuleId, status: 'ACTIVE' },
       include: { tier: true },
-    });
+    }) : null;
 
     let payableAmount = Number(tier.price);
     let isUpgrade = false;
@@ -634,13 +641,15 @@ export class PricingService {
       }
 
       // 2. Tạo hoặc Cập nhật UserSubscription
-      subscriptionRecord = await (db as any).userSubscription.upsert({
-        where: {
-          userId_moduleId: {
-            userId,
-            moduleId,
+      const txDelegate = (db as any).userSubscription || (db as any).UserSubscription;
+      if (txDelegate) {
+        subscriptionRecord = await txDelegate.upsert({
+          where: {
+            userId_moduleId: {
+              userId,
+              moduleId: targetModuleId,
+            },
           },
-        },
         create: {
           userId,
           moduleId,
@@ -660,6 +669,7 @@ export class PricingService {
           resolution: tier.resolution,
         },
       });
+      }
 
       // 3. Ghi log
       await db.auditLog.create({
