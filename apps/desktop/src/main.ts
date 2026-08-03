@@ -1,9 +1,12 @@
-import { config } from 'dotenv';
-import { resolve } from 'path';
-
-// Load environment variables from apps/api/.env and workspace root .env
-config({ path: resolve(process.cwd(), 'apps/api/.env') });
-config({ path: resolve(process.cwd(), '.env') });
+// Safely load environment variables from apps/api/.env and workspace root .env
+try {
+  const dotenv = require('dotenv');
+  const path = require('path');
+  dotenv.config({ path: path.resolve(process.cwd(), 'apps/api/.env') });
+  dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+} catch (e) {
+  // Silent fallback in production bundled environment
+}
 
 import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import * as path from 'path';
