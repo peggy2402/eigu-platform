@@ -26,6 +26,9 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          YOUTUBE_DL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm ci
 
       - name: Build Nx Desktop Application
