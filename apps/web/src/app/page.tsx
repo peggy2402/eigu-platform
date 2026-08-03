@@ -283,7 +283,7 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
   const [pricingError, setPricingError] = useState<string | null>(null);
 
   // Selected Checkout State
-  const [selectedCheckout, setSelectedCheckout] = useState<{ tier: PricingTierDto; moduleSlug: string } | null>(null);
+  const [selectedCheckout, setSelectedCheckout] = useState<{ tier: PricingTierDto; moduleSlug: string; moduleId?: string; moduleName?: string } | null>(null);
 
   // FAQ Accordion & SubTab State
   const [openFaqId, setOpenFaqId] = useState<number | null>(null);
@@ -414,7 +414,13 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
   };
 
   const handleSelectTier = (tier: PricingTierDto, moduleSlug: string) => {
-    setSelectedCheckout({ tier, moduleSlug });
+    const modInfo = pricingModules.find(m => m.slug === moduleSlug);
+    setSelectedCheckout({
+      tier,
+      moduleSlug,
+      moduleId: modInfo?.id,
+      moduleName: modInfo?.name,
+    });
     setActivePath('/checkout');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
