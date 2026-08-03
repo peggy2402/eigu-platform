@@ -8,8 +8,8 @@ on:
       - 'v*'
 
 jobs:
-  release:
-    name: Build & Release Desktop (${{ matrix.os }})
+  build:
+    name: Build Desktop Artifacts (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -35,8 +35,41 @@ jobs:
       - name: Build Nx Desktop Application
         run: npx nx build desktop
 
-      - name: Build & Publish Electron App (electron-builder)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Package Electron App (${{ matrix.os }})
         run: |
-          npx electron-builder --config apps/desktop/electron-builder.json --publish always
+          npx electron-builder --config apps/desktop/electron-builder.json --publish never
+
+      - name: Upload Installer Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-artifacts-${{ matrix.os }}
+          path: dist/packages/desktop-installer/*
+          retention-days: 1
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-artifacts-windows-latest
+          path: release-files
+
+      - name: Download macOS Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-artifacts-macos-latest
+          path: release-files
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-files/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
