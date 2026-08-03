@@ -143,7 +143,8 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
     // showToast(language === 'en' ? 'Verifying and activating subscription...' : 'Đang kiểm tra và kích hoạt gói cước...', 'info');
 
     try {
-      const res = await pricingApi.subscribe(tier.id.startsWith('mod-') ? tier.id : (selectedCheckout.moduleId || tier.id), tier.id);
+      const targetModuleId = selectedCheckout.moduleId || (tier as any).moduleId || selectedCheckout.moduleSlug || tier.id;
+      const res = await pricingApi.subscribe(targetModuleId, tier.id);
       if (res && (res.success || res.newBalance !== undefined)) {
         if (pollTimerRef.current) clearInterval(pollTimerRef.current);
         if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
@@ -159,7 +160,7 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
     } catch (err: any) {
       console.error('[VerifySubscribe] Error:', err);
       const msg = err.message || String(err);
-      if (msg.includes('Số dư không đủ')) {
+      if (msg.includes('Số dư không đủ') || msg.includes('nạp thêm tiền') || msg.includes('Cần thanh toán')) {
         showToast(language === 'en' ? 'Payment not received yet. Please scan QR to complete!' : 'Hệ thống chưa nhận được đủ tiền nạp. Vui lòng quét mã QR để hoàn tất!', 'warning');
       } else {
         showToast(msg, 'error');

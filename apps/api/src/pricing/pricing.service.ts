@@ -556,16 +556,35 @@ export class PricingService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Không tìm thấy tài khoản người dùng');
 
-    const tier = await this.prisma.pricingTier.findFirst({
-      where: { id: tierId, moduleId, isActive: true },
+    // Tự động tìm Tier theo tierId & moduleId (hoặc module slug)
+    let tier = await this.prisma.pricingTier.findFirst({
+      where: {
+        id: tierId,
+        isActive: true,
+        OR: [
+          { moduleId: moduleId },
+          { module: { id: moduleId } },
+          { module: { slug: moduleId } },
+        ],
+      },
       include: { module: true },
     });
 
+    // Fallback: Tìm theo tierId nếu truyền nhầm moduleId
+    if (!tier) {
+      tier = await this.prisma.pricingTier.findFirst({
+        where: { id: tierId, isActive: true },
+        include: { module: true },
+      });
+    }
+
     if (!tier) throw new NotFoundException('Gói cước không tồn tại hoặc đã bị ẩn');
+
+    const targetModuleId = tier.moduleId || moduleId;
 
     // Kiểm tra xem User đã có gói cước active nào thuộc mô-đun này chưa
     const existingSub = await (this.prisma as any).userSubscription.findFirst({
-      where: { userId, moduleId, status: 'ACTIVE' },
+      where: { userId, moduleId: targetModuleId, status: 'ACTIVE' },
       include: { tier: true },
     });
 
