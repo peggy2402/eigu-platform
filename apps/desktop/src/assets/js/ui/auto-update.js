@@ -1,24 +1,44 @@
 // Auto Update Management Logic (VS Code style)
 
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = '1.0.1';
 let latestVersionInfo = null;
 
-function checkForUpdates() {
+async function checkForUpdates() {
   const btn = document.getElementById('update-badge-btn');
-  
-  // Giả lập kiểm tra bản cập nhật mới từ server
-  setTimeout(() => {
-    // Giả định có bản v1.1.0 mới hơn v1.0.0
+
+  try {
+    const res = await fetch('https://api.github.com/repos/peggy2402/eigu-platform/releases/latest', {
+      headers: { 'Accept': 'application/vnd.github.v3+json' },
+    });
+
+    if (!res.ok) {
+      if (btn) btn.classList.add('hidden');
+      return;
+    }
+
+    const data = await res.json();
+    if (!data || !data.tag_name) {
+      if (btn) btn.classList.add('hidden');
+      return;
+    }
+
+    const remoteVersion = data.tag_name.replace(/^v/, '');
+
     latestVersionInfo = {
-      version: '1.1.0',
-      url: 'https://github.com/eigu/eigu-platform/releases/latest',
-      releaseNotes: 'Phiên bản 1.1.0: Thêm tính năng Chat AI Support, Bể chứa API Key mã hóa và hệ thống thông báo realtime.'
+      version: remoteVersion,
+      url: data.html_url || 'https://github.com/peggy2402/eigu-platform/releases/latest',
+      releaseNotes: data.body || `Phiên bản mới v${remoteVersion} đã phát hành trên EIGU Platform.`,
     };
 
     if (btn && isNewerVersion(latestVersionInfo.version, CURRENT_VERSION)) {
       btn.classList.remove('hidden');
+    } else if (btn) {
+      btn.classList.add('hidden');
     }
-  }, 3000);
+  } catch (err) {
+    console.warn('[AutoUpdate] Check release failed:', err);
+    if (btn) btn.classList.add('hidden');
+  }
 }
 
 function isNewerVersion(newVer, oldVer) {
