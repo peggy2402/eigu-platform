@@ -5,7 +5,10 @@
   "scripts": {
     "postinstall": "prisma generate --schema=apps/api/prisma/schema.prisma",
     "build": "nx build web",
-    "vercel-build": "nx build web"
+    "vercel-build": "nx build web",
+    "build:desktop-win": "npx nx build desktop && npx electron-builder --config apps/desktop/electron-builder.json --win",
+    "build:desktop-mac": "npx nx build desktop && npx electron-builder --config apps/desktop/electron-builder.json --mac",
+    "build:desktop-all": "npx nx build desktop && npx electron-builder --config apps/desktop/electron-builder.json -w -m"
   },
   "allowScripts": {
     "@parcel/watcher": true,

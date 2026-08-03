@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.eigu.platform.desktop",
+  "productName": "EIGU Desktop Engine",
+  "copyright": "Copyright © 2026 EIGU Platform",
+  "directories": {
+    "output": "../../dist/packages/desktop-installer",
+    "app": "../../dist/apps/desktop"
+  },
+  "files": [
+    "**/*"
+  ],
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "peggy2402",
+      "repo": "eigu-platform"
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "src/assets/img/icon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "EIGU Platform"
+  },
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "zip",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "category": "public.app-category.utilities",
+    "icon": "src/assets/img/icon.icns"
+  }
+}
