@@ -4,8 +4,8 @@
   "productName": "EIGU Desktop Engine",
   "copyright": "Copyright © 2026 EIGU Platform",
   "directories": {
-    "output": "../../dist/packages/desktop-installer",
-    "app": "../../dist/apps/desktop"
+    "output": "dist/packages/desktop-installer",
+    "app": "dist/apps/desktop"
   },
   "files": [
     "**/*"
