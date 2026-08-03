@@ -22,7 +22,8 @@ async function loadAdminThemeEventData() {
   container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Đang tải cấu hình Giao diện & Sự kiện...</div>';
 
   try {
-    const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+    // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+    const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
     const res = await fetch(`${baseUrl}/theme-event`);
     const data = await res.json();
 
@@ -282,7 +283,8 @@ async function handleSaveThemeEvent(e) {
     bgImageUrl,
   };
 
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
 
   try {
     const res = await fetch(`${baseUrl}/theme-event`, {

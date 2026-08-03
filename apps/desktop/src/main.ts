@@ -19,6 +19,28 @@ import { AIVideoPipeline } from './ai-video-pipeline';
 import { ApiKeyStore } from './api-key-store';
 import * as fs from 'fs';
 
+// Bắt và log Unhandled Rejection / Exception để tránh crash app
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️ Unhandled Promise Rejection:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('⚠️ Uncaught Exception:', error);
+});
+
+// Helper lấy đường dẫn asset chuẩn cho cả Dev (Nx serve) lẫn Production (app.asar)
+function getAssetPath(...relativePaths: string[]): string {
+  const prodPath = path.join(__dirname, 'assets', ...relativePaths);
+  if (fs.existsSync(prodPath)) {
+    return prodPath;
+  }
+  const devPath = path.resolve(process.cwd(), 'apps/desktop/src/assets', ...relativePaths);
+  if (fs.existsSync(devPath)) {
+    return devPath;
+  }
+  return prodPath;
+}
+
 // Đổi tên Desktop App thành EIGU Platform thay vì "Electron" mặc định
 app.setName('EIGU Platform');
 
@@ -59,7 +81,8 @@ let mainWindow: BrowserWindow | null = null;
 let socket: Socket;
 
 function createWindow() {
-  mainWindow = new BrowserWindow({
+  const iconPath = getAssetPath('img', 'logo.png');
+  const windowOptions: Electron.BrowserWindowConstructorOptions = {
     width: 860,
     height: 660,
     minWidth: 860,
@@ -76,15 +99,26 @@ function createWindow() {
     },
     titleBarStyle: 'hiddenInset',
     backgroundColor: '#0f172a',
-    icon: path.resolve(process.cwd(), 'apps/desktop/src/assets/img/logo.png')
-  });
+  };
+
+  if (fs.existsSync(iconPath)) {
+    windowOptions.icon = iconPath;
+  }
+
+  mainWindow = new BrowserWindow(windowOptions);
 
   // Ẩn Menu bar mặc định (File, Edit, View, Window) trên Windows/Linux
   mainWindow.setMenu(null);
 
-  // Tải file HTML giao diện của Desktop App trực tiếp từ mã nguồn
-  const htmlPath = path.resolve(process.cwd(), 'apps/desktop/src/assets/index.html');
-  mainWindow.loadFile(htmlPath);
+  // Tải file HTML giao diện của Desktop App
+  const htmlPath = getAssetPath('index.html');
+  if (fs.existsSync(htmlPath)) {
+    mainWindow.loadFile(htmlPath).catch((err) => {
+      console.error('⚠️ Lỗi khi loadFile index.html:', err);
+    });
+  } else {
+    console.error('⚠️ Không tìm thấy file index.html tại:', htmlPath);
+  }
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -108,15 +142,23 @@ function createWindow() {
 
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
-  if (process.platform === 'darwin') {
-    app.dock.setIcon(path.resolve(process.cwd(), 'apps/desktop/src/assets/img/logo.png'));
+  if (process.platform === 'darwin' && app.dock) {
+    try {
+      const dockIconPath = getAssetPath('img', 'logo.png');
+      if (fs.existsSync(dockIconPath)) {
+        app.dock.setIcon(dockIconPath);
+      }
+    } catch (err) {
+      console.warn('⚠️ Lỗi khi đặt icon Dock macOS:', err);
+    }
   }
   createWindow();
 
   console.log('🚀 Khởi động EIGU Desktop Engine...');
 
   // Kết nối đến NestJS API
-  const socket = io('http://localhost:3001/workflow');
+  // const socket = io('http://localhost:3001/workflow');
+  const socket = io('https://eigu-api.onrender.com/workflow');
 
   socket.on('connect', () => {
     console.log('✅ Đã kết nối tới API Gateway');
@@ -134,7 +176,8 @@ app.whenReady().then(() => {
     rawUrl = rawUrl.replace(/\/$/, '');
 
     let baseHost = rawUrl.replace(/\/api\/.*$/, '').replace(/\/api$/, '');
-    if (!baseHost) baseHost = `http://localhost:${port}`;
+    // if (!baseHost) baseHost = `http://localhost:${port}`;
+    if (!baseHost) baseHost = `https://eigu-api.onrender.com`;
 
     return `${baseHost}/${prefix}`;
   }
@@ -143,7 +186,9 @@ app.whenReady().then(() => {
     const port = process.env.PORT || 3001;
     const apiPrefix = process.env.API_PREFIX || 'api';
     const apiUrl = resolveApiUrl();
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `http://localhost:${port}`;
+    // const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `http://localhost:${port}`;
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `https://eigu-api.onrender.com`;
+
     event.returnValue = { apiUrl, wsUrl, apiPrefix, port };
   });
 
@@ -151,7 +196,8 @@ app.whenReady().then(() => {
     const port = process.env.PORT || 3001;
     const apiPrefix = process.env.API_PREFIX || 'api';
     const apiUrl = resolveApiUrl();
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `http://localhost:${port}`;
+    // const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `http://localhost:${port}`;
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `https://eigu-api.onrender.com`;
     return { apiUrl, wsUrl, apiPrefix, port };
   });
 

@@ -7,7 +7,7 @@ import { UpdateObfuscationDto, RotateObfuscationDto, GenerateRandomDto, Rollback
 @ApiBearerAuth()
 @Controller('security')
 export class SecurityCenterController {
-  constructor(private readonly securityCenterService: SecurityCenterService) {}
+  constructor(private readonly securityCenterService: SecurityCenterService) { }
 
   @Get('obfuscation')
   @ApiOperation({ summary: 'Lấy trạng thái tổng quan hệ thống Security Center & Active Obfuscation Code' })
@@ -42,7 +42,8 @@ export class SecurityCenterController {
     const generated = this.securityCenterService.generateRandomCode(length);
     return {
       generatedCode: generated,
-      fullPreviewUrl: `http://localhost:3001/api/${generated}`,
+      // fullPreviewUrl: `http://localhost:3001/api/${generated}`,
+      fullPreviewUrl: `https://eigu-api.onrender.com/api/${generated}`,
     };
   }
 

@@ -4,9 +4,10 @@
 export const DEFAULT_API_PORT = 3001;
 export const DEFAULT_WEB_PORT = 3000;
 
-export const DEFAULT_API_BASE_URL = 'http://localhost:3001/api';
-export const DEFAULT_WEBSOCKET_URL = 'http://localhost:3001';
-
+// export const DEFAULT_API_BASE_URL = 'http://localhost:3001/api';
+// export const DEFAULT_WEBSOCKET_URL = 'http://localhost:3001';
+export const DEFAULT_API_BASE_URL = 'https://eigu-api.onrender.com/api';
+export const DEFAULT_WEBSOCKET_URL = 'https://eigu-api.onrender.com';
 /**
  * Lấy URL Gốc của API Server dựa theo Biến môi trường hoặc Cấu hình Cục bộ
  */
@@ -34,7 +35,8 @@ export function getApiBaseUrl(): string {
     rawUrl = rawUrl.replace(/\/$/, '');
 
     let baseHost = rawUrl.replace(/\/api\/.*$/, '').replace(/\/api$/, '');
-    if (!baseHost) baseHost = 'http://localhost:3001';
+    // if (!baseHost) baseHost = 'http://localhost:3001';
+    if (!baseHost) baseHost = 'https://eigu-api.onrender.com';
 
     return `${baseHost}/${prefix}`;
   }

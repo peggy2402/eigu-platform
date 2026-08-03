@@ -212,9 +212,11 @@ function updateApiRoutePreview() {
   let prefix = sanitized.trim();
   if (!prefix) prefix = 'v1';
 
-  const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
+  // const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
+  const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
   let baseHost = currentFullUrl.replace(/\/api\/.*$/, '').replace(/\/$/, '');
-  if (!baseHost) baseHost = 'http://localhost:3001';
+  // if (!baseHost) baseHost = 'http://localhost:3001';
+  if (!baseHost) baseHost = 'https://eigu-api.onrender.com';
 
   const fullServerUrl = `${baseHost}/api/${prefix}`;
   preview.textContent = fullServerUrl;
@@ -238,7 +240,8 @@ async function loadAdminApiConfig() {
   if (secureKeySection) secureKeySection.style.display = (isAdmin || isStaff) ? 'block' : 'none';
 
   if (input) {
-    const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
+    // const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
+    const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
     const match = currentFullUrl.match(/\/api\/(.+)$/);
     input.value = match ? match[1] : 'v1';
     updateApiRoutePreview();
@@ -376,9 +379,11 @@ async function saveAdminApiConfig() {
     return;
   }
 
-  const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
+  // const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
+  const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
   let baseHost = currentFullUrl.replace(/\/api\/.*$/, '').replace(/\/$/, '');
-  if (!baseHost) baseHost = 'http://localhost:3001';
+  // if (!baseHost) baseHost = 'http://localhost:3001';
+  if (!baseHost) baseHost = 'https://eigu-api.onrender.com';
 
   const fullApiPrefix = `api/${prefix}`;
   const fullServerUrl = `${baseHost}/${fullApiPrefix}`;

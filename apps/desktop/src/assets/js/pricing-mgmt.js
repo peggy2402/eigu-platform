@@ -241,7 +241,8 @@ async function loadAdminPricingData() {
 
   try {
     const token = localStorage.getItem('accessToken');
-    const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+    // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+    const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
 
     const res = await fetch(`${baseUrl}/pricing/admin`, {
       headers: {
@@ -481,7 +482,8 @@ async function handleSavePricingModule(e) {
   };
 
   const token = localStorage.getItem('accessToken');
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
 
   try {
     const url = id ? `${baseUrl}/pricing/modules/${id}` : `${baseUrl}/pricing/modules`;
@@ -523,7 +525,8 @@ async function deletePricingModule(modId, modName) {
   if (!confirm(`Bạn có chắc chắn muốn xóa Mô-đun "${modName}" và tất cả các gói liên quan?`)) return;
 
   const token = localStorage.getItem('accessToken');
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
 
   try {
     const res = await fetch(`${baseUrl}/pricing/modules/${modId}`, {
@@ -630,7 +633,7 @@ async function handleSavePricingTier(e) {
   const badgeId = document.getElementById('pt-badge-id').value || null;
   const isActive = document.getElementById('pt-is-active').checked;
   const sortOrder = parseInt(document.getElementById('pt-sort-order').value, 10) || 0;
-  
+
   const rawFeatures = document.getElementById('pt-features-text').value;
   const features = rawFeatures.split('\n').map(s => s.trim()).filter(Boolean);
 
@@ -713,7 +716,8 @@ async function handleSavePricingTier(e) {
   };
 
   const token = localStorage.getItem('accessToken');
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
 
   try {
     const url = id ? `${baseUrl}/pricing/tiers/${id}` : `${baseUrl}/pricing/tiers`;
@@ -753,7 +757,8 @@ async function deletePricingTier(tierId, tierLabel) {
   if (!confirm(`Bạn có chắc chắn muốn xóa Gói "${tierLabel}"?`)) return;
 
   const token = localStorage.getItem('accessToken');
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
 
   try {
     const res = await fetch(`${baseUrl}/pricing/tiers/${tierId}`, {
@@ -796,7 +801,8 @@ async function handleSavePricingBadge(e) {
   if (!code || !name) return alert('Vui lòng điền đầy đủ Mã Badge và Tên hiển thị');
 
   const token = localStorage.getItem('accessToken');
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
 
   try {
     const res = await fetch(`${baseUrl}/pricing/badges`, {
@@ -866,7 +872,7 @@ function filterAdminPricingModules() {
       const matchModName = (mod.name || '').toLowerCase().includes(q);
       const matchModSlug = (mod.slug || '').toLowerCase().includes(q);
       const matchModTagline = (mod.tagline || '').toLowerCase().includes(q);
-      const matchTiers = (mod.tiers || []).some(t => 
+      const matchTiers = (mod.tiers || []).some(t =>
         (t.label || '').toLowerCase().includes(q) ||
         (t.code || '').toLowerCase().includes(q) ||
         (t.tagline || '').toLowerCase().includes(q) ||

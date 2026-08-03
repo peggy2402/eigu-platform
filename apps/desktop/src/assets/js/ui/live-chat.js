@@ -18,7 +18,8 @@ function initChatWebSocket() {
 
   if (!chatSocket) {
     try {
-      const wsUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getWsUrl('/chat') : 'http://localhost:3001/chat';
+      // const wsUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getWsUrl('/chat') : 'http://localhost:3001/chat';
+      const wsUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getWsUrl('/chat') : 'https://eigu-api.onrender.com/chat';
       chatSocket = ioFunc(wsUrl, {
         transports: ['websocket', 'polling'],
         reconnection: true,
@@ -57,7 +58,8 @@ async function loadChatHistoryFromApi() {
   if (!email) return;
 
   try {
-    const apiUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getApiUrl(`/chat/history?userEmail=${encodeURIComponent(email)}`) : `http://localhost:3001/api/chat/history?userEmail=${encodeURIComponent(email)}`;
+    // const apiUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getApiUrl(`/chat/history?userEmail=${encodeURIComponent(email)}`) : `http://localhost:3001/api/chat/history?userEmail=${encodeURIComponent(email)}`;
+    const apiUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getApiUrl(`/chat/history?userEmail=${encodeURIComponent(email)}`) : `https://eigu-api.onrender.com/api/chat/history?userEmail=${encodeURIComponent(email)}`;
     const res = await fetch(apiUrl);
     if (!res.ok) return;
     const msgs = await res.json();
@@ -243,7 +245,7 @@ function getStoredChatSessions(emailOverride) {
   try {
     const key = getChatStorageKey(emailOverride);
     localStorage.setItem(key, JSON.stringify(initial));
-  } catch (e) {}
+  } catch (e) { }
 
   return initial;
 }
@@ -261,7 +263,7 @@ function saveStoredChatSessions(sessions, skipBroadcast = false, emailOverride) 
           const userKey = `eigu_chat_sessions_${usrEmail}`;
           const singleUserSession = { [usrEmail]: sessions[usrEmail] };
           localStorage.setItem(userKey, JSON.stringify(singleUserSession));
-        } catch (err) {}
+        } catch (err) { }
       });
     }
 
@@ -599,7 +601,7 @@ async function sendChatMessage() {
       if (raw) staffSessions = JSON.parse(raw);
       staffSessions[email] = session;
       localStorage.setItem(staffSharedKey, JSON.stringify(staffSessions));
-    } catch (e) {}
+    } catch (e) { }
     renderUserChatHistory();
     if (typeof addChatNotificationForStaff === 'function') {
       addChatNotificationForStaff(email, text);
@@ -658,7 +660,7 @@ function requestHumanSupport() {
     if (raw) staffSessions = JSON.parse(raw);
     staffSessions[email] = sessions[email];
     localStorage.setItem(staffSharedKey, JSON.stringify(staffSessions));
-  } catch (e) {}
+  } catch (e) { }
 
   renderUserChatHistory();
   showToast(t('toast_notification'), t('toast_chat_human_support_desc'), 'info');

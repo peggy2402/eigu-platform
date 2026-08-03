@@ -1,4 +1,5 @@
-const API_BASE = localStorage.getItem('eigu_api_url') || 'http://localhost:3001/api';
+// const API_BASE = localStorage.getItem('eigu_api_url') || 'http://localhost:3001/api';
+const API_BASE = localStorage.getItem('eigu_api_url') || 'https://eigu-api.onrender.com/api';
 
 function formatFriendlyErrorMessage(raw) {
   if (!raw) return 'Có lỗi xảy ra, vui lòng thử lại sau.';
@@ -37,8 +38,11 @@ async function syncObfuscationConfig() {
   if (isSyncingConfig) return;
   isSyncingConfig = true;
   try {
-    const rawBase = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'http://localhost:3001/api';
-    const origin = rawBase.split('/api')[0] || 'http://localhost:3001';
+    // const rawBase = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'http://localhost:3001/api';
+    // const origin = rawBase.split('/api')[0] || 'http://localhost:3001';
+    const rawBase = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'https://eigu-api.onrender.com/api';
+    const origin = rawBase.split('/api')[0] || 'https://eigu-api.onrender.com';
+
     const bootstrapUrl = `${origin}/api/system-config/bootstrap`;
 
     const res = await fetch(bootstrapUrl).then(r => r.json());
@@ -75,14 +79,15 @@ function addRefreshSubscriber(cb) {
 }
 
 async function silentRefreshSession() {
-  const storedRefreshToken = (typeof refreshToken !== 'undefined' && refreshToken) 
-    ? refreshToken 
+  const storedRefreshToken = (typeof refreshToken !== 'undefined' && refreshToken)
+    ? refreshToken
     : localStorage.getItem('refreshToken');
 
   if (!storedRefreshToken) return false;
 
   try {
-    const rawBase = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'http://localhost:3001/api';
+    // const rawBase = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'http://localhost:3001/api';
+    const rawBase = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'https://eigu-api.onrender.com/api';
     let refreshUrl = `${rawBase.replace(/\/$/, '')}/auth/refresh`;
     if (window.EIGU_CONFIG && typeof window.EIGU_CONFIG.getApiUrl === 'function') {
       refreshUrl = window.EIGU_CONFIG.getApiUrl('/auth/refresh');
@@ -130,7 +135,8 @@ async function apiFetch(path, options = {}, isRetry = false) {
   if (window.EIGU_CONFIG && typeof window.EIGU_CONFIG.getApiUrl === 'function') {
     fullUrl = window.EIGU_CONFIG.getApiUrl(path);
   } else {
-    const baseUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
+    // const baseUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
+    const baseUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
     const cleanBase = baseUrl.replace(/\/$/, '');
     const cleanPath = (path || '').replace(/^\//, '');
     fullUrl = `${cleanBase}/${cleanPath}`;
