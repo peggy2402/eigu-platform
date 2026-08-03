@@ -1,6 +1,6 @@
 // Auto Update Management Logic (VS Code style)
 
-const CURRENT_VERSION = '1.0.1';
+const CURRENT_VERSION = '1.0.2';
 let latestVersionInfo = null;
 
 async function checkForUpdates() {
