@@ -6,6 +6,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import ThemeToggle from './ThemeToggle';
 import UserDropdown from './UserDropdown';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Menu, X, Home, Info, CreditCard, Newspaper, HelpCircle, Mail, User, Wallet, Settings, Bug, LogOut, History, Link as LinkIcon, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -19,7 +20,6 @@ interface HeaderProps {
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
   '/': <Home size={16} />,
-  '/about': <Info size={16} />,
   '/pricing': <CreditCard size={16} />,
   '/news': <Newspaper size={16} />,
   '/faq': <HelpCircle size={16} />,
@@ -31,6 +31,11 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
   const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -59,7 +64,6 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
 
   const navItems = [
     { path: '/', label: t('nav_home') },
-    { path: '/about', label: t('nav_about') },
     { path: '/pricing', label: t('nav_pricing') },
     { path: '/news', label: t('nav_news') },
     { path: '/faq', label: t('nav_faq') },
@@ -203,24 +207,24 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
         </motion.header>
       </div>
 
-      {/* Mobile Nav Drawer */}
-      {mobileOpen && (
+      {/* Mobile Nav Drawer Portaled to document.body */}
+      {mobileOpen && mounted && createPortal(
         <div className="mobile-nav-overlay" onClick={() => setMobileOpen(false)}>
-          <div className="mobile-nav-drawer" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto', padding: 14 }}>
+          <div className="mobile-nav-drawer" onClick={e => e.stopPropagation()}>
             {/* Drawer Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderBottom: '1px solid var(--border-color)', paddingBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, borderBottom: '1px solid var(--border-color)', paddingBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <img src="/logo.png" alt="EIGU Logo" style={{ width: 24, height: 24, objectFit: 'contain', filter: 'drop-shadow(0 0 8px var(--accent))' }} />
-                <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>EIGU Platform</span>
+                <img src="/logo.png" alt="EIGU Logo" style={{ width: 26, height: 26, objectFit: 'contain', filter: 'drop-shadow(0 0 8px var(--accent))' }} />
+                <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>EIGU Platform</span>
               </div>
-              <button onClick={() => setMobileOpen(false)} className="mobile-close-btn" aria-label="Đóng menu" style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}>
+              <button onClick={() => setMobileOpen(false)} className="mobile-close-btn" aria-label="Đóng menu" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-color)', borderRadius: '50%', color: 'var(--text-secondary)', cursor: 'pointer', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={18} />
               </button>
             </div>
 
             {/* 1. TOP BLOCK: USER ACCOUNT CARD (If logged in) */}
             {!loading && token && (
-              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', padding: 12, marginBottom: 12 }}>
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', padding: 12, marginBottom: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--accent-glow)', border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
@@ -261,7 +265,7 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
 
             {/* 2. USER ACTIONS GRID (2-Column Compact Grid) */}
             {!loading && token && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
                 <button onClick={() => handleNav('/transactions')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
                   <History size={14} style={{ color: 'var(--accent)' }} /> Lịch sử
                 </button>
@@ -283,9 +287,9 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
               </div>
             )}
 
-            {/* 3. SITE NAVIGATION (3-Column Compact Grid) */}
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, paddingLeft: 2 }}>Điều hướng trang</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 12 }}>
+            {/* 3. SITE NAVIGATION (Vertical Stack Rows) */}
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, paddingLeft: 2 }}>Điều hướng trang</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
               {navItems.map(item => {
                 const isActive = activePath === item.path;
                 return (
@@ -293,19 +297,27 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
                     key={item.path}
                     onClick={() => handleNav(item.path)}
                     style={{
-                      padding: '8px 4px',
-                      borderRadius: 8,
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '12px 14px',
+                      borderRadius: 12,
                       border: '1px solid',
                       borderColor: isActive ? 'var(--accent)' : 'var(--border-color)',
-                      background: isActive ? 'var(--accent-glow)' : 'var(--bg-card)',
-                      color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                      fontSize: 12,
+                      background: isActive ? 'var(--accent-glow)' : 'rgba(255, 255, 255, 0.03)',
+                      color: isActive ? 'var(--accent)' : 'var(--text-primary)',
+                      fontSize: 14,
                       fontWeight: isActive ? 700 : 500,
                       cursor: 'pointer',
-                      textAlign: 'center',
+                      textAlign: 'left',
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    {item.label}
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, color: isActive ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                      {NAV_ICONS[item.path]}
+                    </span>
+                    <span style={{ flex: 1 }}>{item.label}</span>
                   </button>
                 );
               })}
@@ -321,34 +333,36 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 6,
-                  padding: '9px 12px',
-                  borderRadius: 8,
+                  padding: '12px',
+                  borderRadius: 12,
                   background: 'rgba(239, 68, 68, 0.1)',
                   border: '1px solid rgba(239, 68, 68, 0.2)',
                   color: 'var(--danger)',
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 700,
                   cursor: 'pointer',
+                  marginTop: 'auto',
                 }}
               >
-                <LogOut size={14} />
+                <LogOut size={16} />
                 <span>{t('user_logout')}</span>
               </button>
             )}
 
             {/* Auth Buttons if not logged in */}
             {!loading && !token && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
-                <button onClick={() => handleNav('/auth/login')} className="mobile-auth-login">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 'auto', paddingTop: 12, borderTop: '1px solid var(--border-color)' }}>
+                <button onClick={() => handleNav('/auth/login')} className="mobile-auth-login" style={{ width: '100%', padding: '12px', textAlign: 'center' }}>
                   {t('nav_login')}
                 </button>
-                <button onClick={() => handleNav('/auth/register')} className="mobile-auth-register">
+                <button onClick={() => handleNav('/auth/register')} className="mobile-auth-register" style={{ width: '100%', padding: '12px', textAlign: 'center' }}>
                   {t('nav_register')}
                 </button>
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

@@ -1862,10 +1862,10 @@ input[type="submit"]:active {
 .mobile-nav-overlay {
   position: fixed;
   inset: 0;
-  z-index: 99998;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  z-index: 999999 !important;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   animation: fadeInOverlay 0.2s ease;
 }
 
@@ -1877,21 +1877,26 @@ input[type="submit"]:active {
 .mobile-nav-drawer {
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
-  z-index: 99999;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-color);
-  border-radius: 0 0 24px 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  padding-bottom: 24px;
-  animation: slideDownDrawer 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
+  bottom: 0;
+  width: 70%;
+  max-width: 340px;
+  z-index: 9999999 !important;
+  background: rgba(20, 20, 25, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-left: 1px solid var(--border-color);
+  box-shadow: -15px 0 45px rgba(0, 0, 0, 0.8);
+  padding: 16px;
+  animation: slideRightDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes slideDownDrawer {
-  from { transform: translateY(-100%); opacity: 0; }
-  to   { transform: translateY(0);     opacity: 1; }
+@keyframes slideRightDrawer {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
 }
 
 .mobile-drawer-header {

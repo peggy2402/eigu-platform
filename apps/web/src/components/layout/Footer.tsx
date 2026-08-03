@@ -41,7 +41,6 @@ export default function Footer({ onNavigate }: FooterProps) {
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
             <li className="footer-link" onClick={() => onNavigate('/pricing')}>{t('footer_module_pricing')}</li>
             <li className="footer-link" onClick={() => onNavigate('/')}>{t('footer_auto_feat')}</li>
-            <li className="footer-link" onClick={() => onNavigate('/about')}>{t('footer_about_us')}</li>
           </ul>
         </div>
 
