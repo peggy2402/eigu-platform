@@ -35,6 +35,9 @@ jobs:
       - name: Build Nx Desktop Application
         run: npx nx build desktop
 
+      - name: Make pkg postinstall script executable
+        run: chmod +x apps/desktop/build/pkg-scripts/postinstall
+
       - name: Package Electron App (${{ matrix.os }})
         run: |
           npx electron-builder --config apps/desktop/electron-builder.json --publish never
