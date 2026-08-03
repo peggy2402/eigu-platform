@@ -89,8 +89,9 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
         >
           {/* Brand Logo & Title */}
           <motion.div
+            className="header-brand-wrapper"
             onClick={() => handleNav('/')}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', flexShrink: 0 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
@@ -102,10 +103,11 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
                 width: 32,
                 height: 32,
                 objectFit: 'contain',
+                flexShrink: 0,
                 filter: 'drop-shadow(0 0 10px var(--accent, rgba(245, 158, 11, 0.6)))',
               }}
             />
-            <span className="header-brand-title" style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
+            <span className="header-brand-title" style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
               EIGU Platform
             </span>
           </motion.div>

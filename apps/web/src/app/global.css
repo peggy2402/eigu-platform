@@ -2395,7 +2395,7 @@ input[type="submit"]:active {
   }
 }
 
-/* Mobile Floating Navbar Scale Adjustment (+4% to +5% Total Width & Elements Scale) */
+/* Mobile Floating Navbar Scale Adjustment & Full Brand Title Fit */
 @media (max-width: 768px) {
   .apple-nav-wrapper {
     width: 97% !important;
@@ -2404,25 +2404,39 @@ input[type="submit"]:active {
     width: 99% !important;
   }
   .apple-nav {
-    padding: 0.78rem 1.25rem !important;
-    gap: 12px !important;
+    padding: 0.78rem 0.65rem !important;
+    gap: 6px !important;
   }
   .nav-scrolled .apple-nav {
-    padding: 0.68rem 1.15rem !important;
+    padding: 0.68rem 0.6rem !important;
+  }
+  .header-brand-wrapper {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
   }
   .header-brand-title {
-    font-size: 18px !important;
+    font-size: 17.5px !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
   }
   .theme-toggle-btn,
-  .mobile-menu-btn,
-  .lang-switcher-btn {
+  .mobile-menu-btn {
     width: 40px !important;
     height: 40px !important;
     min-width: 40px !important;
     min-height: 40px !important;
+    flex-shrink: 0 !important;
   }
   .mobile-menu-btn svg {
     width: 22px !important;
     height: 22px !important;
+  }
+  .lang-switcher-btn {
+    height: 40px !important;
+    padding: 6px 10px !important;
+    font-size: 12.5px !important;
+    flex-shrink: 0 !important;
   }
 }
