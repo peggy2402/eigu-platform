@@ -1,0 +1,10 @@
+{
+  "name": "eigu-desktop-engine",
+  "version": "1.0.0",
+  "description": "EIGU Desktop Engine - Nền tảng tự động hóa đa kênh",
+  "author": "EIGU Platform <support@eigu.com>",
+  "license": "MIT",
+  "private": true,
+  "main": "./main.js",
+  "type": "commonjs"
+}
