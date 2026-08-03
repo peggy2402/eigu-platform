@@ -40,11 +40,11 @@
     "target": [
       {
         "target": "pkg",
-        "arch": ["universal"]
+        "arch": ["arm64", "x64"]
       },
       {
         "target": "zip",
-        "arch": ["universal"]
+        "arch": ["arm64", "x64"]
       }
     ],
     "artifactName": "EIGU-Platform-${version}-${arch}.${ext}",
@@ -53,6 +53,7 @@
   },
   "pkg": {
     "scripts": "apps/desktop/build/pkg-scripts",
-    "installLocation": "/Applications"
+    "installLocation": "/Applications",
+    "artifactName": "EIGU-Platform-${version}-${arch}.${ext}"
   }
 }
