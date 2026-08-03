@@ -221,14 +221,14 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
                 <img src="/logo.png" alt="EIGU Logo" style={{ width: 26, height: 26, objectFit: 'contain', filter: 'drop-shadow(0 0 8px var(--accent))' }} />
                 <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>EIGU Platform</span>
               </div>
-              <button onClick={() => setMobileOpen(false)} className="mobile-close-btn" aria-label="Đóng menu" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-color)', borderRadius: '50%', color: 'var(--text-secondary)', cursor: 'pointer', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button onClick={() => setMobileOpen(false)} className="mobile-close-btn" aria-label="Đóng menu" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-color)', borderRadius: '50%', color: 'var(--text-secondary)', cursor: 'pointer', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={18} />
               </button>
             </div>
 
             {/* 1. TOP BLOCK: USER ACCOUNT CARD (If logged in) */}
             {!loading && token && (
-              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', padding: 12, marginBottom: 14 }}>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', padding: 12, marginBottom: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--accent-glow)', border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
@@ -260,7 +260,7 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'var(--bg-primary)', borderRadius: 8, border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'var(--bg-card)', borderRadius: 8, border: '1px solid var(--border-color)' }}>
                   <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('user_balance')}</span>
                   <strong style={{ fontSize: 14, color: 'var(--accent)', fontWeight: 800 }}>{(user?.balance || 0).toLocaleString('vi-VN')}đ</strong>
                 </div>
@@ -270,22 +270,22 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
             {/* 2. USER ACTIONS GRID (2-Column Compact Grid) */}
             {!loading && token && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
-                <button onClick={() => handleNav('/transactions')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                <button onClick={() => handleNav('/transactions')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
                   <History size={14} style={{ color: 'var(--accent)' }} /> {t('user_history')}
                 </button>
-                <button onClick={() => handleNav('/affiliate')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                <button onClick={() => handleNav('/affiliate')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
                   <LinkIcon size={14} style={{ color: 'var(--accent)' }} /> {t('user_affiliate')}
                 </button>
-                <button onClick={() => handleNav('/guide')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                <button onClick={() => handleNav('/guide')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
                   <BookOpen size={14} style={{ color: 'var(--accent)' }} /> {t('user_guide')}
                 </button>
-                <button onClick={() => handleNav('/audit-log')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                <button onClick={() => handleNav('/audit-log')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
                   <History size={14} style={{ color: 'var(--accent)' }} /> {t('user_logs')}
                 </button>
-                <button onClick={() => { setMobileOpen(false); onOpenSettings(); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                <button onClick={() => { setMobileOpen(false); onOpenSettings(); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
                   <Settings size={14} style={{ color: 'var(--text-secondary)' }} /> {t('user_settings')}
                 </button>
-                <button onClick={() => { setMobileOpen(false); onOpenFeedback(); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+                <button onClick={() => { setMobileOpen(false); onOpenFeedback(); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
                   <Bug size={14} style={{ color: 'var(--text-secondary)' }} /> {t('user_feedback')}
                 </button>
               </div>
@@ -309,7 +309,7 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
                       borderRadius: 12,
                       border: '1px solid',
                       borderColor: isActive ? 'var(--accent)' : 'var(--border-color)',
-                      background: isActive ? 'var(--accent-glow)' : 'rgba(255, 255, 255, 0.03)',
+                      background: isActive ? 'var(--accent-glow)' : 'var(--bg-secondary)',
                       color: isActive ? 'var(--accent)' : 'var(--text-primary)',
                       fontSize: 14,
                       fontWeight: isActive ? 700 : 500,
@@ -339,8 +339,8 @@ export default function Header({ activePath = '/', onNavigate, onOpenSettings, o
                   gap: 6,
                   padding: '12px',
                   borderRadius: 12,
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  background: 'var(--danger-bg)',
+                  border: '1px solid var(--border-color)',
                   color: 'var(--danger)',
                   fontSize: 13,
                   fontWeight: 700,

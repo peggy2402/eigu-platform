@@ -73,12 +73,12 @@ export default function ModuleDetailModal({ module, onClose, language }: ModuleD
           maxHeight: 'min(85vh, 800px)',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: 'rgba(20, 20, 25, 0.78)', // Translucent panel background
+          backgroundColor: 'var(--bg-card)', // Translucent panel background
           backdropFilter: 'blur(24px)', // Glassmorphic blur showing background through panel
           WebkitBackdropFilter: 'blur(24px)',
           border: `1px solid ${module.accentColor}60`,
           borderRadius: 20,
-          boxShadow: `0 30px 70px -10px rgba(0,0,0,0.85), 0 0 45px ${module.accentColor}30`,
+          boxShadow: `0 30px 70px -10px rgba(0,0,0,0.3), 0 0 45px ${module.accentColor}30`,
           overflow: 'hidden',
           animation: 'eigu-scale-up 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
@@ -91,8 +91,8 @@ export default function ModuleDetailModal({ module, onClose, language }: ModuleD
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '20px 24px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            backgroundColor: 'rgba(24, 24, 30, 0.85)',
+            borderBottom: '1px solid var(--border-color)',
+            backgroundColor: 'var(--bg-secondary)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
             position: 'sticky',

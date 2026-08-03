@@ -1882,11 +1882,11 @@ input[type="submit"]:active {
   width: 70%;
   max-width: 340px;
   z-index: 9999999 !important;
-  background: rgba(20, 20, 25, 0.96);
+  background: var(--bg-card);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-left: 1px solid var(--border-color);
-  box-shadow: -15px 0 45px rgba(0, 0, 0, 0.8);
+  box-shadow: -15px 0 45px rgba(0, 0, 0, 0.2);
   padding: 16px;
   animation: slideRightDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto;
