@@ -17,7 +17,13 @@
         "external": ["electron"],
         "main": "apps/desktop/src/main.ts",
         "tsConfig": "apps/desktop/tsconfig.app.json",
-        "assets": ["apps/desktop/src/assets"],
+        "assets": [
+          {
+            "input": "apps/desktop/src/assets",
+            "glob": "**/*",
+            "output": "assets"
+          }
+        ],
         "generatePackageJson": true,
         "esbuildOptions": {
           "sourcemap": true,

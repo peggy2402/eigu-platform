@@ -1,14 +1,4 @@
-// Safely load environment variables from apps/api/.env and workspace root .env
-try {
-  const dotenv = require('dotenv');
-  const path = require('path');
-  dotenv.config({ path: path.resolve(process.cwd(), 'apps/api/.env') });
-  dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-} catch (e) {
-  // Silent fallback in production bundled environment
-}
-
-import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, NativeImage } from 'electron';
 import * as path from 'path';
 import { io, Socket } from 'socket.io-client';
 import { VideoWorkflowRequest } from '@eigu-platform/shared';
@@ -19,6 +9,17 @@ import { AIVideoPipeline } from './ai-video-pipeline';
 import { ApiKeyStore } from './api-key-store';
 import * as fs from 'fs';
 
+// Safely load environment variables from apps/api/.env and workspace root .env in Dev mode
+try {
+  if (!app.isPackaged) {
+    const dotenv = require('dotenv');
+    dotenv.config({ path: path.resolve(process.cwd(), 'apps/api/.env') });
+    dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+  }
+} catch (e) {
+  // Silent fallback in production bundled environment
+}
+
 // Bắt và log Unhandled Rejection / Exception để tránh crash app
 process.on('unhandledRejection', (reason, promise) => {
   console.error('⚠️ Unhandled Promise Rejection:', reason);
@@ -28,17 +29,49 @@ process.on('uncaughtException', (error) => {
   console.error('⚠️ Uncaught Exception:', error);
 });
 
-// Helper lấy đường dẫn asset chuẩn cho cả Dev (Nx serve) lẫn Production (app.asar)
+// Helper lấy đường dẫn asset chuẩn cho cả Dev (Nx serve) lẫn Production (app.asar / extraResources)
 function getAssetPath(...relativePaths: string[]): string {
-  const prodPath = path.join(__dirname, 'assets', ...relativePaths);
-  if (fs.existsSync(prodPath)) {
-    return prodPath;
-  }
-  const devPath = path.resolve(process.cwd(), 'apps/desktop/src/assets', ...relativePaths);
-  if (fs.existsSync(devPath)) {
+  if (app.isPackaged) {
+    // 1. Ưu tiên kiểm tra trong process.resourcesPath (khi extraResources hoặc asarUnpack)
+    const extraResourcePath = path.join(process.resourcesPath, 'assets', ...relativePaths);
+    if (fs.existsSync(extraResourcePath)) {
+      return extraResourcePath;
+    }
+    // 2. Kiểm tra trong app.asar
+    const prodAsarPath = path.join(__dirname, 'assets', ...relativePaths);
+    if (fs.existsSync(prodAsarPath)) {
+      return prodAsarPath;
+    }
+    return prodAsarPath;
+  } else {
+    // Môi trường Dev (nx serve / electron .)
+    const devPath = path.resolve(__dirname, 'assets', ...relativePaths);
+    if (fs.existsSync(devPath)) {
+      return devPath;
+    }
+    const devSrcPath = path.resolve(process.cwd(), 'apps/desktop/src/assets', ...relativePaths);
+    if (fs.existsSync(devSrcPath)) {
+      return devSrcPath;
+    }
     return devPath;
   }
-  return prodPath;
+}
+
+// Helper nạp NativeImage an toàn (từ Buffer) để không bị crash hay throwing UnhandledPromiseRejection
+function getSafeNativeImage(...relativePaths: string[]): NativeImage | null {
+  try {
+    const assetPath = getAssetPath(...relativePaths);
+    if (fs.existsSync(assetPath)) {
+      const buffer = fs.readFileSync(assetPath);
+      const img = nativeImage.createFromBuffer(buffer);
+      if (!img.isEmpty()) {
+        return img;
+      }
+    }
+  } catch (err) {
+    console.warn(`⚠️ Không thể load image asset: ${relativePaths.join('/')}`, err);
+  }
+  return null;
 }
 
 // Đổi tên Desktop App thành EIGU Platform thay vì "Electron" mặc định
@@ -81,7 +114,6 @@ let mainWindow: BrowserWindow | null = null;
 let socket: Socket;
 
 function createWindow() {
-  const iconPath = getAssetPath('img', 'logo.png');
   const windowOptions: Electron.BrowserWindowConstructorOptions = {
     width: 860,
     height: 660,
@@ -101,8 +133,13 @@ function createWindow() {
     backgroundColor: '#0f172a',
   };
 
-  if (fs.existsSync(iconPath)) {
-    windowOptions.icon = iconPath;
+  try {
+    const windowIcon = getSafeNativeImage('img', 'logo.png');
+    if (windowIcon && !windowIcon.isEmpty()) {
+      windowOptions.icon = windowIcon;
+    }
+  } catch (err) {
+    console.warn('⚠️ Lỗi khi nạp window icon:', err);
   }
 
   mainWindow = new BrowserWindow(windowOptions);
@@ -144,9 +181,9 @@ app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
   if (process.platform === 'darwin' && app.dock) {
     try {
-      const dockIconPath = getAssetPath('img', 'logo.png');
-      if (fs.existsSync(dockIconPath)) {
-        app.dock.setIcon(dockIconPath);
+      const dockImg = getSafeNativeImage('img', 'logo.png');
+      if (dockImg && !dockImg.isEmpty()) {
+        app.dock.setIcon(dockImg);
       }
     } catch (err) {
       console.warn('⚠️ Lỗi khi đặt icon Dock macOS:', err);
