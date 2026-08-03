@@ -14,8 +14,10 @@ import * as fs from 'fs';
 try {
   if (!app.isPackaged) {
     const dotenv = require('dotenv');
-    dotenv.config({ path: path.resolve(process.cwd(), 'apps/api/.env') });
-    dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+    const apiEnv = path.resolve(process.cwd(), 'apps/api/.env');
+    if (fs.existsSync(apiEnv)) dotenv.config({ path: apiEnv });
+    const rootEnv = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(rootEnv)) dotenv.config({ path: rootEnv });
   }
 } catch (e) {
   // Silent fallback in production bundled environment
@@ -23,11 +25,11 @@ try {
 
 // Bắt và log Unhandled Rejection / Exception để tránh crash app
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('⚠️ Unhandled Promise Rejection:', reason);
+  console.error('⚠️ Caught Unhandled Promise Rejection (non-fatal):', reason);
 });
 
 process.on('uncaughtException', (error) => {
-  console.error('⚠️ Uncaught Exception:', error);
+  console.error('⚠️ Caught Uncaught Exception (non-fatal):', error);
 });
 
 // Helper lấy đường dẫn asset chuẩn cho cả Dev (Nx serve) lẫn Production (app.asar / extraResources)
@@ -38,10 +40,19 @@ function getAssetPath(...relativePaths: string[]): string {
     if (fs.existsSync(extraResourcePath)) {
       return extraResourcePath;
     }
-    // 2. Kiểm tra trong app.asar
+    // 2. Kiểm tra trong app.asar.unpacked
+    const unpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'assets', ...relativePaths);
+    if (fs.existsSync(unpackedPath)) {
+      return unpackedPath;
+    }
+    // 3. Kiểm tra trong app.asar (__dirname)
     const prodAsarPath = path.join(__dirname, 'assets', ...relativePaths);
     if (fs.existsSync(prodAsarPath)) {
       return prodAsarPath;
+    }
+    const prodAsarParent = path.join(__dirname, '..', 'assets', ...relativePaths);
+    if (fs.existsSync(prodAsarParent)) {
+      return prodAsarParent;
     }
     return prodAsarPath;
   } else {
@@ -58,19 +69,28 @@ function getAssetPath(...relativePaths: string[]): string {
   }
 }
 
-// Helper nạp NativeImage an toàn (từ Buffer) để không bị crash hay throwing UnhandledPromiseRejection
+// Helper nạp NativeImage an toàn (từ File Path / Buffer) để không bao giờ bị crash hay throwing UnhandledPromiseRejection
 function getSafeNativeImage(...relativePaths: string[]): NativeImage | null {
   try {
     const assetPath = getAssetPath(...relativePaths);
-    if (fs.existsSync(assetPath)) {
-      const buffer = fs.readFileSync(assetPath);
-      const img = nativeImage.createFromBuffer(buffer);
-      if (!img.isEmpty()) {
-        return img;
-      }
+    if (assetPath && fs.existsSync(assetPath)) {
+      try {
+        const imgFromPath = nativeImage.createFromPath(assetPath);
+        if (imgFromPath && !imgFromPath.isEmpty()) {
+          return imgFromPath;
+        }
+      } catch (e) { }
+
+      try {
+        const buffer = fs.readFileSync(assetPath);
+        const imgFromBuf = nativeImage.createFromBuffer(buffer);
+        if (imgFromBuf && !imgFromBuf.isEmpty()) {
+          return imgFromBuf;
+        }
+      } catch (e) { }
     }
   } catch (err) {
-    console.warn(`⚠️ Không thể load image asset: ${relativePaths.join('/')}`, err);
+    console.warn(`⚠️ Safe NativeImage load fallback for asset ${relativePaths.join('/')}:`, err);
   }
   return null;
 }
