@@ -54,14 +54,14 @@ async function loadAdminSubscriptionData() {
   if (thead) {
     thead.innerHTML = `
       <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
-        <th style="padding: 12px 14px;">KHÁCH HÀNG</th>
-        <th style="padding: 12px 14px;">MÔ-ĐUN DỊCH VỤ</th>
-        <th style="padding: 12px 14px;">GÓI ĐĂNG KÝ</th>
-        <th style="padding: 12px 14px;">CẤU HÌNH GÓI</th>
-        <th style="padding: 12px 14px;">CHI PHÍ GÓI</th>
-        <th style="padding: 12px 14px;">THỜI HẠN SỬ DỤNG</th>
-        <th style="padding: 12px 14px;">TRẠNG THÁI</th>
-        <th style="padding: 12px 14px; text-align: center;">HÀNH ĐỘNG</th>
+        <th style="padding: 12px 14px; white-space: nowrap; min-width: 180px;">KHÁCH HÀNG</th>
+        <th style="padding: 12px 14px; white-space: nowrap; min-width: 160px;">MÔ-ĐUN DỊCH VỤ</th>
+        <th style="padding: 12px 14px; white-space: nowrap; min-width: 180px;">GÓI ĐĂNG KÝ</th>
+        <th style="padding: 12px 14px; white-space: nowrap; min-width: 170px;">CẤU HÌNH GÓI</th>
+        <th style="padding: 12px 14px; white-space: nowrap; min-width: 140px;">CHI PHÍ GÓI</th>
+        <th style="padding: 12px 14px; white-space: nowrap; min-width: 140px;">THỜI HẠN SỬ DỤNG</th>
+        <th style="padding: 12px 14px; white-space: nowrap; min-width: 120px;">TRẠNG THÁI</th>
+        <th style="padding: 12px 14px; text-align: center; white-space: nowrap; min-width: 110px;">HÀNH ĐỘNG</th>
       </tr>
     `;
   }
@@ -91,6 +91,7 @@ function filterAndRenderAdminSubscriptions() {
   if (activeAdminTxTab !== 'subscriptions') return;
 
   const tbody = document.getElementById('admin-tx-table-body');
+  const cardsList = document.getElementById('admin-tx-cards-list');
   const infoEl = document.getElementById('admin-tx-pagination-info');
   const searchInput = document.getElementById('admin-tx-search-input');
   const search = searchInput ? searchInput.value.trim().toLowerCase() : '';
@@ -110,6 +111,7 @@ function filterAndRenderAdminSubscriptions() {
 
   if (list.length === 0) {
     if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">Chưa có dữ liệu đăng ký gói cước nào.</td></tr>`;
+    if (cardsList) cardsList.innerHTML = `<div style="text-align: center; padding: 30px; color: var(--text-muted);">Chưa có dữ liệu đăng ký gói cước nào.</div>`;
     return;
   }
 
@@ -117,8 +119,10 @@ function filterAndRenderAdminSubscriptions() {
     tbody.innerHTML = list.map(sub => {
       const isExpired = sub.expiresAt && new Date(sub.expiresAt) < new Date();
       const statusBadge = !isExpired && sub.status === 'ACTIVE'
-        ? `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); font-weight: 700; font-size: 11px;">Đang hoạt động</span>`
-        : `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px;">Hết hạn</span>`;
+        ? `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đang sử dụng</span>`
+        : sub.status === 'UPGRADED'
+        ? `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đã nâng cấp</span>`
+        : `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px; white-space: nowrap;">Hết hạn</span>`;
 
       const priceStr = sub.price ? `${sub.price.toLocaleString('vi-VN')}đ/tháng` : 'Miễn phí';
       const createdDateStr = new Date(sub.createdAt).toLocaleDateString('vi-VN');
@@ -132,10 +136,15 @@ function filterAndRenderAdminSubscriptions() {
               ${sub.username ? '@' + escapeHtml(sub.username) : 'ID: ' + sub.userId.slice(0, 8)} &bull; SD: ${(sub.userBalance || 0).toLocaleString('vi-VN')}đ
             </div>
           </td>
-          <td style="padding: 12px 14px;">
-            <span style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 12px;">${escapeHtml(sub.moduleName || sub.moduleSlug)}</span>
+          <td style="padding: 12px 14px; white-space: nowrap;">
+            <span style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); padding: 5px 12px; border-radius: 8px; font-weight: 800; font-size: 12px; white-space: nowrap; display: inline-block;">${escapeHtml(sub.moduleName || sub.moduleSlug)}</span>
           </td>
-          <td style="padding: 12px 14px; font-weight: 900; color: #818cf8; font-size: 13px;">Gói ${escapeHtml(sub.tierLabel || sub.tierCode)}</td>
+          <td style="padding: 12px 14px; white-space: nowrap;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
+              <span style="font-weight: 900; color: #818cf8; font-size: 13px;">Gói ${escapeHtml(sub.tierLabel || sub.tierCode)}</span>
+              ${!isExpired && sub.status === 'ACTIVE' ? '<span style="font-size: 10px; background: rgba(168, 85, 247, 0.18); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); padding: 3px 8px; border-radius: 6px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">Gói hiện tại</span>' : ''}
+            </div>
+          </td>
           <td style="padding: 12px 14px; font-size: 11px;">
             <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
               <span style="background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); color: var(--text-primary);">Luồng: <strong>${sub.threads}</strong></span>
@@ -155,6 +164,60 @@ function filterAndRenderAdminSubscriptions() {
             </button>
           </td>
         </tr>
+      `;
+    }).join('');
+  }
+
+  if (cardsList) {
+    cardsList.innerHTML = list.map(sub => {
+      const isExpired = sub.expiresAt && new Date(sub.expiresAt) < new Date();
+      const statusBadge = !isExpired && sub.status === 'ACTIVE'
+        ? `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); font-weight: 700; font-size: 11px;">Đang sử dụng</span>`
+        : `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px;">Hết hạn</span>`;
+
+      const priceStr = sub.price ? `${sub.price.toLocaleString('vi-VN')}đ/tháng` : 'Miễn phí';
+      const createdDateStr = new Date(sub.createdAt).toLocaleDateString('vi-VN');
+      const expireDateStr = sub.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('vi-VN') : 'Vĩnh viễn';
+
+      return `
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 12px;">${escapeHtml(sub.moduleName || sub.moduleSlug)}</span>
+              <span style="font-weight: 900; color: #818cf8; font-size: 13px;">Gói ${escapeHtml(sub.tierLabel || sub.tierCode)}</span>
+              ${!isExpired && sub.status === 'ACTIVE' ? '<span style="font-size: 10px; background: rgba(168, 85, 247, 0.18); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700;">Gói hiện tại</span>' : ''}
+            </div>
+            <div>${statusBadge}</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+            <div>
+              <div style="color: var(--text-muted); font-size: 11px;">Khách hàng:</div>
+              <div style="font-weight: 800; color: var(--text-primary); margin-top: 2px;">${escapeHtml(sub.userEmail)}</div>
+              <div style="font-size: 11px; color: var(--accent); margin-top: 1px;">${sub.username ? '@' + escapeHtml(sub.username) : 'ID: ' + sub.userId.slice(0, 8)}</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted); font-size: 11px;">Chi phí:</div>
+              <div style="font-weight: 900; color: #22c55e; margin-top: 2px;">${priceStr}</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted); font-size: 11px;">Cấu hình gói:</div>
+              <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+                Luồng: <strong>${sub.threads}</strong> &bull; Máy: <strong>${sub.machines}</strong> &bull; ${sub.resolution}
+              </div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted); font-size: 11px;">Thời hạn sử dụng:</div>
+              <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+                Từ ${createdDateStr} đến ${expireDateStr}
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--border-color);">
+            <button type="button" class="btn-outline" onclick="openModulePricingModalDesktop('${sub.moduleSlug}')" style="padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 6px; margin: 0;">
+              Bảng giá
+            </button>
+          </div>
+        </div>
       `;
     }).join('');
   }
@@ -312,6 +375,68 @@ async function loadAdminTransactionData(page = 1) {
       }).join('');
     }
 
+    const cardsList = document.getElementById('admin-tx-cards-list');
+    if (cardsList) {
+      if (items.length === 0) {
+        cardsList.innerHTML = `<div style="text-align: center; padding: 24px; color: var(--text-muted);">Không tìm thấy giao dịch nào phù hợp.</div>`;
+      } else {
+        cardsList.innerHTML = items.map(tx => {
+          let statusBadge = '';
+          if (tx.status === 'COMPLETED') {
+            statusBadge = `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: rgba(34, 197, 94, 0.12); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); font-weight: 700; font-size: 11px;">Thành công</span>`;
+          } else if (tx.status === 'PENDING') {
+            statusBadge = `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 700; font-size: 11px;">Đang chờ</span>`;
+          } else {
+            statusBadge = `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; font-size: 11px;">Đã hủy</span>`;
+          }
+
+          const dateStr = new Date(tx.createdAt).toLocaleString('vi-VN');
+
+          let actionBtns = '';
+          if (tx.status === 'PENDING') {
+            actionBtns = `
+              <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                <button onclick="handleApproveTxAdmin('${tx.id}', '${tx.code}', '${tx.userEmail}', ${tx.amount})" style="padding: 5px 12px; border-radius: 6px; background: #22c55e; color: #ffffff; border: none; font-size: 11px; font-weight: 700; cursor: pointer;">
+                  Duyệt (+Cộng tiền)
+                </button>
+                <button onclick="handleCancelTxAdmin('${tx.id}', '${tx.code}')" style="padding: 5px 10px; border-radius: 6px; background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 11px; font-weight: 600; cursor: pointer;">
+                  Hủy
+                </button>
+              </div>
+            `;
+          }
+
+          return `
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-family: monospace; font-weight: 800; color: var(--accent); font-size: 13px;">#${tx.code}</span>
+                  <span style="font-weight: 900; color: ${tx.status === 'COMPLETED' ? '#22c55e' : 'var(--text-primary)'}; font-size: 14px;">+${tx.amount.toLocaleString('vi-VN')}đ</span>
+                </div>
+                <div>${statusBadge}</div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                <div>
+                  <div style="color: var(--text-muted); font-size: 11px;">Khách hàng:</div>
+                  <div style="font-weight: 700; color: var(--text-primary); margin-top: 2px;">${tx.username}</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">${tx.userEmail}</div>
+                </div>
+                <div>
+                  <div style="color: var(--text-muted); font-size: 11px;">Cú pháp:</div>
+                  <div style="font-family: monospace; font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${tx.fullContent}</div>
+                </div>
+                <div>
+                  <div style="color: var(--text-muted); font-size: 11px;">Thời gian:</div>
+                  <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${dateStr}</div>
+                </div>
+              </div>
+              ${actionBtns ? `<div style="display: flex; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--border-color);">${actionBtns}</div>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
     // 3. Update Pagination
     adminTxTotalPages = res.totalPages || 1;
     const startIdx = res.total > 0 ? (res.page - 1) * res.limit + 1 : 0;
@@ -445,13 +570,13 @@ function switchUserTxTab(tabName) {
     if (thead) {
       thead.innerHTML = `
         <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
-          <th style="padding: 12px 14px;">MÔ-ĐUN DỊCH VỤ</th>
-          <th style="padding: 12px 14px;">GÓI ĐĂNG KÝ</th>
-          <th style="padding: 12px 14px;">CẤU HÌNH GÓI</th>
-          <th style="padding: 12px 14px;">CHI PHÍ THÁNG</th>
-          <th style="padding: 12px 14px;">THỜI HẠN SỬ DỤNG</th>
-          <th style="padding: 12px 14px;">TRẠNG THÁI</th>
-          <th style="padding: 12px 14px; text-align: center;">HÀNH ĐỘNG</th>
+          <th style="padding: 12px 14px; white-space: nowrap; min-width: 160px;">MÔ-ĐUN DỊCH VỤ</th>
+          <th style="padding: 12px 14px; white-space: nowrap; min-width: 180px;">GÓI ĐĂNG KÝ</th>
+          <th style="padding: 12px 14px; white-space: nowrap; min-width: 170px;">CẤU HÌNH GÓI</th>
+          <th style="padding: 12px 14px; white-space: nowrap; min-width: 140px;">CHI PHÍ THÁNG</th>
+          <th style="padding: 12px 14px; white-space: nowrap; min-width: 140px;">THỜI HẠN SỬ DỤNG</th>
+          <th style="padding: 12px 14px; white-space: nowrap; min-width: 120px;">TRẠNG THÁI</th>
+          <th style="padding: 12px 14px; text-align: center; white-space: nowrap; min-width: 120px;">HÀNH ĐỘNG</th>
         </tr>
       `;
     }
@@ -500,7 +625,9 @@ async function loadUserSubscriptionHistory() {
       tbody.innerHTML = subs.map(sub => {
         const isExpired = sub.expiresAt && new Date(sub.expiresAt) < new Date();
         const statusBadge = !isExpired && sub.status === 'ACTIVE'
-          ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đang hoạt động</span>`
+          ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đang sử dụng</span>`
+          : sub.status === 'UPGRADED'
+          ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đã nâng cấp</span>`
           : `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px; white-space: nowrap;">Hết hạn</span>`;
 
         const priceStr = sub.price ? `-${sub.price.toLocaleString('vi-VN')}đ` : 'Miễn phí';
@@ -508,10 +635,15 @@ async function loadUserSubscriptionHistory() {
 
         return `
           <tr style="border-bottom: 1px solid var(--border-color);">
-            <td style="padding: 14px; font-weight: 800; color: var(--text-primary);">
-              <span style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 12px; display: inline-block; white-space: nowrap;">${sub.moduleName || sub.moduleSlug}</span>
+            <td style="padding: 14px; white-space: nowrap;">
+              <span style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); padding: 5px 12px; border-radius: 8px; font-weight: 800; font-size: 12px; display: inline-block; white-space: nowrap;">${sub.moduleName || sub.moduleSlug}</span>
             </td>
-            <td style="padding: 14px; font-weight: 900; color: #818cf8; font-size: 14px; white-space: nowrap;">Gói ${sub.tierLabel || sub.tierCode}</td>
+            <td style="padding: 14px; white-space: nowrap;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
+                <span style="font-weight: 900; color: #818cf8; font-size: 14px;">Gói ${sub.tierLabel || sub.tierCode}</span>
+                ${!isExpired && sub.status === 'ACTIVE' ? '<span style="font-size: 10px; background: rgba(168, 85, 247, 0.18); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); padding: 3px 8px; border-radius: 6px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">Gói hiện tại</span>' : ''}
+              </div>
+            </td>
             <td style="padding: 14px; font-size: 12px;">
               <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                 <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.05); padding: 3px 8px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--border-color);">
@@ -540,6 +672,61 @@ async function loadUserSubscriptionHistory() {
           </tr>
         `;
       }).join('');
+    }
+
+    const userCardsList = document.getElementById('user-tx-cards-list');
+    if (userCardsList) {
+      if (subs.length === 0) {
+        userCardsList.innerHTML = `<div style="text-align: center; padding: 30px; color: var(--text-muted);">Bạn chưa đăng ký gói cước dịch vụ nào. Bấm nút [Nâng cấp gói / Bảng giá] ở các mô-đun để trải nghiệm!</div>`;
+      } else {
+        userCardsList.innerHTML = subs.map(sub => {
+          const isExpired = sub.expiresAt && new Date(sub.expiresAt) < new Date();
+          const statusBadge = !isExpired && sub.status === 'ACTIVE'
+            ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đang sử dụng</span>`
+            : sub.status === 'UPGRADED'
+            ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đã nâng cấp</span>`
+            : `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px; white-space: nowrap;">Hết hạn</span>`;
+
+          const priceStr = sub.price ? `${sub.price.toLocaleString('vi-VN')}đ/tháng` : 'Miễn phí';
+          const dateStr = sub.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('vi-VN') : 'Vĩnh viễn';
+
+          return `
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <span style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 12px;">${sub.moduleName || sub.moduleSlug}</span>
+                  <span style="font-weight: 900; color: #818cf8; font-size: 14px;">Gói ${sub.tierLabel || sub.tierCode}</span>
+                  ${!isExpired && sub.status === 'ACTIVE' ? '<span style="font-size: 10px; background: rgba(168, 85, 247, 0.18); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); padding: 3px 8px; border-radius: 6px; font-weight: 700;">Gói hiện tại</span>' : ''}
+                </div>
+                <div>${statusBadge}</div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                <div>
+                  <div style="color: var(--text-muted); font-size: 11px;">Chi phí hàng tháng:</div>
+                  <div style="font-weight: 900; color: #22c55e; margin-top: 2px;">${priceStr}</div>
+                </div>
+                <div>
+                  <div style="color: var(--text-muted); font-size: 11px;">Thời hạn sử dụng:</div>
+                  <div style="font-weight: 700; color: var(--text-primary); margin-top: 2px;">Đến ${dateStr}</div>
+                </div>
+                <div style="grid-column: span 2;">
+                  <div style="color: var(--text-muted); font-size: 11px;">Cấu hình gói:</div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                    <span style="background: rgba(255, 255, 255, 0.05); padding: 3px 8px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--border-color); font-size: 11px;">Luồng: <strong>${sub.threads}</strong></span>
+                    <span style="background: rgba(255, 255, 255, 0.05); padding: 3px 8px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--border-color); font-size: 11px;">Máy: <strong>${sub.machines}</strong></span>
+                    <span style="background: rgba(255, 255, 255, 0.05); padding: 3px 8px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--border-color); font-size: 11px;">${sub.resolution}</span>
+                  </div>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn-primary" onclick="openModulePricingModalDesktop('${sub.moduleSlug}')" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; width: auto !important; margin: 0; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none;">
+                  <span>Gia hạn / Nâng cấp</span>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
     }
 
   } catch (err) {

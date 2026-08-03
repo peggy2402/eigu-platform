@@ -109,6 +109,29 @@
   .search-mini:hover { background: var(--bg-card); border-color: transparent; }
 }
 
+/* Responsive Table vs Card List for Transaction Management */
+.tx-table-wrapper {
+  display: block;
+  width: 100%;
+}
+
+.tx-card-list {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .tx-table-wrapper {
+    display: none !important;
+  }
+  .tx-card-list {
+    display: flex !important;
+  }
+}
+
 .notif-btn {
   background: none; border: 1px solid var(--border-color);
   border-radius: 50%; width: 34px; height: 34px;

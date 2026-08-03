@@ -1,26 +1,67 @@
 function updateProfile() {
   if (userProfile) {
-    document.getElementById('profile-email').textContent = userProfile.email || '—';
-    document.getElementById('profile-role').textContent = userProfile.role || '—';
-    document.getElementById('profile-verified').textContent = userProfile.isVerified ? 'Da xac thuc' : 'Chua xac thuc';
-    document.getElementById('profile-created').textContent = userProfile.createdAt ? new Date(userProfile.createdAt).toLocaleDateString('vi-VN') : '—';
+    const emailEl = document.getElementById('profile-email');
+    if (emailEl) {
+      if ('value' in emailEl) emailEl.value = userProfile.email || '';
+      else emailEl.textContent = userProfile.email || '—';
+    }
+
+    const usernameInput = document.getElementById('profile-input-username');
+    if (usernameInput) {
+      usernameInput.value = userProfile.username || '';
+    }
+
+    const displayNameEl = document.getElementById('profile-display-name');
+    if (displayNameEl) {
+      displayNameEl.textContent = userProfile.username || userProfile.email.split('@')[0];
+    }
+
+    const avatarCharEl = document.getElementById('profile-avatar-char');
+    if (avatarCharEl) {
+      const nameStr = userProfile.username || userProfile.email || 'U';
+      avatarCharEl.textContent = nameStr.charAt(0).toUpperCase();
+    }
+
+    const emailSubEl = document.getElementById('profile-email-sub');
+    if (emailSubEl) {
+      emailSubEl.textContent = userProfile.email || '—';
+    }
+
+    const balanceValEl = document.getElementById('profile-balance-val');
+    if (balanceValEl) {
+      const balance = Number(userProfile.balance || 0);
+      balanceValEl.textContent = balance.toLocaleString('vi-VN') + 'đ';
+    }
+
+    const verifiedEl = document.getElementById('profile-verified');
+    if (verifiedEl) {
+      verifiedEl.textContent = userProfile.isVerified ? '✓ Đã xác thực' : '⚠️ Chưa xác thực';
+    }
+
     const name = userProfile.username || userProfile.email.split('@')[0];
     const currentLang = localStorage.getItem('eigu_language') || 'vi';
     const greetingPrefix = currentLang === 'en' ? 'Hi, ' : 'Xin chào, ';
-    document.getElementById('greeting-text').textContent = greetingPrefix + name;
+    const greetingEl = document.getElementById('greeting-text');
+    if (greetingEl) greetingEl.textContent = greetingPrefix + name;
 
-    // Role badge
-    const roleBadge = document.getElementById('role-badge');
-    if (roleBadge && userProfile.role) {
+    // Role badges (Header & Profile View)
+    if (userProfile.role) {
       const roleMap = {
-        admin: { label: 'ADMIN', bg: 'rgba(239,68,68,0.2)', color: '#ef4444' },
-        staff: { label: 'STAFF', bg: 'rgba(234,179,8,0.2)', color: '#eab308' },
-        user:  { label: 'USER',  bg: 'rgba(34,197,94,0.2)', color: '#22c55e' },
+        admin: { label: 'Quản trị', bg: 'rgba(239, 68, 68, 0.18)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.4)' },
+        staff: { label: 'Nhân viên', bg: 'rgba(234, 179, 8, 0.18)', color: '#facc15', border: '1px solid rgba(234, 179, 8, 0.4)' },
+        user:  { label: 'Thành viên', bg: 'rgba(34, 197, 94, 0.18)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.4)' },
       };
       const cfg = roleMap[userProfile.role] || roleMap.user;
-      roleBadge.textContent = cfg.label;
-      roleBadge.style.background = cfg.bg;
-      roleBadge.style.color = cfg.color;
+
+      ['role-badge', 'profile-role-badge'].forEach(badgeId => {
+        const badgeEl = document.getElementById(badgeId);
+        if (badgeEl) {
+          badgeEl.textContent = cfg.label;
+          badgeEl.style.background = cfg.bg;
+          badgeEl.style.color = cfg.color;
+          badgeEl.style.border = cfg.border;
+        }
+      });
     }
 
     // Header User Balance
@@ -38,9 +79,9 @@ function updateProfile() {
     // Phân quyền hiển thị Sidebar Tabs cho Admin & Staff
     document.querySelectorAll('.staff-only').forEach(el => {
       if (userProfile.role === 'admin' || userProfile.role === 'staff') {
-        el.classList.remove('hidden');
+        el.style.display = '';
       } else {
-        el.classList.add('hidden');
+        el.style.display = 'none';
       }
     });
 

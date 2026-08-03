@@ -1,10 +1,120 @@
 const ViewsComponent = `
-<div id="view-ho-so" class="view active">
-  <div class="profile-card">
-    <div class="profile-field"><span class="field-label" data-i18n="profile_email">Email</span><span class="field-value" id="profile-email">—</span></div>
-    <div class="profile-field"><span class="field-label" data-i18n="profile_role">Vai trò</span><span class="field-value" id="profile-role">—</span></div>
-    <div class="profile-field"><span class="field-label" data-i18n="profile_verified">Đã xác thực</span><span class="field-value" id="profile-verified">—</span></div>
-    <div class="profile-field"><span class="field-label" data-i18n="profile_created">Ngày tạo</span><span class="field-value" id="profile-created">—</span></div>
+<div id="view-ho-so" class="view active" style="padding: 16px;">
+  <!-- User Profile Header Summary Card -->
+  <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 12, 41, 0.9) 100%); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px 24px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #a855f7); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 22px; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); flex-shrink: 0;" id="profile-avatar-char">
+        U
+      </div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-primary);" id="profile-display-name">User</h3>
+          <span id="profile-role-badge" style="padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3);">THÀNH VIÊN</span>
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;" id="profile-email-sub">—</div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+      <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 12px; text-align: right;">
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Số dư khả dụng</div>
+        <div style="font-size: 16px; font-weight: 900; color: #4ade80;" id="profile-balance-val">0đ</div>
+      </div>
+      <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 12px; text-align: right;">
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Trạng thái</div>
+        <div style="font-size: 13px; font-weight: 800; color: #38bdf8;" id="profile-verified">✓ Đã xác thực</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3-Grid Management Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+
+    <!-- CARD 1: Update Personal Info -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(99, 102, 241, 0.15); color: #818cf8; display: flex; align-items: center; justify-content: center;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div>
+          <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--text-primary);">Thông tin cá nhân</h4>
+          <div style="font-size: 12px; color: var(--text-muted);">Cập nhật tên hiển thị tài khoản</div>
+        </div>
+      </div>
+
+      <form id="desktop-profile-form" onsubmit="handleUpdateProfileDesktop(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Email (Không thể thay đổi)</label>
+          <input type="email" id="profile-email" readonly style="width: 100%; padding: 10px 14px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-muted); font-size: 13px; cursor: not-allowed;" />
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Tên hiển thị (Username)</label>
+          <input type="text" id="profile-input-username" placeholder="Nhập tên hiển thị mới..." required style="width: 100%; padding: 10px 14px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" />
+        </div>
+        <button type="submit" id="btn-save-profile" class="btn-primary" style="margin-top: 6px; width: 100% !important; padding: 10px; font-size: 13px; font-weight: 700; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>Lưu thông tin cá nhân</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- CARD 2: Change Password -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(168, 85, 247, 0.15); color: #c084fc; display: flex; align-items: center; justify-content: center;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div>
+          <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--text-primary);">Bảo mật & Mật khẩu</h4>
+          <div style="font-size: 12px; color: var(--text-muted);">Đổi mật khẩu truy cập tài khoản</div>
+        </div>
+      </div>
+
+      <form id="desktop-password-form" onsubmit="handleChangePasswordDesktop(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Mật khẩu hiện tại</label>
+          <input type="password" id="profile-input-old-pw" placeholder="Nhập mật khẩu hiện tại..." required style="width: 100%; padding: 10px 14px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" />
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Mật khẩu mới</label>
+          <input type="password" id="profile-input-new-pw" placeholder="Mật khẩu từ 6 ký tự trở lên..." required style="width: 100%; padding: 10px 14px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" />
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Xác nhận mật khẩu mới</label>
+          <input type="password" id="profile-input-confirm-pw" placeholder="Nhập lại mật khẩu mới..." required style="width: 100%; padding: 10px 14px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" />
+        </div>
+        <button type="submit" id="btn-change-pw" class="btn-primary" style="margin-top: 6px; width: 100% !important; padding: 10px; font-size: 13px; font-weight: 700; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);">
+          <span>Cập nhật mật khẩu mới</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- CARD 3: Danger Zone - Delete Account -->
+    <div style="background: var(--bg-card); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); color: #ef4444; display: flex; align-items: center; justify-content: center;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: #ef4444;">Vùng nguy hiểm: Xóa tài khoản</h4>
+          <div style="font-size: 12px; color: var(--text-muted);">Xóa vĩnh viễn dữ liệu tài khoản</div>
+        </div>
+      </div>
+
+      <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 10px; padding: 12px; margin-bottom: 14px; font-size: 12px; color: #fca5a5; line-height: 1.5;">
+        ⚠️ Thao tác xóa tài khoản không thể hoàn tác. Mọi số dư, gói dịch vụ active và dữ liệu của bạn sẽ bị xóa vĩnh viễn.
+      </div>
+
+      <form id="desktop-delete-account-form" onsubmit="handleDeleteAccountDesktop(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Mật khẩu xác nhận xóa</label>
+          <input type="password" id="profile-input-delete-pw" placeholder="Nhập mật khẩu để xóa..." required style="width: 100%; padding: 10px 14px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; outline: none;" />
+        </div>
+        <button type="submit" id="btn-delete-account" style="margin-top: 6px; width: 100%; padding: 10px; font-size: 13px; font-weight: 700; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); cursor: pointer; transition: all 0.2s;">
+          <span>Xóa vĩnh viễn tài khoản</span>
+        </button>
+      </form>
+    </div>
+
   </div>
 </div>
 
@@ -1859,13 +1969,13 @@ const ViewsComponent = `
     </button>
     <button type="button" id="admin-tx-tab-btn-subscriptions" onclick="switchAdminTxTab('subscriptions')" style="padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.04); color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-      <span>Gói cước đã Mua / Nâng cấp (-) của User</span>
+      <span>Gói cước Dịch vụ đang sử dụng (-)</span>
     </button>
   </div>
 
-  <!-- Data Table -->
+  <!-- Data Table & Card List -->
   <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
-    <div style="overflow-x: auto;">
+    <div class="tx-table-wrapper" style="overflow-x: auto;">
       <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
         <thead id="admin-tx-table-head">
           <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
@@ -1885,6 +1995,7 @@ const ViewsComponent = `
         </tbody>
       </table>
     </div>
+    <div id="admin-tx-cards-list" class="tx-card-list"></div>
 
     <!-- Pagination Footer -->
     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border-color); background: var(--bg-primary); font-size: 13px;">
@@ -1925,7 +2036,7 @@ const ViewsComponent = `
       </button>
       <button type="button" id="tx-tab-btn-subscriptions" onclick="switchUserTxTab('subscriptions')" style="padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.04); color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        <span>Gói cước đã Mua / Nâng cấp (-)</span>
+        <span>Gói cước Dịch vụ đang sử dụng (-)</span>
       </button>
     </div>
 
@@ -1963,9 +2074,9 @@ const ViewsComponent = `
     </div>
   </div>
 
-  <!-- Data Table -->
+  <!-- Data Table & Card List -->
   <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
-    <div style="overflow-x: auto;">
+    <div class="tx-table-wrapper" style="overflow-x: auto;">
       <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
         <thead id="user-tx-table-head">
           <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
@@ -1985,6 +2096,7 @@ const ViewsComponent = `
         </tbody>
       </table>
     </div>
+    <div id="user-tx-cards-list" class="tx-card-list"></div>
 
     <!-- Pagination Footer -->
     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border-color); background: var(--bg-primary); font-size: 13px;">

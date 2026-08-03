@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -174,5 +175,84 @@ export class UsersService {
       where: { id },
       data: { hiddenTabs },
     });
+  }
+
+  async updateProfile(userId: string, data: { username?: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Người dùng không tồn tại');
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: data.username !== undefined ? data.username.trim() : user.username,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        balance: true,
+        isVerified: true,
+        createdAt: true,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Cập nhật thông tin cá nhân thành công!',
+      user: updated,
+    };
+  }
+
+  async changePassword(userId: string, data: { oldPassword?: string; newPassword?: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Người dùng không tồn tại');
+
+    if (!data.oldPassword || !data.newPassword) {
+      throw new BadRequestException('Vui lòng nhập đầy đủ mật khẩu cũ và mật khẩu mới');
+    }
+
+    if (data.newPassword.length < 6) {
+      throw new BadRequestException('Mật khẩu mới phải có ít nhất 6 ký tự');
+    }
+
+    const isValid = await bcrypt.compare(data.oldPassword, user.passwordHash);
+    if (!isValid) {
+      throw new BadRequestException('Mật khẩu cũ không chính xác');
+    }
+
+    const passwordHash = await bcrypt.hash(data.newPassword, 12);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return {
+      success: true,
+      message: 'Đổi mật khẩu thành công! Vui lòng sử dụng mật khẩu mới cho các lần đăng nhập sau.',
+    };
+  }
+
+  async deleteAccount(userId: string, data: { password?: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Người dùng không tồn tại');
+
+    if (!data.password) {
+      throw new BadRequestException('Vui lòng nhập mật khẩu để xác nhận xóa tài khoản');
+    }
+
+    const isValid = await bcrypt.compare(data.password, user.passwordHash);
+    if (!isValid) {
+      throw new BadRequestException('Mật khẩu xác nhận không chính xác');
+    }
+
+    await this.prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return {
+      success: true,
+      message: 'Tài khoản của bạn đã được xóa vĩnh viễn khỏi hệ thống EIGU Platform.',
+    };
   }
 }
