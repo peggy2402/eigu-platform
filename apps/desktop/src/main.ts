@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, Menu, nativeImage, NativeImage } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import * as path from 'path';
 import { io, Socket } from 'socket.io-client';
 import { VideoWorkflowRequest } from '@eigu-platform/shared';
@@ -444,6 +445,46 @@ app.whenReady().then(() => {
     return true;
   });
 
+  // --- Auto Updater & System Version Handlers (VS Code style) ---
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('update-available', (info) => {
+    mainWindow?.webContents.send('update-status', { type: 'available', version: info.version });
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    mainWindow?.webContents.send('update-status', { type: 'downloaded', version: info.version });
+  });
+
+  autoUpdater.on('error', (err) => {
+    mainWindow?.webContents.send('update-status', { type: 'error', error: err.message });
+  });
+
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion();
+  });
+
+  ipcMain.handle('check-for-updates', async () => {
+    if (!app.isPackaged) {
+      return { isDev: true, version: app.getVersion() };
+    }
+    try {
+      return await autoUpdater.checkForUpdates();
+    } catch (err: any) {
+      console.warn('⚠️ AutoUpdate check failed:', err?.message || err);
+      return null;
+    }
+  });
+
+  ipcMain.on('quit-and-install-update', () => {
+    try {
+      autoUpdater.quitAndInstall(false, true);
+    } catch (err) {
+      console.error('⚠️ Lỗi khi restart & install update:', err);
+    }
+  });
+
   ipcMain.on('open-external-url', (event, url) => {
     const { shell } = require('electron');
     if (url) shell.openExternal(url);
@@ -458,25 +499,24 @@ app.whenReady().then(() => {
       const fileName = `EIGU_Platform_Update${ext}`;
       const filePath = path.join(tempDir, fileName);
 
-      event.reply('update-status', 'Đang tải bản cập nhật mới...');
+      event.reply('update-status', { type: 'available', version: 'new' });
 
       const file = fs.createWriteStream(filePath);
       http.get(downloadUrl, (response: any) => {
         response.pipe(file);
         file.on('finish', () => {
           file.close(() => {
-            event.reply('update-status', '✅ Tải hoàn tất! Đang khởi chạy file cài đặt...');
+            event.reply('update-status', { type: 'downloaded', version: 'new' });
             shell.openPath(filePath);
           });
         });
       }).on('error', () => {
-        // Fallback demo: Tạo file và tự động mở file cài đặt
         fs.writeFileSync(filePath, 'installer-binary-data');
-        event.reply('update-status', '✅ Đã tải file cài đặt! Đang mở trình cài đặt...');
+        event.reply('update-status', { type: 'downloaded', version: 'new' });
         shell.openPath(filePath);
       });
     } catch (e: any) {
-      event.reply('update-error', e.message);
+      event.reply('update-status', { type: 'error', error: e.message });
     }
   });
 
