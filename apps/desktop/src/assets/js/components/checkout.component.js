@@ -316,7 +316,7 @@ function renderCheckoutPageUIDesktop() {
               <button type="button" class="btn-primary" onclick="verifyCheckoutPaymentDesktop()" style="flex: 1; padding: 11px; font-size: 13px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); border: none; min-width: 180px;">
                 ✓ Tôi đã chuyển khoản thành công
               </button>
-              <button type="button" class="btn-outline" onclick="openModulePricingModalDesktop('${state.moduleSlug}')" style="padding: 11px 16px; font-size: 12px; font-weight: 700; border-radius: 10px;">
+              <button type="button" class="btn-outline" onclick="cancelCheckoutDesktop()" style="padding: 11px 16px; font-size: 12px; font-weight: 700; border-radius: 10px;">
                 Hủy thanh toán
               </button>
             </div>
@@ -525,4 +525,63 @@ async function verifyCheckoutPaymentDesktop() {
       }
     }
   }
+}
+
+function cancelCheckoutDesktop() {
+  const state = window.__CHECKOUT_STATE__;
+  if (state.pollTimer) {
+    clearInterval(state.pollTimer);
+    state.pollTimer = null;
+  }
+  if (state.countdownTimer) {
+    clearInterval(state.countdownTimer);
+    state.countdownTimer = null;
+  }
+
+  const container = document.getElementById('view-checkout');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="max-width: 520px; margin: 80px auto; padding: 40px; background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: 24px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+      <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); border: 1.5px solid rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #ef4444;">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="15" y1="9" x2="9" y2="15" />
+          <line x1="9" y1="9" x2="15" y2="15" />
+        </svg>
+      </div>
+
+      <h3 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0; color: var(--text-primary);">
+        Đã hủy thanh toán!
+      </h3>
+
+      <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin: 0 0 28px 0;">
+        Phiên thanh toán Gói ${state.tierLabel || ''} đã bị hủy. Không có khoản tiền nào bị trừ khỏi tài khoản của bạn.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button
+          type="button"
+          class="btn-primary"
+          onclick="initCheckoutPageDesktop()"
+          style="padding: 13px 24px; border-radius: 12px; font-size: 14px; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15.5-6L21 8"/>
+            <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15.5 6L3 16"/>
+          </svg>
+          Thử thanh toán lại
+        </button>
+
+        <button
+          type="button"
+          class="btn-outline"
+          onclick="openModulePricingModalDesktop('${state.moduleSlug}')"
+          style="padding: 12px 24px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer;"
+        >
+          Quay lại Bảng giá
+        </button>
+      </div>
+    </div>
+  `;
 }

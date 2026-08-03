@@ -374,6 +374,7 @@ document.addEventListener('keydown', e => {
     if (typeof closePricingModuleModal === 'function') closePricingModuleModal();
     if (typeof closePricingTierModal === 'function') closePricingTierModal();
     if (typeof closePricingBadgeModal === 'function') closePricingBadgeModal();
+    if (typeof closeModulePricingModalDesktop === 'function') closeModulePricingModalDesktop();
 
     const chatBox = document.getElementById('live-chat-box');
     if (chatBox && !chatBox.classList.contains('hidden')) {

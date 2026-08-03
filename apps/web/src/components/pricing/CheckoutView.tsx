@@ -53,6 +53,7 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
   const [error, setError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'info' | 'success' | 'warning' | 'error' } | null>(null);
+  const [cancelled, setCancelled] = useState(false);
 
   // Countdown 150 seconds (2m 30s)
   const [countdown, setCountdown] = useState<number>(150);
@@ -310,6 +311,107 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
     );
   }
 
+  // === Màn hình Đã hủy thanh toán ===
+  if (cancelled) {
+    return (
+      <div style={{
+        maxWidth: 520,
+        margin: '80px auto',
+        padding: 40,
+        background: 'var(--bg-card)',
+        border: '1.5px solid var(--border-color)',
+        borderRadius: 24,
+        textAlign: 'center',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+      }}>
+        {/* Icon hủy */}
+        <div style={{
+          width: 72,
+          height: 72,
+          borderRadius: '50%',
+          background: 'rgba(239, 68, 68, 0.12)',
+          border: '1.5px solid rgba(239, 68, 68, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 20px',
+          color: '#ef4444',
+        }}>
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+        </div>
+
+        <h3 style={{ fontSize: 22, fontWeight: 900, margin: '0 0 8px 0', color: 'var(--text-primary)' }}>
+          {language === 'en' ? 'Payment Cancelled' : 'Đã hủy thanh toán!'}
+        </h3>
+
+        <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 28px 0' }}>
+          {language === 'en'
+            ? `Your payment session for Plan ${tier.label} has been cancelled. No charges were made to your account.`
+            : `Phiên thanh toán Gói ${tier.label} đã bị hủy. Không có khoản tiền nào bị trừ khỏi tài khoản của bạn.`}
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Nút thử lại - reset toàn bộ state */}
+          <button
+            type="button"
+            onClick={() => {
+              setCancelled(false);
+              setCountdown(150);
+              setDepositTx(null);
+              setError(null);
+              initDeposit();
+            }}
+            style={{
+              padding: '13px 24px',
+              borderRadius: 12,
+              background: 'var(--accent)',
+              color: '#ffffff',
+              fontSize: 14,
+              fontWeight: 800,
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 6px 20px var(--accent-glow)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent-hover, var(--accent))'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent)'; }}
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15.5-6L21 8"/>
+              <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15.5 6L3 16"/>
+            </svg>
+            <span>{language === 'en' ? 'Try Payment Again' : 'Thử thanh toán lại'}</span>
+          </button>
+
+          {/* Nút quay lại bảng giá */}
+          <button
+            type="button"
+            onClick={onBack}
+            style={{
+              padding: '12px 24px',
+              borderRadius: 12,
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              fontSize: 13,
+              fontWeight: 600,
+              border: '1px solid var(--border-color)',
+              cursor: 'pointer',
+            }}
+          >
+            {language === 'en' ? 'Back to Pricing' : 'Quay lại Bảng giá'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 1040, margin: '0 auto', padding: '24px 16px 60px' }}>
@@ -607,7 +709,16 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
                   >
                     {submitting ? (language === 'en' ? 'Verifying...' : 'Đang kiểm tra...') : (language === 'en' ? 'I Have Completed Payment' : '✓ Tôi đã chuyển khoản thành công')}
                   </button>
-                  <button type="button" onClick={onBack} style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, borderRadius: 10, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Dừng tất cả timers và polling trước khi huỷ
+                      if (pollTimerRef.current) { clearInterval(pollTimerRef.current); pollTimerRef.current = null; }
+                      if (countdownTimerRef.current) { clearInterval(countdownTimerRef.current); countdownTimerRef.current = null; }
+                      setCancelled(true);
+                    }}
+                    style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, borderRadius: 10, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                  >
                     {language === 'en' ? 'Cancel' : 'Hủy thanh toán'}
                   </button>
                 </div>
