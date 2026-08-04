@@ -297,31 +297,13 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
   const [contactSuccess, setContactSuccess] = useState<string | null>(null);
   const [contactError, setContactError] = useState<string | null>(null);
 
-  // Dynamic GitHub Release Download Links State
-  const [downloadLinks, setDownloadLinks] = useState({
-    winUrl: 'https://github.com/peggy2402/eigu-platform/releases/latest',
-    macUrl: 'https://github.com/peggy2402/eigu-platform/releases/latest',
+  // Masked Server-Side Download Links (Zero exposure of GitHub Repository URL)
+  const [downloadLinks] = useState({
+    winUrl: '/api/download?platform=win',
+    macUrl: '/api/download?platform=mac',
     version: '',
   });
   const [hoveredButton, setHoveredButton] = useState<'win' | 'mac' | null>(null);
-
-  // Fetch Latest Release Assets from GitHub API automatically
-  useEffect(() => {
-    fetch('https://api.github.com/repos/peggy2402/eigu-platform/releases/latest')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && Array.isArray(data.assets)) {
-          const winAsset = data.assets.find((a: any) => a.name.endsWith('.exe'));
-          const macAsset = data.assets.find((a: any) => a.name.endsWith('.pkg')) || data.assets.find((a: any) => a.name.endsWith('.dmg'));
-          setDownloadLinks({
-            winUrl: winAsset ? winAsset.browser_download_url : (data.html_url || 'https://github.com/peggy2402/eigu-platform/releases/latest'),
-            macUrl: macAsset ? macAsset.browser_download_url : (data.html_url || 'https://github.com/peggy2402/eigu-platform/releases/latest'),
-            version: data.tag_name || '',
-          });
-        }
-      })
-      .catch((err) => console.warn('[Release Fetch Error]:', err));
-  }, []);
 
   // Fetch Pricing Data
   const fetchPricing = useCallback(async () => {
