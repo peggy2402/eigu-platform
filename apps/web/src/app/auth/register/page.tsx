@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
-import { authApi } from '../../../lib/api';
+import { authApi, syncApiPrefixFromBootstrap } from '../../../lib/api';
 import { useToast } from '../../../contexts/ToastContext';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import BackToHomeButton from '../../../components/layout/BackToHomeButton';
@@ -40,6 +40,11 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    // Proactive background API warm-up (prevents Render Free cold-start timeouts when registering)
+    syncApiPrefixFromBootstrap().catch(() => {});
+  }, []);
 
   useEffect(() => { if (step === 'otp' && otpRefs.current[0]) otpRefs.current[0].focus(); }, [step]);
 

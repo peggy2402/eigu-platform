@@ -76,59 +76,86 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
 
   const fullUrl = `${baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
 
-  const res = await fetch(fullUrl, { ...options, headers });
-  const data = await res.json();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout for Render cold start
 
-  if (!res.ok) {
-    // 🔒 Auto Silent Refresh on 401 Unauthorized (AccessToken expired)
-    if (res.status === 401 && !isRetry && !path.includes('/auth/login') && !path.includes('/auth/refresh') && typeof window !== 'undefined') {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (refreshToken) {
-        if (!isRefreshingWebToken) {
-          isRefreshingWebToken = true;
-          try {
-            const refreshRes = await fetch(`${baseUrl.replace(/\/$/, '')}/auth/refresh`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ refreshToken }),
-            });
-            const refreshData = await refreshRes.json();
-            if (refreshRes.ok && refreshData && (refreshData.accessToken || refreshData.data?.accessToken)) {
-              const newAccToken = refreshData.accessToken || refreshData.data.accessToken;
-              localStorage.setItem('accessToken', newAccToken);
-              if (refreshData.refreshToken || refreshData.data?.refreshToken) {
-                localStorage.setItem('refreshToken', refreshData.refreshToken || refreshData.data.refreshToken);
+  try {
+    const res = await fetch(fullUrl, {
+      ...options,
+      headers,
+      signal: options.signal || controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    let data: any = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (!res.ok) {
+      // 🔒 Auto Silent Refresh on 401 Unauthorized (AccessToken expired)
+      if (res.status === 401 && !isRetry && !path.includes('/auth/login') && !path.includes('/auth/refresh') && typeof window !== 'undefined') {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          if (!isRefreshingWebToken) {
+            isRefreshingWebToken = true;
+            try {
+              const refreshRes = await fetch(`${baseUrl.replace(/\/$/, '')}/auth/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken }),
+              });
+              const refreshData = await refreshRes.json();
+              if (refreshRes.ok && refreshData && (refreshData.accessToken || refreshData.data?.accessToken)) {
+                const newAccToken = refreshData.accessToken || refreshData.data.accessToken;
+                localStorage.setItem('accessToken', newAccToken);
+                if (refreshData.refreshToken || refreshData.data?.refreshToken) {
+                  localStorage.setItem('refreshToken', refreshData.refreshToken || refreshData.data.refreshToken);
+                }
+                isRefreshingWebToken = false;
+                onWebTokenRefreshed(newAccToken);
+                return request(path, options, true);
               }
+            } catch (e) {
+              console.warn('[Web API] Refresh token error:', e);
+            } finally {
               isRefreshingWebToken = false;
-              onWebTokenRefreshed(newAccToken);
-              return request(path, options, true);
             }
-          } catch (e) {
-            console.warn('[Web API] Refresh token error:', e);
-          } finally {
-            isRefreshingWebToken = false;
-          }
-        } else {
-          return new Promise((resolve) => {
-            webRefreshSubscribers.push(() => {
-              resolve(request(path, options, true));
+          } else {
+            return new Promise((resolve) => {
+              webRefreshSubscribers.push(() => {
+                resolve(request(path, options, true));
+              });
             });
-          });
+          }
         }
       }
+
+      // If request failed with 404 (possibly outdated obfuscation prefix), resync & retry once
+      if (res.status === 404 && !isRetry && typeof window !== 'undefined') {
+        console.warn('[Web API] 404 encountered, resyncing API prefix from Gateway...');
+        await syncApiPrefixFromBootstrap();
+        return request(path, options, true);
+      }
+
+      if ([500, 502, 503, 504].includes(res.status)) {
+        throw new Error('Máy chủ Backend đang khởi tạo dịch vụ (Cold Start). Vui lòng thử lại sau 5 giây!');
+      }
+
+      const msg = Array.isArray(data.message) ? data.message.join(', ') : (data.message || data.error || `HTTP ${res.status}`);
+      throw new Error(msg);
     }
 
-    // If request failed with 404 (possibly outdated obfuscation prefix), resync & retry once
-    if (res.status === 404 && !isRetry && typeof window !== 'undefined') {
-      console.warn('[Web API] 404 encountered, resyncing API prefix from Gateway...');
-      await syncApiPrefixFromBootstrap();
-      return request(path, options, true);
+    return data;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Kết nối quá thời gian chờ (Timeout). Máy chủ đang thức dậy từ trạng thái tạm nghỉ, vui lòng thử lại sau vài giây!');
     }
-    const msg = Array.isArray(data.message) ? data.message.join(', ') : (data.message || JSON.stringify(data));
-    throw new Error(msg);
+    throw err;
   }
-
-  return data;
 }
 
 export const authApi = {
