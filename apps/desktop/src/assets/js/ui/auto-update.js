@@ -1,6 +1,6 @@
 // Auto Update Management Logic (VS Code & Modern Enterprise Modal style)
 
-let CURRENT_VERSION = '1.0.7';
+let CURRENT_VERSION = '1.0.8';
 let latestVersionInfo = null;
 let isUpdateReadyToInstall = false;
 
