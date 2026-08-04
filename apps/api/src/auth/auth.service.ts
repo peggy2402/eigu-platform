@@ -147,6 +147,28 @@ export class AuthService implements OnModuleInit {
     }
   }
 
+  private async sendViaResendHttp(apiKey: string, sender: string, to: string, subject: string, html: string) {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: `EIGU Platform <${sender}>`,
+        to: [to],
+        subject: subject,
+        html: html,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(`Resend HTTP API Error ${res.status}: ${data.message || data.error || JSON.stringify(data)}`);
+    }
+    return data;
+  }
+
   async testSmtp(targetEmail: string) {
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS ? '***' + process.env.SMTP_PASS.slice(-4) : undefined;
@@ -154,9 +176,11 @@ export class AuthService implements OnModuleInit {
     const smtpPort = process.env.SMTP_PORT || 'not set';
     const smtpSecure = process.env.SMTP_SECURE || 'not set';
     const smtpFrom = process.env.SMTP_FROM || 'not set';
+    const resendKey = process.env.RESEND_API_KEY || (process.env.SMTP_PASS?.startsWith('re_') ? process.env.SMTP_PASS : null);
 
     const diag: any = {
       timestamp: new Date().toISOString(),
+      mode: resendKey ? 'RESEND_HTTPS_REST_API (Port 443)' : 'NODEMAILER_SMTP (Raw TCP Socket)',
       env: {
         SMTP_USER: smtpUser || 'MISSING',
         SMTP_PASS: smtpPass || 'MISSING',
@@ -164,11 +188,31 @@ export class AuthService implements OnModuleInit {
         SMTP_PORT: smtpPort,
         SMTP_SECURE: smtpSecure,
         SMTP_FROM: smtpFrom,
+        RESEND_API_KEY_DETECTED: !!resendKey,
       },
-      transporterReady: !!this.transporter,
       result: '',
       error: null,
     };
+
+    const sender = process.env.SMTP_FROM || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@') ? process.env.SMTP_USER : 'noreply@peggy-mc.site');
+    const testOtp = this.generateOtp();
+    const subject = `[EIGU Platform] Test Diagnostic OTP Email ${testOtp}`;
+    const html = `<p>Test OTP Code: <strong>${testOtp}</strong></p>`;
+
+    if (resendKey) {
+      try {
+        const result = await this.sendViaResendHttp(resendKey, sender, targetEmail, subject, html);
+        diag.result = `SUCCESS: Resend HTTPS REST API sent email to ${targetEmail} (ID: ${result.id})`;
+        return diag;
+      } catch (err: any) {
+        diag.result = 'FAILED: Error during Resend HTTPS REST API send';
+        diag.error = {
+          message: err?.message,
+          stack: err?.stack,
+        };
+        return diag;
+      }
+    }
 
     if (!this.transporter) {
       await this.initTransporter();
@@ -181,17 +225,14 @@ export class AuthService implements OnModuleInit {
 
     try {
       await this.transporter.verify();
-      const sender = process.env.SMTP_FROM || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@') ? process.env.SMTP_USER : 'noreply@peggy-mc.site');
-      const testOtp = this.generateOtp();
-
       const info = await this.transporter.sendMail({
         from: `"EIGU Platform" <${sender}>`,
         to: targetEmail,
-        subject: `[EIGU Platform] Test Diagnostic OTP Email ${testOtp}`,
-        html: `<p>Test OTP Code: <strong>${testOtp}</strong></p>`,
+        subject: subject,
+        html: html,
       });
 
-      diag.result = `SUCCESS: Email sent to ${targetEmail} (MessageID: ${info.messageId})`;
+      diag.result = `SUCCESS: SMTP sent email to ${targetEmail} (MessageID: ${info.messageId})`;
       return diag;
     } catch (err: any) {
       diag.result = 'FAILED: Error during SMTP connection or sendMail';
@@ -211,6 +252,103 @@ export class AuthService implements OnModuleInit {
   }
 
   private async sendOtpEmail(email: string, otp: string, purpose: string) {
+    const resendKey = process.env.RESEND_API_KEY || (process.env.SMTP_PASS?.startsWith('re_') ? process.env.SMTP_PASS : null);
+    const sender = process.env.SMTP_FROM || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@') ? process.env.SMTP_USER : 'noreply@peggy-mc.site');
+    const subject = `[EIGU Platform] Mã xác thực OTP ${otp} - ${purpose}`;
+    const html = `
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EIGU Platform - OTP Verification Code</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b0c10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e2e8f0; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0b0c10; padding: 36px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 500px; background: #13141f; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden;">
+          
+          <!-- Header Banner with Logo -->
+          <tr>
+            <td style="padding: 32px 28px 24px 28px; background: linear-gradient(180deg, rgba(99, 102, 241, 0.18) 0%, rgba(19, 20, 31, 0) 100%); text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+              <img src="https://peggy-mc.site/logo.png" alt="EIGU Logo" width="52" height="52" style="display: block; margin: 0 auto 12px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);" />
+              <div style="font-size: 20px; font-weight: 900; color: #ffffff; letter-spacing: 0.5px;">EIGU Platform</div>
+              <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; font-weight: 500;">AI Video Automation & MMO Growth Engine</div>
+            </td>
+          </tr>
+
+          <!-- Main Content Body -->
+          <tr>
+            <td style="padding: 28px 24px;">
+              
+              <!-- VIETNAMESE SECTION -->
+              <div style="margin-bottom: 24px; text-align: center;">
+                <h1 style="font-size: 20px; font-weight: 800; color: #ffffff; margin: 0 0 8px 0;">Mã Xác Thực OTP</h1>
+                <p style="font-size: 13.5px; color: #cbd5e1; line-height: 1.6; margin: 0;">
+                  Mã 6 số bên dưới dùng để <strong>xác thực tài khoản EIGU Platform</strong> của bạn:
+                </p>
+              </div>
+
+              <!-- OTP CODE BOX -->
+              <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%); border: 1.5px solid #6366f1; border-radius: 14px; padding: 20px 12px; text-align: center; margin-bottom: 24px; box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.15);">
+                <div style="font-size: 36px; font-weight: 900; color: #818cf8; letter-spacing: 10px; font-family: 'Courier New', Courier, monospace; margin-left: 10px;">
+                  ${otp}
+                </div>
+                <div style="font-size: 12px; color: #a5b4fc; margin-top: 8px; font-weight: 600;">
+                  Mã có hiệu lực trong vòng 10 phút
+                </div>
+              </div>
+
+              <!-- VIETNAMESE NOTICE -->
+              <p style="font-size: 12.5px; color: #94a3b8; line-height: 1.6; text-align: center; margin: 0 0 20px 0; background: rgba(255, 255, 255, 0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                Vì lý do bảo mật, tuyệt đối <strong>không chia sẻ mã OTP này</strong> cho bất kỳ ai.
+              </p>
+
+              <!-- DIVIDER -->
+              <div style="border-top: 1px dashed rgba(255, 255, 255, 0.12); margin: 20px 0;"></div>
+
+              <!-- ENGLISH SECTION -->
+              <div style="text-align: center; color: #64748b; font-size: 12px; line-height: 1.6;">
+                <div style="font-weight: 700; color: #94a3b8; margin-bottom: 2px;">English Summary</div>
+                Your 6-digit OTP verification code is <strong style="color: #cbd5e1;">${otp}</strong>. Valid for 10 minutes. Please do not share this code with anyone.
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- Footer Section -->
+          <tr>
+            <td style="padding: 20px 24px; background: #0f1019; border-top: 1px solid rgba(255, 255, 255, 0.06); text-align: center;">
+              <div style="font-size: 12px; color: #64748b; margin-bottom: 6px;">
+                Cần trợ giúp? Truy cập website: <a href="https://peggy-mc.site" style="color: #818cf8; text-decoration: none; font-weight: 600;">peggy-mc.site</a>
+              </div>
+              <div style="font-size: 11px; color: #475569;">
+                © 2026 EIGU Platform. All rights reserved.
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `;
+
+    // 1. If Resend API Key is available, use Resend HTTPS REST API (Port 443 - Never blocked on Render)
+    if (resendKey) {
+      try {
+        const result = await this.sendViaResendHttp(resendKey, sender, email, subject, html);
+        this.logger.log(`[Resend HTTP API] Successfully sent OTP to ${email} (ID: ${result.id})`);
+        return;
+      } catch (err: any) {
+        this.logger.error(`[Resend HTTP API ERROR] Failed to send OTP email to ${email}: ${err?.message}`, err?.stack);
+      }
+    }
+
+    // 2. Nodemailer SMTP Fallback (Raw TCP Socket)
     if (!this.transporter) {
       await this.initTransporter();
     }
