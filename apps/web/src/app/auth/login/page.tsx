@@ -51,16 +51,18 @@ export default function LoginPage() {
       const errMsg = err.message || (language === 'en' ? 'Sign in failed' : 'Đăng nhập thất bại');
       const isUnverified = /chưa được xác thực|chưa xác minh|not verified|unverified|xác nhận|verify/i.test(errMsg);
 
-      if (isUnverified && identifier) {
+      if (isUnverified) {
+        // Use the real email from API response (handles case where user typed username instead of email)
+        const emailForOtp = (err as any).email || identifier;
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem('eigu_pending_otp_email', identifier);
+          sessionStorage.setItem('eigu_pending_otp_email', emailForOtp);
         }
         showToast(
           language === 'en' ? 'Email Not Verified' : 'Tài Khoản Chưa Xác Thực Email',
           language === 'en' ? 'Redirecting to OTP verification page...' : 'Đang chuyển hướng sang màn hình nhập mã OTP...',
           'warning'
         );
-        router.push(`/auth/register?email=${encodeURIComponent(identifier)}&step=otp`);
+        router.push(`/auth/register?email=${encodeURIComponent(emailForOtp)}&step=otp`);
         return;
       }
 

@@ -60,6 +60,14 @@ export default function RegisterPage() {
         setStep('otp');
         setCountdown(60);
         setCanResend(false);
+
+        // If redirected from login (queryStep=otp), auto-send a fresh OTP
+        // because the original registration OTP may have expired (10-min TTL)
+        if (queryStep === 'otp') {
+          authApi.resendOtp(pendingEmail).catch(() => {
+            // Silently ignore rate-limit or other errors — user can resend manually after countdown
+          });
+        }
       }
     }
   }, []);

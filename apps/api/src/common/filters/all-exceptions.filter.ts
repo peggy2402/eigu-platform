@@ -38,6 +38,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? (rawMessage as any).message
         : rawMessage;
 
+    // Extract any extra payload fields (e.g. email, isBanned, bannedUntil, banReason) to forward to client
+    const extraFields: Record<string, any> = {};
+    if (typeof rawMessage === 'object' && rawMessage !== null) {
+      const { message: _m, statusCode: _s, error: _e, ...rest } = rawMessage as any;
+      Object.assign(extraFields, rest);
+    }
+
     // Log telemetry stack trace silently for backend debugging
     this.logger.error(
       `[${errorId}] ${method} ${path} - Status: ${status} - Message: ${JSON.stringify(message)}`,
@@ -57,6 +64,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorId,
       timestamp,
       message: clientMessage,
+      ...(isNotFound ? {} : extraFields),
     });
   }
 }

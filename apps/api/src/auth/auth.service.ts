@@ -196,6 +196,32 @@ export class AuthService implements OnModuleInit {
     return this.generateTokens(user.id, user.email, user.role, user.username);
   }
 
+  async resendOtp(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) throw new BadRequestException('Email không tồn tại trong hệ thống');
+    if (user.isVerified) throw new BadRequestException('Email đã được xác thực rồi');
+
+    // Rate-limit: don't allow resend if OTP was sent less than 60 seconds ago
+    if (user.otpExpiresAt) {
+      const otpAge = Date.now() - (user.otpExpiresAt.getTime() - 10 * 60 * 1000);
+      if (otpAge < 60 * 1000) {
+        throw new BadRequestException('Vui lòng đợi 60 giây trước khi gửi lại mã OTP');
+      }
+    }
+
+    const otp = this.generateOtp();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { otpCode: otp, otpExpiresAt },
+    });
+
+    await this.sendOtpEmail(email, otp, 'Email Verification');
+    return { message: 'OTP mới đã được gửi tới email của bạn' };
+  }
+
+
   async login(dto: LoginDto, clientIp?: string, userAgent?: string) {
     const user = await this.prisma.user.findFirst({
       where: {
@@ -210,7 +236,7 @@ export class AuthService implements OnModuleInit {
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-    if (!user.isVerified) throw new UnauthorizedException('Email not verified');
+    if (!user.isVerified) throw new UnauthorizedException({ message: 'Email not verified', email: user.email });
 
     // Kiểm tra Ban tạm thời / Ban vĩnh viễn
     if (user.isBanned) {

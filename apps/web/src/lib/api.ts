@@ -145,7 +145,13 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
       }
 
       const msg = Array.isArray(data.message) ? data.message.join(', ') : (data.message || data.error || `HTTP ${res.status}`);
-      throw new Error(msg);
+      const error = new Error(msg) as any;
+      // Attach any extra fields from the response body (e.g. email, isBanned, bannedUntil, banReason)
+      if (data.email) error.email = data.email;
+      if (data.isBanned !== undefined) error.isBanned = data.isBanned;
+      if (data.bannedUntil) error.bannedUntil = data.bannedUntil;
+      if (data.banReason) error.banReason = data.banReason;
+      throw error;
     }
 
     return data;
