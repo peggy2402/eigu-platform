@@ -235,7 +235,7 @@ export default function RegisterPage() {
                 </>
               )}
             </h2>
-            <p className="auth-banner-subtitle">
+            <p className="auth-banner-desc">
               {language === 'en'
                 ? 'Join thousands of creators automating 9:16 Shorts, anti-copyright rendering and scaling high-volume MMO channels.'
                 : 'Cùng hàng ngàn Creator tối ưu hóa quy trình sản xuất video 9:16, lồng tiếng đa ngôn ngữ và gia tăng doanh số bền vững.'}
@@ -243,22 +243,29 @@ export default function RegisterPage() {
           </div>
 
           <div className="auth-banner-footer">
-            <div className="auth-footer-badge">
-              <ShieldCheck size={16} />
-              <span>{language === 'en' ? 'Enterprise Bank-Grade Security' : 'Bảo mật chuẩn Enterprise'}</span>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <ShieldCheck size={22} />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>
+                {language === 'en' ? 'Enterprise Bank-Grade Security' : 'Bảo mật chuẩn Enterprise'}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
+                {language === 'en' ? 'Browser fingerprint security & Supabase Cloud Gateway' : 'Bảo mật vân tay trình duyệt & Supabase Cloud Gateway'}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Form Container Side */}
-        <div className="auth-right-content">
-          <div className="auth-form-header">
-            <h2>
+        {/* Right Form Side */}
+        <div className="auth-right-form">
+          <div style={{ marginBottom: 20 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 6 }}>
               {step === 'register'
                 ? (language === 'en' ? 'Create an Account' : 'Tạo Tài Khoản Mới')
                 : (language === 'en' ? 'Email Verification' : 'Xác Thực Email')}
-            </h2>
-            <p>
+            </h1>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
               {step === 'register'
                 ? (language === 'en' ? 'Enter your details below to get started' : 'Nhập thông tin bên dưới để bắt đầu sử dụng EIGU Platform')
                 : (language === 'en' ? `Enter the 6-digit OTP sent to ${email}` : `Nhập mã xác thực 6 số đã gửi tới email ${email}`)}
