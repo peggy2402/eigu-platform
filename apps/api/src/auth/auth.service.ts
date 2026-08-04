@@ -176,7 +176,11 @@ export class AuthService implements OnModuleInit {
       data: { email: dto.email, username: dto.username, passwordHash, otpCode: otp, otpExpiresAt },
     });
 
-    await this.sendOtpEmail(dto.email, otp, 'Email Verification');
+    // Fire-and-forget: don't block the HTTP response waiting for SMTP
+    this.sendOtpEmail(dto.email, otp, 'Email Verification').catch((e) =>
+      this.logger.warn(`[Register] Failed to send OTP email to ${dto.email}: ${e?.message}`)
+    );
+
     return { message: 'OTP sent to email. Please verify.', userId: user.id };
   }
 
@@ -210,7 +214,11 @@ export class AuthService implements OnModuleInit {
       data: { otpCode: otp, otpExpiresAt },
     });
 
-    await this.sendOtpEmail(email, otp, 'Email Verification');
+    // Fire-and-forget: respond immediately, email arrives in inbox shortly after
+    this.sendOtpEmail(email, otp, 'Email Verification').catch((e) =>
+      this.logger.warn(`[ResendOtp] Failed to send OTP email to ${email}: ${e?.message}`)
+    );
+
     return { message: 'OTP mới đã được gửi tới email của bạn' };
   }
 
@@ -231,18 +239,19 @@ export class AuthService implements OnModuleInit {
 
     if (!user.isVerified) {
       // Auto-send a fresh OTP so user always gets a valid code in their inbox
-      // when redirected to the OTP verification form
-      try {
-        const otp = this.generateOtp();
-        const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
-        await this.prisma.user.update({
-          where: { id: user.id },
-          data: { otpCode: otp, otpExpiresAt },
-        });
-        await this.sendOtpEmail(user.email, otp, 'Email Verification');
-      } catch (e) {
-        this.logger.warn(`[Login] Failed to auto-send OTP to ${user.email}: ${e?.message}`);
-      }
+      // when redirected to the OTP verification form. Fire-and-forget.
+      const otp = this.generateOtp();
+      const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: { otpCode: otp, otpExpiresAt },
+      }).then(() =>
+        this.sendOtpEmail(user.email, otp, 'Email Verification').catch((e) =>
+          this.logger.warn(`[Login] Failed to auto-send OTP to ${user.email}: ${e?.message}`)
+        )
+      ).catch((e) =>
+        this.logger.warn(`[Login] Failed to update OTP for ${user.email}: ${e?.message}`)
+      );
       throw new UnauthorizedException({ message: 'Email not verified', email: user.email });
     }
 
