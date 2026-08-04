@@ -144,7 +144,7 @@ export class AuthService implements OnModuleInit {
       this.logger.error('[SMTP ERROR] Email service transporter is not initialized');
       return;
     }
-    const sender = process.env.SMTP_USER || 'tranvanchien24022003@gmail.com';
+    const sender = process.env.SMTP_FROM || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@') ? process.env.SMTP_USER : 'noreply@peggy-mc.site');
     const mailPromise = (async () => {
       try {
         const info = await this.transporter!.sendMail({
