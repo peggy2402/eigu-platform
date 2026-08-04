@@ -135,27 +135,29 @@ export class AuthService implements OnModuleInit {
 
   private async sendOtpEmail(email: string, otp: string, purpose: string) {
     if (!this.transporter) {
-      throw new InternalServerErrorException('Email service not initialized');
+      this.logger.error('[SMTP ERROR] Email service transporter is not initialized');
+      return;
     }
-    const info = await this.transporter.sendMail({
-      from: '"EIGU Platform" <noreply@eigu.platform>',
-      to: email,
-      subject: `Your OTP for ${purpose}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
-          <h2 style="color: #6366f1;">EIGU Platform</h2>
-          <p>Your OTP code for <strong>${purpose}</strong>:</p>
-          <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; text-align: center; padding: 24px; background: #f3f4f6; border-radius: 8px; margin: 16px 0;">
-            ${otp}
+    const sender = process.env.SMTP_USER || 'tranvanchien24022003@gmail.com';
+    try {
+      const info = await this.transporter.sendMail({
+        from: `"EIGU Platform" <${sender}>`,
+        to: email,
+        subject: `Your OTP for ${purpose}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff;">
+            <h2 style="color: #6366f1; margin-top: 0;">EIGU Platform</h2>
+            <p style="color: #374151; font-size: 15px;">Mã xác thực OTP của bạn cho <strong>${purpose}</strong>:</p>
+            <div style="font-size: 32px; font-weight: 800; letter-spacing: 8px; text-align: center; padding: 20px; background: #f3f4f6; color: #4f46e5; border-radius: 8px; margin: 20px 0;">
+              ${otp}
+            </div>
+            <p style="color: #6b7280; font-size: 13px;">Mã xác thực có hiệu lực trong vòng 10 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
           </div>
-          <p style="color: #6b7280; font-size: 14px;">This code expires in 10 minutes.</p>
-        </div>
-      `,
-    });
-    this.logger.debug(`OTP sent to ${email}`);
-    const previewUrl = nodemailer.getTestMessageUrl(info);
-    if (previewUrl) {
-      this.logger.debug('Ethereal preview: ' + previewUrl);
+        `,
+      });
+      this.logger.log(`[SMTP] Successfully sent OTP to ${email} (MessageID: ${info.messageId})`);
+    } catch (err: any) {
+      this.logger.error(`[SMTP ERROR] Failed to send OTP email to ${email}: ${err?.message}`, err?.stack);
     }
   }
 
@@ -176,10 +178,7 @@ export class AuthService implements OnModuleInit {
       data: { email: dto.email, username: dto.username, passwordHash, otpCode: otp, otpExpiresAt },
     });
 
-    // Fire-and-forget: don't block the HTTP response waiting for SMTP
-    this.sendOtpEmail(dto.email, otp, 'Email Verification').catch((e) =>
-      this.logger.warn(`[Register] Failed to send OTP email to ${dto.email}: ${e?.message}`)
-    );
+    await this.sendOtpEmail(dto.email, otp, 'Email Verification');
 
     return { message: 'OTP sent to email. Please verify.', userId: user.id };
   }
@@ -205,7 +204,6 @@ export class AuthService implements OnModuleInit {
     if (!user) throw new BadRequestException('Email không tồn tại trong hệ thống');
     if (user.isVerified) throw new BadRequestException('Email đã được xác thực rồi');
 
-    // No backend rate-limit here — frontend countdown timer already handles it
     const otp = this.generateOtp();
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -214,10 +212,7 @@ export class AuthService implements OnModuleInit {
       data: { otpCode: otp, otpExpiresAt },
     });
 
-    // Fire-and-forget: respond immediately, email arrives in inbox shortly after
-    this.sendOtpEmail(email, otp, 'Email Verification').catch((e) =>
-      this.logger.warn(`[ResendOtp] Failed to send OTP email to ${email}: ${e?.message}`)
-    );
+    await this.sendOtpEmail(email, otp, 'Email Verification');
 
     return { message: 'OTP mới đã được gửi tới email của bạn' };
   }
@@ -238,20 +233,13 @@ export class AuthService implements OnModuleInit {
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     if (!user.isVerified) {
-      // Auto-send a fresh OTP so user always gets a valid code in their inbox
-      // when redirected to the OTP verification form. Fire-and-forget.
       const otp = this.generateOtp();
       const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
-      this.prisma.user.update({
+      await this.prisma.user.update({
         where: { id: user.id },
         data: { otpCode: otp, otpExpiresAt },
-      }).then(() =>
-        this.sendOtpEmail(user.email, otp, 'Email Verification').catch((e) =>
-          this.logger.warn(`[Login] Failed to auto-send OTP to ${user.email}: ${e?.message}`)
-        )
-      ).catch((e) =>
-        this.logger.warn(`[Login] Failed to update OTP for ${user.email}: ${e?.message}`)
-      );
+      });
+      await this.sendOtpEmail(user.email, otp, 'Email Verification');
       throw new UnauthorizedException({ message: 'Email not verified', email: user.email });
     }
 
