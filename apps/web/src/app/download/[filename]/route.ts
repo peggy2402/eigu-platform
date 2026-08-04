@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { filename: string } }
+  context: { params: Promise<{ filename: string }> }
 ) {
-  const filename = (params.filename || '').toLowerCase();
+  const { filename: rawFilename } = await context.params;
+  const filename = (rawFilename || '').toLowerCase();
   const isMac = filename.includes('mac') || filename.endsWith('.pkg') || filename.endsWith('.dmg');
 
   try {
