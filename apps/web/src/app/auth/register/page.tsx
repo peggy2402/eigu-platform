@@ -162,7 +162,35 @@ export default function RegisterPage() {
     }
   };
 
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').trim();
+    const digits = pastedData.replace(/\D/g, '').slice(0, 6);
+    if (!digits) return;
+
+    const newOtp = ['', '', '', '', '', ''];
+    for (let i = 0; i < digits.length; i++) {
+      newOtp[i] = digits[i];
+    }
+    setOtp(newOtp);
+
+    const targetIdx = Math.min(digits.length, 5);
+    otpRefs.current[targetIdx]?.focus();
+  };
+
   const handleOtpChange = (idx: number, val: string) => {
+    const digits = val.replace(/\D/g, '');
+    if (digits.length > 1) {
+      const newOtp = [...otp];
+      for (let i = 0; i < Math.min(digits.length, 6); i++) {
+        newOtp[i] = digits[i];
+      }
+      setOtp(newOtp);
+      const targetIdx = Math.min(digits.length, 5);
+      otpRefs.current[targetIdx]?.focus();
+      return;
+    }
+
     if (val && !/^\d$/.test(val)) return;
     const newOtp = [...otp]; newOtp[idx] = val; setOtp(newOtp);
     if (val && idx < 5) otpRefs.current[idx + 1]?.focus();
@@ -347,8 +375,19 @@ export default function RegisterPage() {
 
               <div className="otp-inputs">
                 {otp.map((d, i) => (
-                  <input key={i} ref={el => { otpRefs.current[i] = el; }} type="text" maxLength={1} value={d}
-                    onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} />
+                  <input
+                    key={i}
+                    ref={el => { otpRefs.current[i] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={d}
+                    onChange={e => handleOtpChange(i, e.target.value)}
+                    onKeyDown={e => handleOtpKeyDown(i, e)}
+                    onPaste={handleOtpPaste}
+                  />
                 ))}
               </div>
 
