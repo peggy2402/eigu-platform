@@ -58,15 +58,16 @@ export default function RegisterPage() {
       if (pendingEmail && (queryStep === 'otp' || sessionStorage.getItem('eigu_pending_otp_email'))) {
         setEmail(pendingEmail);
         setStep('otp');
-        setCountdown(60);
-        setCanResend(false);
 
-        // If redirected from login (queryStep=otp), auto-send a fresh OTP
-        // because the original registration OTP may have expired (10-min TTL)
         if (queryStep === 'otp') {
-          authApi.resendOtp(pendingEmail).catch(() => {
-            // Silently ignore rate-limit or other errors — user can resend manually after countdown
-          });
+          // Redirected from login page: original OTP may be expired or in spam
+          // → let user resend immediately (no 60s wait)
+          setCountdown(0);
+          setCanResend(true);
+        } else {
+          // Came from registration flow: OTP was just sent, enforce 60s cooldown
+          setCountdown(60);
+          setCanResend(false);
         }
       }
     }
