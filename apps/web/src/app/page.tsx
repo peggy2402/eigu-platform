@@ -297,6 +297,32 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
   const [contactSuccess, setContactSuccess] = useState<string | null>(null);
   const [contactError, setContactError] = useState<string | null>(null);
 
+  // Dynamic GitHub Release Download Links State
+  const [downloadLinks, setDownloadLinks] = useState({
+    winUrl: 'https://github.com/peggy2402/eigu-platform/releases/latest',
+    macUrl: 'https://github.com/peggy2402/eigu-platform/releases/latest',
+    version: '',
+  });
+  const [hoveredButton, setHoveredButton] = useState<'win' | 'mac' | null>(null);
+
+  // Fetch Latest Release Assets from GitHub API automatically
+  useEffect(() => {
+    fetch('https://api.github.com/repos/peggy2402/eigu-platform/releases/latest')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && Array.isArray(data.assets)) {
+          const winAsset = data.assets.find((a: any) => a.name.endsWith('.exe'));
+          const macAsset = data.assets.find((a: any) => a.name.endsWith('.pkg')) || data.assets.find((a: any) => a.name.endsWith('.dmg'));
+          setDownloadLinks({
+            winUrl: winAsset ? winAsset.browser_download_url : (data.html_url || 'https://github.com/peggy2402/eigu-platform/releases/latest'),
+            macUrl: macAsset ? macAsset.browser_download_url : (data.html_url || 'https://github.com/peggy2402/eigu-platform/releases/latest'),
+            version: data.tag_name || '',
+          });
+        }
+      })
+      .catch((err) => console.warn('[Release Fetch Error]:', err));
+  }, []);
+
   // Fetch Pricing Data
   const fetchPricing = useCallback(async () => {
     setPricingLoading(true);
@@ -646,28 +672,102 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
                   </p>
 
                   {/* Download Action Buttons */}
-                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 36 }}>
-                    <a
-                      href="/downloads/eigu-installer-win.exe"
-                      onClick={e => { e.preventDefault(); alert(language === 'en' ? 'Downloading EIGU Desktop Engine for Windows (.exe)' : 'Đang tải EIGU Desktop Engine cho Windows (.exe)'); }}
-                      className="btn-primary-download"
-                      style={{ padding: '14px 28px', borderRadius: 9999, fontSize: 15, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.8" /></svg>
-                      {language === 'en' ? 'Download for Windows' : 'Tải cho Windows'}
-                      <span style={{ fontSize: 12, opacity: 0.7, fontWeight: 400 }}>(.exe)</span>
-                    </a>
+                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 36, position: 'relative' }}>
+                    {/* Windows Download Button */}
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <a
+                        href={downloadLinks.winUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onMouseEnter={() => setHoveredButton('win')}
+                        onMouseLeave={() => setHoveredButton(null)}
+                        className="btn-primary-download"
+                        style={{ padding: '14px 28px', borderRadius: 9999, fontSize: 15, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.8" /></svg>
+                        {language === 'en' ? 'Download for Windows' : 'Tải cho Windows'}
+                        <span style={{ fontSize: 12, opacity: 0.7, fontWeight: 400 }}>(.exe)</span>
+                      </a>
 
-                    <a
-                      href="/downloads/eigu-installer-mac.pkg"
-                      onClick={e => { e.preventDefault(); alert(language === 'en' ? 'Downloading EIGU Desktop Engine for macOS (.pkg)' : 'Đang tải EIGU Desktop Engine cho macOS (.pkg)'); }}
-                      className="btn-secondary-download"
-                      style={{ padding: '14px 28px', borderRadius: 9999, fontSize: 15, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.85c.66-.8 1.11-1.92.99-3.04-.96.04-2.12.64-2.8 1.44-.6.7-.13 1.84-.01 2.96 1.07.08 2.16-.56 2.82-1.36z" /></svg>
-                      {language === 'en' ? 'Download for macOS' : 'Tải cho macOS'}
-                      <span style={{ fontSize: 12, opacity: 0.7, fontWeight: 400 }}>(.pkg)</span>
-                    </a>
+                      {/* Tooltip for Windows Button */}
+                      {hoveredButton === 'win' && (
+                        <div style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 12px)',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: 320,
+                          background: 'rgba(15, 23, 42, 0.95)',
+                          backdropFilter: 'blur(16px)',
+                          WebkitBackdropFilter: 'blur(16px)',
+                          border: '1px solid rgba(244, 63, 94, 0.3)',
+                          borderRadius: 14,
+                          padding: '14px 16px',
+                          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(244, 63, 94, 0.15)',
+                          zIndex: 99,
+                          pointerEvents: 'none',
+                          color: '#fff',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 13, color: '#fb7185', marginBottom: 6 }}>
+                            <ShieldAlert size={16} />
+                            {language === 'en' ? 'Windows Beta Release Note' : 'Lưu ý cài đặt Windows (Beta)'}
+                          </div>
+                          <div style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.55 }}>
+                            {language === 'en'
+                              ? 'If Windows SmartScreen shows a warning, click "More info" ➔ "Run anyway" to launch the app.'
+                              : 'Nếu Windows hiển thị cảnh báo bảo vệ SmartScreen, vui lòng bấm "More info" (Thông tin thêm) ➔ "Run anyway" (Vẫn chạy) để khởi chạy.'}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* macOS Download Button */}
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <a
+                        href={downloadLinks.macUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onMouseEnter={() => setHoveredButton('mac')}
+                        onMouseLeave={() => setHoveredButton(null)}
+                        className="btn-secondary-download"
+                        style={{ padding: '14px 28px', borderRadius: 9999, fontSize: 15, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.85c.66-.8 1.11-1.92.99-3.04-.96.04-2.12.64-2.8 1.44-.6.7-.13 1.84-.01 2.96 1.07.08 2.16-.56 2.82-1.36z" /></svg>
+                        {language === 'en' ? 'Download for macOS' : 'Tải cho macOS'}
+                        <span style={{ fontSize: 12, opacity: 0.7, fontWeight: 400 }}>(.pkg)</span>
+                      </a>
+
+                      {/* Tooltip for macOS Button */}
+                      {hoveredButton === 'mac' && (
+                        <div style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 12px)',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: 320,
+                          background: 'rgba(15, 23, 42, 0.95)',
+                          backdropFilter: 'blur(16px)',
+                          WebkitBackdropFilter: 'blur(16px)',
+                          border: '1px solid rgba(99, 102, 241, 0.3)',
+                          borderRadius: 14,
+                          padding: '14px 16px',
+                          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.15)',
+                          zIndex: 99,
+                          pointerEvents: 'none',
+                          color: '#fff',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 13, color: '#818cf8', marginBottom: 6 }}>
+                            <Check size={16} />
+                            {language === 'en' ? 'macOS Apple Silicon & Intel' : 'macOS Apple Silicon & Intel'}
+                          </div>
+                          <div style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.55 }}>
+                            {language === 'en'
+                              ? 'Compatible with Apple Silicon (M1/M2/M3/M4) & Intel Macs. Double-click .pkg installer to set up.'
+                              : 'Tương thích hoàn hảo với Mac M1/M2/M3/M4 & Intel. Bấm đúp file .pkg để cài đặt trực tiếp.'}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Trust Indicators */}

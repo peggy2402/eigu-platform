@@ -475,20 +475,56 @@ app.whenReady().then(() => {
     return true;
   });
 
-  // --- Auto Updater & System Version Handlers (VS Code style) ---
+  // --- Auto Updater & System Version Handlers (VS Code Enterprise style) ---
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
 
+  autoUpdater.on('checking-for-update', () => {
+    console.log('[AutoUpdater] Checking for updates...');
+    mainWindow?.webContents.send('update-status', { type: 'checking' });
+  });
+
   autoUpdater.on('update-available', (info) => {
-    mainWindow?.webContents.send('update-status', { type: 'available', version: info.version });
+    console.log(`[AutoUpdater] Update available: v${info.version}`);
+    mainWindow?.webContents.send('update-status', {
+      type: 'available',
+      version: info.version,
+      releaseNotes: info.releaseNotes || ''
+    });
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    console.log(`[AutoUpdater] App is up to date (v${info.version})`);
+    mainWindow?.webContents.send('update-status', {
+      type: 'not-available',
+      version: info.version
+    });
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    console.log(`[AutoUpdater] Download progress: ${Math.round(progressObj.percent)}%`);
+    mainWindow?.webContents.send('update-status', {
+      type: 'downloading',
+      percent: progressObj.percent,
+      bytesPerSecond: progressObj.bytesPerSecond
+    });
   });
 
   autoUpdater.on('update-downloaded', (info) => {
-    mainWindow?.webContents.send('update-status', { type: 'downloaded', version: info.version });
+    console.log(`[AutoUpdater] Update downloaded successfully: v${info.version}`);
+    mainWindow?.webContents.send('update-status', {
+      type: 'downloaded',
+      version: info.version,
+      releaseNotes: info.releaseNotes || ''
+    });
   });
 
   autoUpdater.on('error', (err) => {
-    mainWindow?.webContents.send('update-status', { type: 'error', error: err.message });
+    console.warn('[AutoUpdater] Update error:', err?.message || err);
+    mainWindow?.webContents.send('update-status', {
+      type: 'error',
+      error: err?.message || String(err)
+    });
   });
 
   ipcMain.handle('get-app-version', () => {
@@ -497,9 +533,11 @@ app.whenReady().then(() => {
 
   ipcMain.handle('check-for-updates', async () => {
     if (!app.isPackaged) {
+      console.log('[AutoUpdater] Skipping autoUpdater check in Dev mode');
       return { isDev: true, version: app.getVersion() };
     }
     try {
+      console.log('[AutoUpdater] Triggering manual check-for-updates');
       return await autoUpdater.checkForUpdates();
     } catch (err: any) {
       console.warn('⚠️ AutoUpdate check failed:', err?.message || err);
@@ -509,11 +547,23 @@ app.whenReady().then(() => {
 
   ipcMain.on('quit-and-install-update', () => {
     try {
+      console.log('[AutoUpdater] Restarting app to apply update...');
       autoUpdater.quitAndInstall(false, true);
     } catch (err) {
       console.error('⚠️ Lỗi khi restart & install update:', err);
     }
   });
+
+  // Tự động kiểm tra bản cập nhật mới định kỳ mỗi 1 giờ khi app đã đóng gói (Production)
+  if (app.isPackaged) {
+    setTimeout(() => {
+      autoUpdater.checkForUpdates().catch(e => console.warn('[AutoUpdater] Initial check failed:', e?.message));
+    }, 10000);
+
+    setInterval(() => {
+      autoUpdater.checkForUpdates().catch(e => console.warn('[AutoUpdater] Background check failed:', e?.message));
+    }, 3600000);
+  }
 
   ipcMain.on('open-external-url', (event, url) => {
     const { shell } = require('electron');

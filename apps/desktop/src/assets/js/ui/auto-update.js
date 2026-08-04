@@ -1,17 +1,42 @@
 // Auto Update Management Logic (VS Code & Modern Enterprise Modal style)
 
-let CURRENT_VERSION = '1.0.6';
+let CURRENT_VERSION = '1.0.7';
 let latestVersionInfo = null;
 let isUpdateReadyToInstall = false;
 
-async function updateVersionBadge() {
-  try {
-    if (window.ipcRenderer && typeof window.ipcRenderer.invoke === 'function') {
-      const ver = await window.ipcRenderer.invoke('get-app-version');
-      if (ver) CURRENT_VERSION = ver;
+// Safe IPC Resolver to ensure window.ipcRenderer works across all renderer context models
+function getIpcRenderer() {
+  if (typeof window !== 'undefined' && window.ipcRenderer) {
+    return window.ipcRenderer;
+  }
+  if (typeof require !== 'undefined') {
+    try {
+      const { ipcRenderer } = require('electron');
+      if (ipcRenderer) {
+        window.ipcRenderer = ipcRenderer;
+        return ipcRenderer;
+      }
+    } catch (e) {
+      console.warn('[AutoUpdate Debug] Could not require electron ipcRenderer:', e);
     }
-  } catch (e) {
-    // Silent fallback
+  }
+  return null;
+}
+
+async function updateVersionBadge() {
+  const ipc = getIpcRenderer();
+  if (ipc && typeof ipc.invoke === 'function') {
+    try {
+      const ver = await ipc.invoke('get-app-version');
+      if (ver) {
+        CURRENT_VERSION = ver;
+        console.log(`[AutoUpdate Debug] App version fetched via IPC: v${CURRENT_VERSION}`);
+      }
+    } catch (e) {
+      console.warn('[AutoUpdate Debug] Failed to invoke get-app-version via IPC:', e);
+    }
+  } else {
+    console.log(`[AutoUpdate Debug] Running with static version fallback: v${CURRENT_VERSION}`);
   }
 
   const badge = document.getElementById('app-version-badge');
@@ -50,10 +75,10 @@ function ensureUpdateModalDOM() {
         <!-- Version Pills -->
         <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color, rgba(255,255,255,0.06)); padding: 12px 16px; border-radius: 10px;">
           <div style="font-size: 13px; color: var(--text-secondary, #94a3b8);">
-            Phiên bản hiện tại: <span id="update-modal-current-ver" style="font-weight: 700; color: var(--text-primary, #fff);">v1.0.3</span>
+            Phiên bản hiện tại: <span id="update-modal-current-ver" style="font-weight: 700; color: var(--text-primary, #fff);">v${CURRENT_VERSION}</span>
           </div>
           <div style="font-size: 13px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 4px 12px; border-radius: 20px;" id="update-modal-target-ver">
-            v1.0.4
+            v${latestVersionInfo ? latestVersionInfo.version : 'New'}
           </div>
         </div>
 
@@ -118,18 +143,19 @@ function closeUpdateModal() {
 
 function executeAppUpdate() {
   closeUpdateModal();
+  const ipc = getIpcRenderer();
 
   if (isUpdateReadyToInstall) {
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('quit-and-install-update');
+    if (ipc) {
+      ipc.send('quit-and-install-update');
     }
     return;
   }
 
   if (latestVersionInfo) {
     showToast('Cập nhật hệ thống', 'Đang tự động kiểm tra và tải bản nâng cấp ngầm...', 'info');
-    if (window.ipcRenderer && typeof window.ipcRenderer.invoke === 'function') {
-      window.ipcRenderer.invoke('check-for-updates');
+    if (ipc && typeof ipc.invoke === 'function') {
+      ipc.invoke('check-for-updates');
     } else {
       window.open(latestVersionInfo.url, '_blank');
     }
@@ -145,33 +171,44 @@ async function checkForUpdates() {
   const btn = document.getElementById('update-badge-btn');
   await updateVersionBadge();
 
-  // Nếu đang ở trong Electron app, ưu tiên kiểm tra qua main process autoUpdater
-  if (window.ipcRenderer && typeof window.ipcRenderer.invoke === 'function') {
+  const ipc = getIpcRenderer();
+
+  // 1. Kích hoạt autoUpdater trong Main process nếu đang ở môi trường Electron App
+  if (ipc && typeof ipc.invoke === 'function') {
     try {
-      window.ipcRenderer.invoke('check-for-updates');
+      ipc.invoke('check-for-updates');
     } catch (e) {
-      console.warn('[AutoUpdate] IPC check-for-updates failed:', e);
+      console.warn('[AutoUpdate Debug] IPC check-for-updates failed:', e);
     }
   }
 
-  // Fallback kiểm tra trực tiếp GitHub API
+  // 2. Fallback kiểm tra trực tiếp GitHub API (để luôn cập nhật UI ngay lập tức)
   try {
+    console.log('[AutoUpdate Debug] Fetching latest release info from GitHub API...');
     const res = await fetch('https://api.github.com/repos/peggy2402/eigu-platform/releases/latest', {
       headers: { 'Accept': 'application/vnd.github.v3+json' },
     });
 
+    if (res.status === 403 || res.status === 429) {
+      console.warn(`[AutoUpdate Debug] GitHub API Rate limit hit (Status: ${res.status}). Will rely on main process autoUpdater.`);
+      return;
+    }
+
     if (!res.ok) {
+      console.warn(`[AutoUpdate Debug] GitHub API returned HTTP ${res.status}: ${res.statusText}`);
       if (btn && !isUpdateReadyToInstall) btn.classList.add('hidden');
       return;
     }
 
     const data = await res.json();
     if (!data || !data.tag_name) {
+      console.warn('[AutoUpdate Debug] GitHub API response missing tag_name');
       if (btn && !isUpdateReadyToInstall) btn.classList.add('hidden');
       return;
     }
 
     const remoteVersion = data.tag_name.replace(/^v/, '');
+    console.log(`[AutoUpdate Debug] Latest remote version: v${remoteVersion} (Local: v${CURRENT_VERSION})`);
 
     latestVersionInfo = {
       version: remoteVersion,
@@ -180,6 +217,7 @@ async function checkForUpdates() {
     };
 
     if (isNewerVersion(latestVersionInfo.version, CURRENT_VERSION)) {
+      console.log(`[AutoUpdate Debug] Newer version detected: v${remoteVersion} > v${CURRENT_VERSION}`);
       if (btn) {
         btn.classList.remove('hidden');
         if (!isUpdateReadyToInstall) {
@@ -187,16 +225,20 @@ async function checkForUpdates() {
         }
       }
 
-      // Tự động mở Modal Popup cập nhật giữa màn hình 1 lần trong phiên nếu chưa từng hiển thị
-      if (!sessionStorage.getItem('eigu_update_modal_auto_shown')) {
-        sessionStorage.setItem('eigu_update_modal_auto_shown', 'true');
+      // Tự động mở Modal Popup cập nhật giữa màn hình cho phiên bản mới này nếu chưa hiển thị trong phiên
+      const sessionKey = `eigu_update_modal_shown_v${remoteVersion}`;
+      if (!sessionStorage.getItem(sessionKey)) {
+        sessionStorage.setItem(sessionKey, 'true');
         openUpdateModal();
       }
-    } else if (btn && !isUpdateReadyToInstall) {
-      btn.classList.add('hidden');
+    } else {
+      console.log(`[AutoUpdate Debug] Local version v${CURRENT_VERSION} is up to date.`);
+      if (btn && !isUpdateReadyToInstall) {
+        btn.classList.add('hidden');
+      }
     }
   } catch (err) {
-    console.warn('[AutoUpdate] Check GitHub release failed:', err);
+    console.warn('[AutoUpdate Debug] Check GitHub release failed:', err);
     if (btn && !isUpdateReadyToInstall) btn.classList.add('hidden');
   }
 }
@@ -213,20 +255,35 @@ function isNewerVersion(newVer, oldVer) {
   return false;
 }
 
-if (window.ipcRenderer) {
-  window.ipcRenderer.on('update-status', (event, data) => {
+// Wire IPC event listeners from main process autoUpdater
+const ipc = getIpcRenderer();
+if (ipc) {
+  ipc.on('update-status', (event, data) => {
     const btn = document.getElementById('update-badge-btn');
     if (!data) return;
 
+    console.log(`[AutoUpdate Debug] IPC update-status event received:`, data);
+
     if (data.type === 'available') {
-      showToast('Cập nhật hệ thống', `Đã tìm thấy bản mới v${data.version}. Đang tải ngầm...`, 'info');
+      showToast('Cập nhật hệ thống', `Đã phát hiện bản mới v${data.version}. Đang tự động tải ngầm...`, 'info');
       if (btn) {
         btn.classList.remove('hidden');
         btn.textContent = 'Downloading...';
       }
+    } else if (data.type === 'downloading') {
+      if (btn && data.percent) {
+        btn.classList.remove('hidden');
+        btn.textContent = `Downloading ${Math.round(data.percent)}%`;
+      }
     } else if (data.type === 'downloaded') {
       isUpdateReadyToInstall = true;
-      showToast('Cập nhật hoàn tất', `Bản nâng cấp v${data.version} đã sẵn sàng. Click nút Update để khởi động lại!`, 'success');
+      if (data.version) {
+        latestVersionInfo = {
+          version: data.version,
+          releaseNotes: data.releaseNotes || `Bản nâng cấp v${data.version} đã tải về hoàn tất.`
+        };
+      }
+      showToast('Cập nhật hoàn tất', `Bản nâng cấp v${data.version} đã sẵn sàng. Bấm nút Update để tự động restart & cài đặt!`, 'success');
       if (btn) {
         btn.classList.remove('hidden');
         btn.textContent = 'Restart to Update';
@@ -234,7 +291,7 @@ if (window.ipcRenderer) {
       }
       openUpdateModal();
     } else if (data.type === 'error') {
-      console.warn('[AutoUpdate] autoUpdater check skipped or artifact not found (will fallback to GitHub API):', data.error);
+      console.warn('[AutoUpdate Debug] autoUpdater error / skipped:', data.error);
     }
   });
 }
