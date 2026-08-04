@@ -110,28 +110,40 @@ export class AuthService implements OnModuleInit {
   }
 
   private async initTransporter() {
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+    const smtpHost = process.env.SMTP_HOST || (smtpUser?.includes('gmail') ? 'smtp.gmail.com' : 'smtp.resend.com');
+    const smtpPort = parseInt(process.env.SMTP_PORT || '465');
+    const smtpSecure = process.env.SMTP_SECURE !== 'false';
+
+    if (smtpUser && smtpPass) {
       this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-        connectionTimeout: 7000,
-        greetingTimeout: 7000,
-        socketTimeout: 8000,
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpSecure,
+        auth: { user: smtpUser, pass: smtpPass },
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 10000,
       });
+      this.logger.log(`[SMTP] Transporter initialized for ${smtpUser} via ${smtpHost}:${smtpPort}`);
     } else {
-      const testAccount = await nodemailer.createTestAccount();
-      this.transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: { user: testAccount.user, pass: testAccount.pass },
-        connectionTimeout: 7000,
-        greetingTimeout: 7000,
-        socketTimeout: 8000,
-      });
-      this.logger.debug('Test email account: ' + testAccount.user);
+      this.logger.warn('[SMTP WARN] SMTP_USER or SMTP_PASS missing from environment variables');
+      try {
+        const testAccount = await nodemailer.createTestAccount();
+        this.transporter = nodemailer.createTransport({
+          host: 'smtp.ethereal.email',
+          port: 587,
+          secure: false,
+          auth: { user: testAccount.user, pass: testAccount.pass },
+          connectionTimeout: 8000,
+          greetingTimeout: 8000,
+          socketTimeout: 10000,
+        });
+        this.logger.log(`[SMTP] Ethereal test account initialized: ${testAccount.user}`);
+      } catch (err: any) {
+        this.logger.error(`[SMTP ERROR] Failed to create Ethereal test account: ${err?.message}`);
+      }
     }
   }
 
@@ -141,7 +153,10 @@ export class AuthService implements OnModuleInit {
 
   private async sendOtpEmail(email: string, otp: string, purpose: string) {
     if (!this.transporter) {
-      this.logger.error('[SMTP ERROR] Email service transporter is not initialized');
+      await this.initTransporter();
+    }
+    if (!this.transporter) {
+      this.logger.error('[SMTP ERROR] Email service transporter could not be initialized');
       return;
     }
     const sender = process.env.SMTP_FROM || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@') ? process.env.SMTP_USER : 'noreply@peggy-mc.site');
