@@ -201,14 +201,7 @@ export class AuthService implements OnModuleInit {
     if (!user) throw new BadRequestException('Email không tồn tại trong hệ thống');
     if (user.isVerified) throw new BadRequestException('Email đã được xác thực rồi');
 
-    // Rate-limit: don't allow resend if OTP was sent less than 60 seconds ago
-    if (user.otpExpiresAt) {
-      const otpAge = Date.now() - (user.otpExpiresAt.getTime() - 10 * 60 * 1000);
-      if (otpAge < 60 * 1000) {
-        throw new BadRequestException('Vui lòng đợi 60 giây trước khi gửi lại mã OTP');
-      }
-    }
-
+    // No backend rate-limit here — frontend countdown timer already handles it
     const otp = this.generateOtp();
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -236,7 +229,22 @@ export class AuthService implements OnModuleInit {
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-    if (!user.isVerified) throw new UnauthorizedException({ message: 'Email not verified', email: user.email });
+    if (!user.isVerified) {
+      // Auto-send a fresh OTP so user always gets a valid code in their inbox
+      // when redirected to the OTP verification form
+      try {
+        const otp = this.generateOtp();
+        const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { otpCode: otp, otpExpiresAt },
+        });
+        await this.sendOtpEmail(user.email, otp, 'Email Verification');
+      } catch (e) {
+        this.logger.warn(`[Login] Failed to auto-send OTP to ${user.email}: ${e?.message}`);
+      }
+      throw new UnauthorizedException({ message: 'Email not verified', email: user.email });
+    }
 
     // Kiểm tra Ban tạm thời / Ban vĩnh viễn
     if (user.isBanned) {
