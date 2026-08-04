@@ -262,7 +262,14 @@ Hệ thống giao diện EIGU Desktop bao gồm **25+ Mô-đun Chức Năng** đ
   - Cho phép người dùng dễ dàng chuyển đổi ngôn ngữ hiển thị giao diện mặc định giữa **Tiếng Việt (`VI`)** và **English (`EN`)**.
   - Lưu trạng thái lựa chọn vào `localStorage` và tự động áp dụng ngôn ngữ mỗi khi khởi động lại ứng dụng Client.
 
+#### 32. 🛡️ `privacy-disclaimer` (Phân Hệ Tuyên Bố Miễn Trừ Trách Nhiệm & Bảo Mật AI - Law on AI 2025)
+- **Tính năng**:
+  - Màn hình/Modal Gating Chặn (`DisclaimerModal.tsx`) xác nhận 1 lần bắt buộc ngay sau khi đăng ký tài khoản thành công, chặn truy cập sản phẩm cho đến khi người dùng đồng ý các điều khoản pháp lý theo **Luật Trí tuệ nhân tạo 2025 (Luật số 134/2025/QH15)**.
+  - Tự động lưu vết nhật ký chấp thuận (Consent Log: timestamp, user_id, client agent, IP) làm bằng chứng pháp lý khi xảy ra tranh chấp.
+  - Trang pháp lý độc lập `/privacy-disclaimer` và tích hợp nút bấm liên kết tại mục **"Bảo Mật"** trong Footer (`Footer.tsx`) với hiệu ứng `.footer-link` hover đồng bộ.
+
 ---
+
 
 ## 4. 🔒 Cơ Chế Bảo Mật & Phân Quyền Hệ Thống (Security & Authorization)
 

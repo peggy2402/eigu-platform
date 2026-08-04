@@ -110,6 +110,7 @@ export default function RegisterPage() {
       const data = await authApi.verifyEmail(email, code);
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.removeItem('eigu_disclaimer_accepted');
       sessionStorage.setItem('eigu_toast_notice', JSON.stringify({
         title: language === 'en' ? 'Registration Successful!' : 'Đăng ký tài khoản thành công!',
         description: language === 'en' ? 'Your account is verified and ready for use.' : 'Tài khoản của bạn đã được xác thực và sẵn sàng sử dụng.',

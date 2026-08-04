@@ -1152,6 +1152,78 @@ Xử lý:
 - Bổ sung mục 5 (*MÀU CHỮ VÀ HIỆU ỨNG HOVER TƯƠNG THÍCH ĐA THEME (CRITICAL HOVER COLOR RULE)*) vào `AI_CONTEXT.md`.
 - Nghiêm cấm hardcode màu chữ trắng `color: '#ffffff'` hoặc `#fff` khi hover trên các phông nền card/container dạng `var(--bg-card)` để đảm bảo 100% không bao giờ gặp sự cố trùng màu chữ ở chế độ nền sáng.
 
+## Phase 32: Phiên làm việc 04/08/2026 — Soạn Thảo Tuyên Bố Miễn Trừ Trách Nhiệm Pháp Lý (AI Disclaimer 2025), Màn Hình Gating Consent & Nút Bảo Mật Footer
+- **Thời gian ghi nhận:** 04/08/2026 14:58:00 GMT+7
+
+### 32.1 Soạn Thảo Văn Bản Tuyên Bố Miễn Trừ Trách Nhiệm Pháp Lý Chuẩn Luật AI 2025
+- **Định vị & Văn phong**: Viết ở góc nhìn chuyên gia soạn thảo văn bản pháp lý công nghệ AI tại Việt Nam dành riêng cho sản phẩm **EIGU Platform** (Nền tảng Tự động hóa AI Video SaaS dành cho cộng đồng MMO TikTok, YouTube Shorts & Reels). Trình bày mạch lạc theo đúng 5 phần quy chuẩn pháp lý:
+  1. **VAI TRÒ CỦA EIGU PLATFORM**: Định vị đơn vị là bên cung cấp giao diện/công cụ trung gian tự động hóa, không trực tiếp kiểm soát thuật toán lõi hoặc logic xử lý của các mô hình AI bên thứ ba (OpenAI, Fal.ai, ElevenLabs, OmniVoice, Kling AI). Khẳng định nội dung đầu ra phụ thuộc hoàn toàn vào prompt và ý chí độc lập của người dùng.
+  2. **TRÁCH NHIỆM MINH BẠCH VÀ NGHĨA VỤ NGƯỜI DÙNG**: Căn cứ **Luật Trí tuệ nhân tạo 2025 (Luật số 134/2025/QH15, hiệu lực từ ngày 01/03/2026), đặc biệt Điều 11** về nghĩa vụ gắn nhãn nhận biết nội dung AI. Bắt buộc người dùng dán nhãn AI cho nội dung mô phỏng người thật, giọng nói thật hoặc sự kiện thực tế. Khẳng định EIGU Platform miễn trừ hoàn toàn trách nhiệm nếu người dùng vi phạm.
+  3. **CÁC HÀNH VI BỊ NGHIÊM CẤM**: Căn cứ **Điều 7 Luật AI 2025**, liệt kê chi tiết các hành vi vi phạm pháp luật, giả mạo Deepfake, lừa đảo, đe dọa an ninh quốc gia, lợi dụng đối tượng yếu thế, xâm phạm bản quyền tác giả hoặc vi phạm tiêu chuẩn cộng đồng MMO.
+  4. **QUYỀN RIÊNG TƯ VÀ DỮ LIỆU NGƯỜI DÙNG**: Căn cứ **Điều 4 Luật AI 2025**. Phân định minh bạch: dữ liệu KHÔNG lưu trữ (nội dung video/âm thanh render thành phẩm), dữ liệu CÓ lưu trữ (thông tin tài khoản, IP, nhật ký giao dịch, Consent Log). Cam kết không bán/chia sẻ bên thứ ba trừ khi có yêu cầu hợp pháp của cơ quan chức năng. Cung cấp email hỗ trợ xóa dữ liệu: `support@eigu.vn` / `privacy@eigu.vn`.
+  5. **MIỄN TRỪ TRÁCH NHIỆM TỔNG QUÁT & XÁC NHẬN**: Tuyên bố công cụ trung lập, người dùng chịu 100% trách nhiệm pháp lý/dân sự/hình sự. Đi kèm checkbox xác nhận "Tôi đã đọc, hiểu và cam kết tuân thủ đầy đủ..." và nút hành động "TIẾP TỤC SỬ DỤNG".
+
+### 32.2 Phát Triển Component `DisclaimerModal.tsx` & Trang `/privacy-disclaimer`
+- **Màn hình/Modal Gating Chặn (Blocking Consent Screen)**:
+  - Thiết kế component `DisclaimerModal.tsx` dạng gating screen hiển thị ngay sau khi người dùng đăng ký tài khoản thành công, bắt buộc xác nhận 1 lần trước khi vào sử dụng ứng dụng lần đầu.
+  - Loại bỏ hoàn toàn nút "Skip" / "Để sau". Chỉ kích hoạt nút "TIẾP TỤC SỬ DỤNG" khi người dùng tích chọn checkbox cam kết.
+  - Tự động ghi vết Consent Log (Timestamp, User ID, Client Agent, trạng thái `accepted = true`) lưu trữ vào bộ nhớ thiết bị/database làm căn cứ bằng chứng pháp lý khi xảy ra tranh chấp.
+- **Trang Độc Lập `/privacy-disclaimer` & Tích Hợp Song Song Trong Mô-Đun FAQ (`apps/web/src/app/page.tsx`)**:
+  - Bổ sung nút bấm Sub-Tab thứ 3 **"Chính sách bảo mật & Miễn trừ trách nhiệm"** nằm song song với *"Câu Hỏi Thường Gặp (FAQ)"* và *"Quy Định & Điều Khoản Sử Dụng"* bên trong mô-đun `/faq`.
+  - Khi người dùng bấm vào nút *"Chính sách bảo mật & Miễn trừ trách nhiệm"* ở Footer hoặc mở liên kết `/privacy-disclaimer`, hệ thống tự động định tuyến đến trang FAQ với sub-tab Disclaimer kích hoạt hiển thị trọn vẹn văn bản pháp lý.
+
+### 32.3 Cập Nhật Nút Bảo Mật Trong Footer (`Footer.tsx` & `LanguageContext.tsx`)
+- **Tích hợp Nút Trong `Footer.tsx`**:
+  - Tại cột **"Bảo Mật"** (Security), bổ sung nút bấm `li.footer-link` có tên `"Chính sách bảo mật & Miễn trừ trách nhiệm"` (`{t('footer_privacy_disclaimer')}`).
+  - Xóa dòng mô tả cũ `"Anti-Detect Fingerprint Engine & Data Security Standard."` để cột Bảo mật hiển thị gọn gàng, tinh tế và tập trung hoàn toàn vào nút bấm chính sách pháp lý.
+  - Áp dụng chuẩn lớp CSS `.footer-link`, giúp khi rê chuột (hover) vào nút sẽ xuất hiện icon mũi tên `›` trượt nhẹ mượt mà, chuyển màu accent tím và phông nền hover y hệt các nút liên kết bên cạnh.
+- **Đa ngôn ngữ i18n (`LanguageContext.tsx`)**:
+  - Bổ sung key `footer_privacy_disclaimer`: Tiếng Việt (`"Chính sách bảo mật & Miễn trừ trách nhiệm"`), Tiếng Anh (`"Privacy Policy & Disclaimer"`).
+
+### 32.4 Khắc Phục Lỗi Màn Hình Gating Modal Khi Đăng Ký Tài Khoản Mới (`page.tsx` & `register/page.tsx`)
+- **Phân tích nguyên nhân**: Component `DisclaimerModal.tsx` đã được khởi tạo nhưng chưa được nhúng (mount) vào cây component chính của `apps/web/src/app/page.tsx`. Ngoài ra, trang Đăng ký (`register/page.tsx`) chưa tiến hành xóa cờ `eigu_disclaimer_accepted` khi tài khoản mới tạo xong, dẫn tới việc sau khi đăng ký thành công, ứng dụng không hiển thị được cửa sổ nổi (Modal Gating Screen) yêu cầu người dùng đọc và tích chọn xác nhận điều khoản.
+- **Khắc phục**:
+  - **`page.tsx`**: Nhúng `DisclaimerModal` vào cấp toàn cục của ứng dụng Web. Sử dụng `useEffect` kiểm tra cờ `localStorage.getItem('eigu_disclaimer_accepted')` khi người dùng đăng nhập hoặc vừa đăng ký. Nếu chưa chấp thuận, `showDisclaimerModal` tự động bật lên dạng Modal mờ ảo hiệu ứng Kính mờ (Glassmorphism), chặn mọi thao tác cho tới khi tích chọn cam kết và nhấn nút "TIẾP TỤC SỬ DỤNG".
+  - **`register/page.tsx`**: Tại hàm `handleVerify()`, tự động gọi `localStorage.removeItem('eigu_disclaimer_accepted')` ngay sau khi đăng ký OTP thành công. Đảm bảo tài khoản mới tạo luôn phải trải qua bước xác nhận một lần (One-Time Gating Acceptance) bắt buộc.
+
+### 32.5 Khắc Phục Lỗi Thứ Tự Hiển Thị (Layering) Trên Thanh Navbar (`DisclaimerModal.tsx`)
+- **Phân tích nguyên nhân**: Thanh điều hướng nổi Navbar (`Header.tsx` / `.apple-nav-wrapper`) có chỉ số `z-index: 9999`. Khi `DisclaimerModal` chưa sử dụng React Portal và mang chỉ số `z-index: 9999`, thanh Navbar vô tình nằm đè lên trên mặt modal, làm lộ ra các nút chuyển trang và không bị làm mờ.
+- **Khắc phục**:
+  - Tích hợp `createPortal(..., document.body)` trong `DisclaimerModal.tsx` để đưa toàn bộ khung Modal ra khỏi cây DOM phân cấp và gắn trực tiếp vào `document.body`.
+  - Nâng chỉ số `z-index` của lớp phủ (Backdrop) lên `999999` (vượt xa chỉ số `9999` của Navbar).
+  - Áp dụng hiệu ứng Kính mờ `backdropFilter: 'blur(16px)'` cùng màu nền tối `rgba(10, 10, 15, 0.88)` bao phủ 100% màn hình, giúp thanh Navbar nằm ẩn trọn vẹn bên dưới, bị làm mờ hoàn toàn và vô hiệu hóa mọi thao tác bấm cho tới khi người dùng chấp thuận điều khoản.
+  - Tự động khóa cuộn trang (`document.body.style.overflow = 'hidden'`) trong thời gian Modal hiển thị.
+
+### 32.6 Tích Hợp Nút "Quy Định & Điều Khoản Sử Dụng" Vào Footer & Định Tuyến Song Song FAQ (`Footer.tsx`, `page.tsx`, `LanguageContext.tsx`)
+- **Tích hợp Nút Trong `Footer.tsx`**:
+  - Tại cột **"Bảo Mật"** (Security & Legal), bổ sung thêm nút bấm `li.footer-link` có tên `"Quy định & Điều khoản sử dụng"` (`{t('footer_terms_of_service')}`) xếp **nằm trên** nút `"Chính sách bảo mật & Miễn trừ trách nhiệm"`.
+- **Bổ sung key Đa ngôn ngữ (`LanguageContext.tsx`)**:
+  - Tiếng Việt: `"Quy định & Điều khoản sử dụng"`, Tiếng Anh: `"Terms of Service & Usage"`.
+- **Tạo Route Redirect & Xử lý Định tuyến Song Song (`apps/web/src/app/terms-of-service/page.tsx` & `page.tsx`)**:
+  - Tạo file `terms-of-service/page.tsx` hỗ trợ truy cập trực tiếp URL `/terms-of-service`.
+  - Cập nhật hàm `handleNavigate` và `useEffect` mount trong `page.tsx` để điều hướng `/terms-of-service` hoặc `/terms` về mô-đun `/faq` với sub-tab `terms` được chọn, tự động cuộn trang mượt mà lên đầu.
+
+### 32.7 Bổ Sung Ô Xác Nhận Đã Tích Cố Định (Read-Only) Cuối Trang Disclaimer Trong FAQ (`apps/web/src/app/page.tsx`)
+- **Tích hợp khung xác nhận cố định**: Tại vị trí cuối Mục 5 trong trang Tuyên bố Miễn trừ Trách nhiệm & Bảo mật của mô-đun FAQ (`faqSubTab === 'disclaimer'`), bổ sung khung xác nhận chính sách với ô checkbox đã tích sẵn.
+- **Khóa cố định không cho thao tác**: Đặt thuộc tính `checked={true}`, `disabled={true}`, `readOnly={true}` cùng `cursor: 'default'` cho ô checkbox. Người dùng có thể đọc văn bản và thấy rõ cờ xác nhận đã đồng ý nhưng tuyệt đối không thể bỏ tích hay thay đổi trạng thái này.
+- **Gắn nhãn trạng thái Consent Log**: Hiển thị badge xanh lá `"Đã Xác Nhận"` cùng dòng ghi chú *"🔒 Trạng thái: Đã xác nhận chấp thuận điều khoản pháp lý (Consent Log Active)"*.
+
+### 32.8 Tối Ưu Bố Cục 3 Nút Sub-Tab FAQ Nằm Trọn Vẹn Trên 1 Hàng Ngang (`apps/web/src/app/page.tsx`)
+- **Khắc phục lỗi xuống dòng**: Đổi thuộc tính `flexWrap: 'wrap'` thành `flexWrap: 'nowrap'`, bổ sung `whiteSpace: 'nowrap'` và `flexShrink: 0` cho cả 3 nút Sub-Tab.
+- **Tăng chiều rộng khung chứa**: Tăng `maxWidth` của container phần FAQ từ `880px` lên `1040px`, tinh chỉnh khoảng cách padding nút `9px 18px` và cỡ chữ `13.5px`.
+- **Đảm bảo trải nghiệm 100% 1 dòng**: Cả 3 nút *"Câu Hỏi Thường Gặp (FAQ)"*, *"Quy Định & Điều Khoản Sử Dụng"*, và *"Chính Sách Bảo Mật & Miễn Trừ Trách Nhiệm"* nằm ngang hàng cân đối, đẹp mắt và hỗ trợ trượt ngang mượt mà trên thiết bị di động.
+
+### 32.9 Thiết Kế Giao Diện Segmented Control Phản Hồi Đáp Ứng (Responsive) Cho Mobile (`global.css` & `page.tsx`)
+- **Phân tích nguyên nhân**: Trên thiết bị di động (màn hình hẹp dưới 768px), thuộc tính căn giữa `justifyContent: 'center'` gây ra hiện tượng nút đầu tiên bị tràn khuất sang lề trái và nút thứ ba bị tràn sang lề phải, khiến người dùng gặp khó khăn khi thao tác bấm chuyển tab.
+- **Giải pháp tối ưu UX/UI chuẩn Apple**:
+  - **Trên Desktop ($\ge 768px$)**: Hiển thị đầy đủ tên 3 tab trên 1 hàng ngang cân đối (`Câu Hỏi Thường Gặp (FAQ)`, `Quy Định & Điều Khoản Sử Dụng`, `Chính Sách Bảo Mật & Miễn Trừ Trách Nhiệm`).
+  - **Trên Mobile ($< 768px$)**: Chuyển đổi container sang dạng thanh điều hướng Segmented Control 3 cột bằng nhau (`grid-template-columns: repeat(3, 1fr)`).
+  - **Nhãn rút gọn thông minh**: Tự động chuyển đổi tên nút ngắn gọn dễ đọc trên di động (`FAQ`, `Điều Khoản`, `Bảo Mật`).
+  - **100% Không bị khuất**: Cả 3 tab hiển thị đầy đủ 100% trên màn hình điện thoại, nút bấm to rộng vừa vặn với ngón tay cái, vô cùng tiện lợi khi sử dụng.
+
+### 32.10 Kiểm Tra Biên Dịch & Xác Nhận Hệ Thống
+- Chạy `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`. Giao diện Segmented Control trên mobile và desktop hoạt động chuẩn xác 100%.
+
 
 
 

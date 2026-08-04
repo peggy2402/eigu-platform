@@ -127,3 +127,9 @@ Du an duoc quan ly trong mot **Nx Workspace** (`npx nx ...`) bao gom 4 ung dung 
 5. **Audit Logs & Stack Trace Tracking (Truy vet Bug & Hanh vi):**
    - Moi thao tac quan trong (thanh toan, thay doi quyen, dang nhap, huy don, cap nhat theme...) BẮT BUỘC phai duoc ghi nhan vao `AuditLogService` co day du `userId`, `action`, `ip`, `userAgent` va `details`.
    - Log loi phai bao gom Stack Trace (`error.stack`) o moi truong Dev/Staging de giup dev & AI truy vet chinh xac nguyen nhan goc (Root Cause) ma khong phai do doan.
+
+6. **AI Legal Disclaimer & Gating Consent Log (Quy chuẩn Pháp lý & Đồng ý một lần - CRITICAL LEGAL SKILL):**
+   - **Xác nhận Chặn Một Lần (Gating Screen Acceptance):** Ngay sau khi người dùng đăng ký tài khoản thành công, ứng dụng BẮT BUỘC phải hiển thị màn hình/modal chặn (`DisclaimerModal.tsx`) yêu cầu đọc và tích chọn checkbox chấp thuận các điều khoản Tuyên bố Miễn trừ Trách nhiệm TRƯỚC KHI được vào sử dụng sản phẩm lần đầu. Tuyệt đối KHÔNG có nút "Skip" hay "Để sau".
+   - **Ghi vết Bằng chứng Pháp lý (Consent Log Tracking):** Mỗi lần người dùng xác nhận, hệ thống phải lưu vết log đồng ý bao gồm: `user_id`, `timestamp`, `ip`, `clientUserAgent` và cờ `accepted = true` để làm căn cứ bằng chứng pháp lý bảo vệ EIGU Platform khi xảy ra tranh chấp.
+   - **Căn cứ Luật Trí tuệ Nhân tạo 2025 (Luật số 134/2025/QH15):** Tuân thủ tuyệt đối Điều 11 (nghĩa vụ người dùng dán nhãn nhận biết nội dung AI), Điều 7 (các hành vi bị nghiêm cấm) và Điều 4 (quyền riêng tư và dữ liệu người dùng).
+   - **Chính sách Bảo mật Footer (`Footer.tsx`):** Mục "Bảo Mật" trong Footer bắt buộc có nút liên kết "Chính sách bảo mật & Miễn trừ trách nhiệm" (`.footer-link`) chuyển tới trang `/privacy-disclaimer`, hỗ trợ đa ngôn ngữ (VI/EN) và hiệu ứng hover đồng bộ.

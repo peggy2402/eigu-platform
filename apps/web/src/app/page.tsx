@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Sparkles, Scissors, Clapperboard, RefreshCw, TrendingUp, DownloadCloud,
   ArrowRight, Check, Shield, Zap, Play, HelpCircle, Mail, Globe, Wallet,
-  User, Link as LinkIcon, Tag, History, BookOpen, ChevronRight, ChevronDown, X, AlertCircle, ShoppingCart, Star, Gift, ShieldAlert, FileText, Lock
+  User, Link as LinkIcon, Tag, History, BookOpen, ChevronRight, ChevronDown, X, AlertCircle, ShoppingCart, Star, Gift, ShieldAlert, FileText, Lock, CheckCircle2
 } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
@@ -28,6 +28,7 @@ import { pricingApi, themeEventApi, contactApi } from '../lib/api';
 import type { PricingModuleDto, PricingTierDto } from '@eigu-platform/shared';
 import TypewriterText from '../components/TypewriterText';
 import FeatureModulesSection from '../components/modules/FeatureModulesSection';
+import DisclaimerModal from '../components/ui/DisclaimerModal';
 
 const TESTIMONIALS_COL1 = [
   { name: 'Quỳnh Mai', handle: '@quynhmai_mmo', avatar: 'https://scontent.fhan2-5.fna.fbcdn.net/v/t1.15752-9/759188241_1776425700453909_6966335744454354739_n.jpg?stp=dst-jpg_tt6&cstp=mx1086x1086&ctp=s1086x1086&_nc_cat=106&ccb=1-7&_nc_sid=9f807c&_nc_ohc=YXc0j8wUbUgQ7kNvwEWGZZQ&_nc_oc=Ado1Pzc1RXZik11wE0uAy5OKmD5HXI7gmueCmDkeT4BfqYy_LuAQaBKeSjdshfP4OJfLNq-DQvr9JhWSo2FwP0Co&_nc_zt=23&_nc_ht=scontent.fhan2-5.fna&_nc_ss=7b2a8&oh=03_Q7cD6AHPtH3npzIp-myWNjM6y7xTS8sREvdbz2ChqX0u-2p5FQ&oe=6A9439E3', text: 'Giao diện dễ dùng, nạp tiền tự động nhanh gọn. Via Facebook ở đây trâu thật sự.' },
@@ -276,6 +277,18 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
 
+  // Disclaimer Gating Modal State
+  const [showDisclaimerModal, setShowDisclaimerModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const accepted = localStorage.getItem('eigu_disclaimer_accepted');
+      if (!accepted) {
+        setShowDisclaimerModal(true);
+      }
+    }
+  }, [user, token]);
+
   // Pricing State
   const [pricingModules, setPricingModules] = useState<PricingModuleDto[]>(FALLBACK_PRICING_MODULES);
   const [activeModuleSlug, setActiveModuleSlug] = useState<string>('cut');
@@ -287,7 +300,7 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
 
   // FAQ Accordion & SubTab State
   const [openFaqId, setOpenFaqId] = useState<number | null>(null);
-  const [faqSubTab, setFaqSubTab] = useState<'faq' | 'terms'>('faq');
+  const [faqSubTab, setFaqSubTab] = useState<'faq' | 'terms' | 'disclaimer'>('faq');
 
   // Contact Form Real Submission State
   const [contactName, setContactName] = useState('');
@@ -397,7 +410,13 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
     fetchPricing();
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
-      if (['/pricing', '/news', '/faq', '/contact', '/about', '/'].includes(currentPath)) {
+      if (currentPath === '/privacy-disclaimer') {
+        setActivePath('/faq');
+        setFaqSubTab('disclaimer');
+      } else if (currentPath === '/terms-of-service' || currentPath === '/terms') {
+        setActivePath('/faq');
+        setFaqSubTab('terms');
+      } else if (['/pricing', '/news', '/faq', '/contact', '/about', '/'].includes(currentPath)) {
         setActivePath(currentPath);
       }
     }
@@ -407,6 +426,24 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
   const handleNavigate = (path: string) => {
     if (path.startsWith('/auth/')) {
       router.push(path);
+      return;
+    }
+    if (path === '/privacy-disclaimer') {
+      setActivePath('/faq');
+      setFaqSubTab('disclaimer');
+      if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', '/faq');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (path === '/terms-of-service' || path === '/terms') {
+      setActivePath('/faq');
+      setFaqSubTab('terms');
+      if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', '/faq');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     if (path === '/dashboard/transactions') {
@@ -1133,7 +1170,7 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
 
         {/* ==================== 5. FAQ PAGE (/faq) ==================== */}
         {activePath === '/faq' && (
-          <section style={{ padding: '0 24px 80px', maxWidth: 880, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+          <section style={{ padding: '0 24px 80px', maxWidth: 1040, margin: '0 auto', position: 'relative', zIndex: 10 }}>
             <h1 style={{ fontSize: 'min(2.5rem, 7vw)', fontWeight: 900, marginBottom: 12, textAlign: 'center', color: 'var(--text-primary)' }}>
               {language === 'en' ? 'Frequently Asked Questions & Terms' : 'Câu Hỏi Thường Gặp & Điều Khoản Sử Dụng'}
             </h1>
@@ -1143,49 +1180,31 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
                 : 'Giải đáp các thắc mắc phổ biến về gói dịch vụ, thanh toán, hạn mức sử dụng và Quy định Điều khoản sử dụng chính thức.'}
             </p>
 
-            {/* Sub-Tab Navigation Switcher */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 36, flexWrap: 'wrap' }}>
+            {/* Sub-Tab Navigation Switcher (Responsive Segmented Control) */}
+            <div className="faq-subtab-container">
               <button
                 onClick={() => setFaqSubTab('faq')}
-                style={{
-                  padding: '10px 22px',
-                  borderRadius: 24,
-                  border: faqSubTab === 'faq' ? '1px solid var(--accent)' : '1px solid var(--border-color)',
-                  background: faqSubTab === 'faq' ? 'var(--accent-glow)' : 'var(--bg-card)',
-                  color: faqSubTab === 'faq' ? 'var(--accent)' : 'var(--text-secondary)',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  transition: 'all 0.25s',
-                  boxShadow: faqSubTab === 'faq' ? '0 4px 16px var(--accent-glow)' : 'none',
-                }}
+                className={`faq-tab-btn${faqSubTab === 'faq' ? ' active' : ''}`}
               >
-                <HelpCircle size={16} />
-                <span>{language === 'en' ? 'Frequently Asked Questions' : 'Câu Hỏi Thường Gặp (FAQ)'}</span>
+                <HelpCircle size={15} />
+                <span className="faq-tab-label-desktop">{language === 'en' ? 'Frequently Asked Questions' : 'Câu Hỏi Thường Gặp (FAQ)'}</span>
+                <span className="faq-tab-label-mobile">FAQ</span>
               </button>
               <button
                 onClick={() => setFaqSubTab('terms')}
-                style={{
-                  padding: '10px 22px',
-                  borderRadius: 24,
-                  border: faqSubTab === 'terms' ? '1px solid var(--accent)' : '1px solid var(--border-color)',
-                  background: faqSubTab === 'terms' ? 'var(--accent-glow)' : 'var(--bg-card)',
-                  color: faqSubTab === 'terms' ? 'var(--accent)' : 'var(--text-secondary)',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  transition: 'all 0.25s',
-                  boxShadow: faqSubTab === 'terms' ? '0 4px 16px var(--accent-glow)' : 'none',
-                }}
+                className={`faq-tab-btn${faqSubTab === 'terms' ? ' active' : ''}`}
               >
-                <ShieldAlert size={16} />
-                <span>{language === 'en' ? 'Terms & Conditions of Service' : 'Quy Định & Điều Khoản Sử Dụng'}</span>
+                <ShieldAlert size={15} />
+                <span className="faq-tab-label-desktop">{language === 'en' ? 'Terms & Conditions of Service' : 'Quy Định & Điều Khoản Sử Dụng'}</span>
+                <span className="faq-tab-label-mobile">{language === 'en' ? 'Terms' : 'Điều Khoản'}</span>
+              </button>
+              <button
+                onClick={() => setFaqSubTab('disclaimer')}
+                className={`faq-tab-btn${faqSubTab === 'disclaimer' ? ' active' : ''}`}
+              >
+                <Lock size={15} />
+                <span className="faq-tab-label-desktop">{language === 'en' ? 'Privacy Policy & Disclaimer' : 'Chính Sách Bảo Mật & Miễn Trừ Trách Nhiệm'}</span>
+                <span className="faq-tab-label-mobile">{language === 'en' ? 'Privacy' : 'Bảo Mật'}</span>
               </button>
             </div>
 
@@ -1510,6 +1529,180 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
                 </div>
               </div>
             )}
+
+            {/* TAB 3: Official Privacy Policy & Legal Disclaimer Document */}
+            {faqSubTab === 'disclaimer' && (
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '36px 32px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
+                <div style={{ textAlign: 'center', marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 20, background: 'rgba(99, 102, 241, 0.12)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#818cf8', fontSize: 13, fontWeight: 700, marginBottom: 12 }}>
+                    <Lock size={16} />
+                    <span>{language === 'en' ? 'Legal & AI Disclaimer Policy' : 'Văn Bản Pháp Lý & Điều Khoản Sử Dụng AI'}</span>
+                  </div>
+                  <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>
+                    {language === 'en' ? 'Privacy Policy & Legal Disclaimer' : 'Tuyên Bố Miễn Trừ Trách Nhiệm & Bảo Mật'}
+                  </h2>
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                    {language === 'en' ? 'Effective Date: Law on AI 2025 (Law No. 134/2025/QH15)' : 'Căn cứ: Luật Trí tuệ nhân tạo 2025 (Luật số 134/2025/QH15, hiệu lực từ 01/03/2026)'}
+                  </p>
+                </div>
+
+                <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  {/* Section 1 */}
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <FileText size={18} />
+                      <span>{language === 'en' ? '1. EIGU Platform Role' : '1. VAI TRÒ CỦA EIGU PLATFORM'}</span>
+                    </h3>
+                    <p style={{ margin: 0, textAlign: 'justify' }}>
+                      {language === 'en'
+                        ? 'EIGU Platform acts solely as a software interface provider and intermediary automation engine. EIGU does not directly control core AI models or third-party logic (OpenAI, Fal.ai, ElevenLabs, OmniVoice, Kling AI). Output media content depends entirely on user prompts, input parameters, and sole user intent.'
+                        : 'EIGU Platform (Nền tảng Tự động hóa AI Video SaaS) đóng vai trò là đơn vị cung cấp giao diện phần mềm, bộ công cụ tự động hóa và cơ sở hạ tầng kỹ thuật trung gian. EIGU không trực tiếp kiểm soát, can thiệp hoặc sở hữu các mô hình/thuật toán AI lõi bên thứ ba (OpenAI, Fal.ai, ElevenLabs, OmniVoice, Kling AI). Tất cả kết quả đầu ra phụ thuộc hoàn toàn vào câu lệnh (prompt), tham số đầu vào và ý chí chủ quan độc lập của người dùng.'}
+                    </p>
+                  </div>
+
+                  {/* Section 2 */}
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <ShieldAlert size={18} />
+                      <span>{language === 'en' ? '2. Transparency & User Obligations' : '2. TRÁCH NHIỆM MINH BẠCH VÀ NGHĨA VỤ NGƯỜI DÙNG'}</span>
+                    </h3>
+                    <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                      {language === 'en'
+                        ? 'Under Article 11 of the Vietnam Law on Artificial Intelligence 2025 (Law No. 134/2025/QH15, effective March 1, 2026):'
+                        : 'Căn cứ Luật Trí tuệ nhân tạo 2025 (Luật số 134/2025/QH15, hiệu lực từ ngày 01/03/2026), đặc biệt Điều 11 về nghĩa vụ gắn nhãn nhận biết nội dung AI:'}
+                    </p>
+                    <ul style={{ paddingLeft: 20, margin: 0 }}>
+                      <li style={{ marginBottom: 6 }}>
+                        {language === 'en'
+                          ? 'Users have a mandatory legal obligation to clearly label AI-generated or AI-synthetic content simulating real people, voices, or real-life events before public distribution on social platforms.'
+                          : 'Người dùng có nghĩa vụ pháp lý bắt buộc phải dán nhãn nhận diện/cảnh báo rõ ràng đối với toàn bộ sản phẩm video, hình ảnh hoặc giọng nói do AI tạo ra hoặc mô phỏng người thật, giọng nói thật, sự kiện thực tế trước khi xuất bản công khai trên mạng xã hội.'}
+                      </li>
+                      <li>
+                        {language === 'en'
+                          ? 'EIGU Platform disclaims all liability if users fail to comply with mandatory AI labeling obligations under law.'
+                          : 'EIGU Platform từ chối và miễn trừ hoàn toàn mọi trách nhiệm liên đới nếu người dùng không tuân thủ nghĩa vụ dán nhãn nhận biết nội dung AI theo đúng quy định pháp luật.'}
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Section 3 */}
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--danger)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <ShieldAlert size={18} />
+                      <span>{language === 'en' ? '3. Prohibited Actions' : '3. CÁC HÀNH VI BỊ NGHIÊM CẤM'}</span>
+                    </h3>
+                    <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                      {language === 'en'
+                        ? 'Under Article 7 of the Law on AI 2025, users are strictly prohibited from using EIGU Platform for:'
+                        : 'Căn cứ Điều 7 Luật AI 2025, người dùng tuyệt đối không được sử dụng EIGU Platform để thực hiện các hành vi sau:'}
+                    </p>
+                    <ul style={{ paddingLeft: 20, margin: 0 }}>
+                      <li style={{ marginBottom: 6 }}>{language === 'en' ? 'Creating or spreading illegal content, infringing rights of individuals or organizations.' : 'Tạo, lưu trữ hoặc phát tán nội dung vi phạm pháp luật, xâm phạm quyền và lợi ích hợp pháp của cá nhân, cơ quan, tổ chức.'}</li>
+                      <li style={{ marginBottom: 6 }}>{language === 'en' ? 'Generating Deepfakes, fraud, public perception manipulation, or defamation.' : 'Tạo nội dung giả mạo (Deepfake), lừa đảo, thao túng nhận thức cộng đồng hoặc bôi nhọ danh dự người khác.'}</li>
+                      <li style={{ marginBottom: 6 }}>{language === 'en' ? 'Endangering national security, public order, or territorial integrity.' : 'Tạo nội dung gây nguy hại đến an ninh quốc gia, trật tự an toàn xã hội.'}</li>
+                      <li style={{ marginBottom: 6 }}>{language === 'en' ? 'Exploiting vulnerable groups (children, elderly, disabled) or spreading harmful culture.' : 'Lợi dụng các nhóm đối tượng dễ bị tổn thương (trẻ em, người cao tuổi, người khuyết tật) để trục lợi hoặc phát tán văn hóa phẩm độc hại.'}</li>
+                      <li>{language === 'en' ? 'Infringing copyright or trademark rights on social media channels.' : 'Xâm phạm bản quyền tác giả, thương hiệu, hoặc cố tình phát tán thông tin sai sự thật trên các kênh nội dung MMO.'}</li>
+                    </ul>
+                  </div>
+
+                  {/* Section 4 */}
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Lock size={18} />
+                      <span>{language === 'en' ? '4. Privacy & Data Policy' : '4. QUYỀN RIÊNG TƯ VÀ DỮ LIỆU NGƯỜI DÙNG'}</span>
+                    </h3>
+                    <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                      {language === 'en'
+                        ? 'Under Article 4 of the Law on AI 2025 regarding personal data protection:'
+                        : 'Căn cứ Điều 4 Luật AI 2025 về bảo vệ dữ liệu cá nhân và quyền riêng tư:'}
+                    </p>
+                    <ul style={{ paddingLeft: 20, margin: 0 }}>
+                      <li style={{ marginBottom: 6 }}>
+                        <strong>{language === 'en' ? 'Data NOT Stored: ' : 'Dữ liệu KHÔNG lưu trữ: '}</strong>
+                        {language === 'en'
+                          ? 'EIGU Platform does not store, inspect, or own user final render output files on central servers (rendered files are processed locally on client devices).'
+                          : 'EIGU Platform không lưu trữ, kiểm duyệt hay sở hữu các tệp video/âm thanh thành phẩm của người dùng trên máy chủ (xử lý cục bộ trực tiếp trên máy trạm client).'}
+                      </li>
+                      <li style={{ marginBottom: 6 }}>
+                        <strong>{language === 'en' ? 'Data STORED: ' : 'Dữ liệu CÓ lưu trữ: '}</strong>
+                        {language === 'en'
+                          ? 'System stores account credentials (Username, Email, encrypted password), IP address, login logs, transaction history, and consent acceptance log solely for system security and legal compliance.'
+                          : 'Hệ thống chỉ lưu trữ thông tin tài khoản (Username, Email, mật khẩu mã hóa), địa chỉ IP, thời gian đăng nhập, lịch sử giao dịch và nhật ký xác nhận chấp thuận điều khoản (Consent Log) nhằm bảo đảm an ninh và nghĩa vụ đối soát pháp lý.'}
+                      </li>
+                      <li style={{ marginBottom: 6 }}>{language === 'en' ? 'We commit never to sell or share data to 3rd parties except under lawful authority requests.' : 'EIGU Platform cam kết tuyệt đối không bán hoặc chia sẻ thông tin người dùng cho bên thứ ba ngoại trừ trường hợp có yêu cầu chính thức từ cơ quan nhà nước có thẩm quyền.'}</li>
+                      <li>{language === 'en' ? 'Account deletion requests: support@eigu.vn or privacy@eigu.vn' : 'Mọi yêu cầu xóa tài khoản/dữ liệu cá nhân xin gửi về địa chỉ email: support@eigu.vn hoặc privacy@eigu.vn.'}</li>
+                    </ul>
+                  </div>
+
+                  {/* Section 5 */}
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <CheckCircle2 size={18} />
+                      <span>{language === 'en' ? '5. General Disclaimer' : '5. MIỄN TRỪ TRÁCH NHIỆM TỔNG QUÁT'}</span>
+                    </h3>
+                    <p style={{ margin: 0, textAlign: 'justify' }}>
+                      {language === 'en'
+                        ? 'EIGU Platform is a neutral tool solution. Users bear 100% legal, financial, and regulatory responsibility for all self-generated, edited, or published content.'
+                        : 'EIGU Platform là giải pháp công cụ trung lập. Người dùng tự chịu hoàn toàn trách nhiệm pháp lý, tài chính và hình sự đối với toàn bộ nội dung do mình khởi tạo, chỉnh sửa hoặc xuất bản.'}
+                    </p>
+                  </div>
+
+                  {/* Read-Only Pre-Checked Policy Agreement Confirmation Box */}
+                  <div style={{ marginTop: 12, paddingTop: 24, borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 12,
+                        fontSize: 13.5,
+                        fontWeight: 600,
+                        color: 'var(--text-primary)',
+                        lineHeight: 1.5,
+                        userSelect: 'none',
+                        cursor: 'default',
+                        padding: '16px 20px',
+                        background: 'rgba(99, 102, 241, 0.06)',
+                        border: '1px solid rgba(99, 102, 241, 0.25)',
+                        borderRadius: 12,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        disabled={true}
+                        readOnly={true}
+                        style={{
+                          width: 18,
+                          height: 18,
+                          marginTop: 2,
+                          accentColor: 'var(--accent)',
+                          cursor: 'default',
+                        }}
+                      />
+                      <span>
+                        {language === 'en'
+                          ? 'I have read, understood, and committed to full compliance with all legal regulations and disclaimer terms specified above before using EIGU Platform.'
+                          : 'Tôi đã đọc, hiểu và cam kết tuân thủ đầy đủ các quy định pháp lý và tuyên bố miễn trừ trách nhiệm nêu trên trước khi bắt đầu sử dụng EIGU Platform.'}
+                      </span>
+                    </label>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '0 4px' }}>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Lock size={14} style={{ color: 'var(--accent)' }} />
+                        {language === 'en'
+                          ? '🔒 Status: Terms Accepted & Gating Consent Verified (Consent Log Active).'
+                          : '🔒 Trạng thái: Đã xác nhận chấp thuận điều khoản pháp lý (Consent Log Active).'
+                        }
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 20, background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                        <CheckCircle2 size={14} />
+                        {language === 'en' ? 'Verified Agreement' : 'Đã Xác Nhận'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -1760,6 +1953,12 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
 
       {/* Global Footer */}
       <Footer onNavigate={handleNavigate} />
+
+      {/* Disclaimer Gating Modal (Blocking screen before first use / right after registration) */}
+      <DisclaimerModal
+        isOpen={showDisclaimerModal}
+        onAccept={() => setShowDisclaimerModal(false)}
+      />
     </div>
   );
 }

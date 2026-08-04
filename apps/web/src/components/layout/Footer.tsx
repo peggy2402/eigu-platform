@@ -57,9 +57,14 @@ export default function Footer({ onNavigate }: FooterProps) {
         {/* Security / Legal */}
         <div>
           <h4 style={{ color: 'var(--text-primary)', fontSize: 15, fontWeight: 700, marginBottom: 14 }}>{t('footer_security')}</h4>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, lineHeight: 1.6 }}>
-            Anti-Detect Fingerprint Engine & Data Security Standard.
-          </p>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <li className="footer-link" onClick={() => onNavigate('/terms-of-service')}>
+              {t('footer_terms_of_service')}
+            </li>
+            <li className="footer-link" onClick={() => onNavigate('/privacy-disclaimer')}>
+              {t('footer_privacy_disclaimer')}
+            </li>
+          </ul>
         </div>
       </div>
 

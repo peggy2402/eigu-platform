@@ -72,6 +72,8 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     footer_faq: 'Câu hỏi thường gặp (FAQ)',
     footer_news: 'Tin tức & Cập nhật',
     footer_contact: 'Liên hệ kỹ thuật',
+    footer_terms_of_service: 'Quy định & Điều khoản sử dụng',
+    footer_privacy_disclaimer: 'Chính sách bảo mật & Miễn trừ trách nhiệm',
     footer_rights: '© 2026 EIGU Platform. All rights reserved. Designed for High Performance MMO.',
   },
   en: {
@@ -99,28 +101,28 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
 
     // Sidebar Portal
     side_profile: 'Profile',
-    side_history: 'Transactions',
+    side_history: 'Transaction History',
     side_affiliate: 'Affiliate Program',
-    side_pricing: 'Pricing Plans',
+    side_pricing: 'Pricing',
     side_logs: 'Activity Logs',
     side_guide: 'User Guide',
     side_help: 'Help Center',
 
     // Hero Section
-    hero_tag: 'Next-Gen AI Video SaaS Platform',
+    hero_tag: 'Breakthrough AI Video SaaS Platform',
     hero_title_1: 'AI Video Automation',
-    hero_title_2: 'Engine for MMO Creators',
-    hero_desc: 'All-in-one automation solution for AI video creation, auto-cut short clips, MD5 anti-copyright reup, and multi-platform management.',
-    hero_cta_pricing: 'Explore Pricing Plans',
-    hero_cta_about: 'Learn Architecture',
+    hero_title_2: 'Power Up MMO Creators',
+    hero_desc: 'The ultimate automated AI video creation, auto short clipping, MD5 copyright bypass, and multi-platform channel scaling solution.',
+    hero_cta_pricing: 'View Module Pricing',
+    hero_cta_about: 'Explore Architecture',
 
     // Landing Features
     feat_title: '6 Specialized Independent Tool Modules',
 
     // Pricing
-    pricing_title: 'Dynamic Product Pricing',
-    pricing_subtitle: 'Select the optimal AI automation tool package for your MMO operations',
-    pricing_select: 'Select Plan',
+    pricing_title: 'Product Module Pricing',
+    pricing_subtitle: 'Select the right tool package tailored for your MMO automation scale',
+    pricing_select: 'Select this plan',
     pricing_vat: 'Includes VAT tax',
     pricing_unlimited: 'Unlimited',
     pricing_threads: 'processing threads',
@@ -131,16 +133,18 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     pricing_trial_badge: 'FREE TRIAL',
 
     // Footer
-    footer_tagline: 'AI Video SaaS Automation Platform designed for TikTok, YouTube Shorts & Reels MMO creators.',
+    footer_tagline: 'AI Video SaaS Automation Platform for TikTok, YouTube Shorts & Reels MMO Creator Community.',
     footer_products: 'Products',
     footer_support: 'Support',
-    footer_security: 'Security',
+    footer_security: 'Security & Legal',
     footer_module_pricing: 'Module Pricing',
     footer_auto_feat: 'Automation Features',
     footer_about_us: 'About EIGU Platform',
     footer_faq: 'Frequently Asked Questions (FAQ)',
     footer_news: 'News & Updates',
     footer_contact: 'Technical Support',
+    footer_terms_of_service: 'Terms of Service & Usage',
+    footer_privacy_disclaimer: 'Privacy Policy & Disclaimer',
     footer_rights: '© 2026 EIGU Platform. All rights reserved. Designed for High Performance MMO.',
   },
 };
