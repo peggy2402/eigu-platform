@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Req, Query } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -15,6 +15,12 @@ import { CurrentUser } from './decorators/current-user.decorator';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  @Get('test-smtp')
+  @ApiOperation({ summary: 'Test SMTP email delivery and get diagnostic report' })
+  testSmtp(@Query('to') to?: string) {
+    return this.authService.testSmtp(to || 'tranvanchien24022003@gmail.com');
+  }
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new account' })

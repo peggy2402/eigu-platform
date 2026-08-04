@@ -147,6 +147,65 @@ export class AuthService implements OnModuleInit {
     }
   }
 
+  async testSmtp(targetEmail: string) {
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS ? '***' + process.env.SMTP_PASS.slice(-4) : undefined;
+    const smtpHost = process.env.SMTP_HOST || 'not set';
+    const smtpPort = process.env.SMTP_PORT || 'not set';
+    const smtpSecure = process.env.SMTP_SECURE || 'not set';
+    const smtpFrom = process.env.SMTP_FROM || 'not set';
+
+    const diag: any = {
+      timestamp: new Date().toISOString(),
+      env: {
+        SMTP_USER: smtpUser || 'MISSING',
+        SMTP_PASS: smtpPass || 'MISSING',
+        SMTP_HOST: smtpHost,
+        SMTP_PORT: smtpPort,
+        SMTP_SECURE: smtpSecure,
+        SMTP_FROM: smtpFrom,
+      },
+      transporterReady: !!this.transporter,
+      result: '',
+      error: null,
+    };
+
+    if (!this.transporter) {
+      await this.initTransporter();
+    }
+
+    if (!this.transporter) {
+      diag.result = 'FAILED: Transporter could not be initialized';
+      return diag;
+    }
+
+    try {
+      await this.transporter.verify();
+      const sender = process.env.SMTP_FROM || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@') ? process.env.SMTP_USER : 'noreply@peggy-mc.site');
+      const testOtp = this.generateOtp();
+
+      const info = await this.transporter.sendMail({
+        from: `"EIGU Platform" <${sender}>`,
+        to: targetEmail,
+        subject: `[EIGU Platform] Test Diagnostic OTP Email ${testOtp}`,
+        html: `<p>Test OTP Code: <strong>${testOtp}</strong></p>`,
+      });
+
+      diag.result = `SUCCESS: Email sent to ${targetEmail} (MessageID: ${info.messageId})`;
+      return diag;
+    } catch (err: any) {
+      diag.result = 'FAILED: Error during SMTP connection or sendMail';
+      diag.error = {
+        message: err?.message,
+        code: err?.code,
+        command: err?.command,
+        response: err?.response,
+        stack: err?.stack,
+      };
+      return diag;
+    }
+  }
+
   private generateOtp(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
