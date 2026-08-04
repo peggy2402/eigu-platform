@@ -5,7 +5,7 @@ const SidebarComponent = `
       <img src="img/logo.png" alt="EIGU Logo" class="sidebar-logo-img" style="width: 36px; height: 36px; object-fit: contain; flex-shrink: 0;">
       <span class="sidebar-title" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
         EIGU Platform
-        <span id="app-version-badge" style="font-size: 10px; background: rgba(255,255,255,0.1); color: var(--text-secondary); padding: 2px 6px; border-radius: 10px; font-weight: 600;">v1.0.5</span>
+        <span id="app-version-badge" style="font-size: 10px; background: rgba(255,255,255,0.1); color: var(--text-secondary); padding: 2px 6px; border-radius: 10px; font-weight: 600;">v1.0.7</span>
         <button id="update-badge-btn" class="update-badge-btn hidden" onclick="handleAppUpdateClick(event)" title="Có bản cập nhật mới! Click để nâng cấp & tự động khởi động lại.">
           Update
         </button>
