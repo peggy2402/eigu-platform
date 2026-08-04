@@ -39,12 +39,49 @@ export default function RegisterPage() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+  const [resending, setResending] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     // Proactive background API warm-up (prevents Render Free cold-start timeouts when registering)
     syncApiPrefixFromBootstrap().catch(() => {});
+
+    // Check query params or sessionStorage for unverified pending email
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryEmail = urlParams.get('email');
+      const queryStep = urlParams.get('step');
+      const pendingEmail = queryEmail || sessionStorage.getItem('eigu_pending_otp_email');
+
+      if (pendingEmail && (queryStep === 'otp' || sessionStorage.getItem('eigu_pending_otp_email'))) {
+        setEmail(pendingEmail);
+        setStep('otp');
+        setCountdown(60);
+        setCanResend(false);
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    let timer: any;
+    if (step === 'otp' && countdown > 0) {
+      setCanResend(false);
+      timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (countdown === 0) {
+      setCanResend(true);
+    }
+    return () => clearInterval(timer);
+  }, [step, countdown]);
 
   useEffect(() => { if (step === 'otp' && otpRefs.current[0]) otpRefs.current[0].focus(); }, [step]);
 
@@ -76,12 +113,17 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await authApi.register(username, email, password);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('eigu_pending_otp_email', email);
+      }
       showToast(
         language === 'en' ? 'OTP Sent Successfully!' : 'Gửi OTP thành công!',
         language === 'en' ? `Verification code sent to email ${email}` : `Mã xác thực đã được gửi đến email ${email}`,
         'success'
       );
       setStep('otp');
+      setCountdown(60);
+      setCanResend(false);
     } catch (err: any) {
       setError(err.message);
       showToast(
@@ -91,6 +133,33 @@ export default function RegisterPage() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!canResend || resending || !email) return;
+    setResending(true);
+    setError('');
+    try {
+      await authApi.resendOtp(email);
+      showToast(
+        language === 'en' ? 'OTP Resent Successfully!' : 'Đã Gửi Lại Mã OTP!',
+        language === 'en' ? `A new 6-digit code has been sent to ${email}` : `Mã xác thực 6 số mới đã được gửi tới email ${email}`,
+        'success'
+      );
+      setCountdown(60);
+      setCanResend(false);
+      setOtp(['', '', '', '', '', '']);
+      if (otpRefs.current[0]) otpRefs.current[0].focus();
+    } catch (err: any) {
+      setError(err.message);
+      showToast(
+        language === 'en' ? 'Resend Failed' : 'Gửi lại OTP thất bại',
+        err.message || (language === 'en' ? 'Could not resend OTP email' : 'Không thể gửi lại email OTP'),
+        'error'
+      );
+    } finally {
+      setResending(false);
     }
   };
 
@@ -113,6 +182,9 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const data = await authApi.verifyEmail(email, code);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('eigu_pending_otp_email');
+      }
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       localStorage.removeItem('eigu_disclaimer_accepted');
@@ -148,55 +220,48 @@ export default function RegisterPage() {
           <div className="auth-banner-body">
             <div className="auth-banner-badge">
               <Sparkles size={15} />
-              <span>{language === 'en' ? 'Join 100,000+ Creators Community' : 'Gia Nhập Cộng Đồng 100,000+ Creators'}</span>
+              <span>SaaS MMO Automation Engine</span>
             </div>
             <h2 className="auth-banner-title">
               {language === 'en' ? (
                 <>
-                  Create Account & Enjoy <br />
-                  7-Day Free Trial Full Features
+                  AI Video Automation <br />
+                  & MMO Growth Engine
                 </>
               ) : (
                 <>
-                  Tạo Tài Khoản Trải Nghiệm <br />
-                  Miễn Phí 7 Ngày Full Tính Năng
+                  Tự Động Hóa Video AI <br />
+                  & Bứt Phá Doanh Số MMO
                 </>
               )}
             </h2>
-            <p className="auth-banner-desc">
+            <p className="auth-banner-subtitle">
               {language === 'en'
-                ? 'Explore the power of auto short video clipping, copyright bypass, and fast channel scaling.'
-                : 'Khám phá sức mạnh tự động cắt dựng video ngắn, bypass bản quyền và nhân bản quy mô kênh nhanh chóng.'}
+                ? 'Join thousands of creators automating 9:16 Shorts, anti-copyright rendering and scaling high-volume MMO channels.'
+                : 'Cùng hàng ngàn Creator tối ưu hóa quy trình sản xuất video 9:16, lồng tiếng đa ngôn ngữ và gia tăng doanh số bền vững.'}
             </p>
           </div>
 
           <div className="auth-banner-footer">
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <ShieldCheck size={22} />
-            </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>
-                {language === 'en' ? 'No Credit Card Required' : 'Không Cần Thẻ Thanh Toán'}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
-                {language === 'en' ? 'Activate instantly in 30s via Email OTP verification' : 'Kích hoạt ngay trong 30 giây qua xác thực Email OTP'}
-              </div>
+            <div className="auth-footer-badge">
+              <ShieldCheck size={16} />
+              <span>{language === 'en' ? 'Enterprise Bank-Grade Security' : 'Bảo mật chuẩn Enterprise'}</span>
             </div>
           </div>
         </div>
 
-        {/* Right Form Side */}
-        <div className="auth-right-form">
-          <div style={{ marginBottom: 28 }}>
-            <h1 style={{ fontSize: 28, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8 }}>
+        {/* Right Form Container Side */}
+        <div className="auth-right-content">
+          <div className="auth-form-header">
+            <h2>
               {step === 'register'
-                ? (language === 'en' ? 'Create an Account' : 'Đăng Ký Tài Khoản')
-                : (language === 'en' ? 'OTP Verification' : 'Xác Thực Mã OTP')}
-            </h1>
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 500 }}>
+                ? (language === 'en' ? 'Create an Account' : 'Tạo Tài Khoản Mới')
+                : (language === 'en' ? 'Email Verification' : 'Xác Thực Email')}
+            </h2>
+            <p>
               {step === 'register'
-                ? (language === 'en' ? 'Fill out the details below to initialize your EIGU account' : 'Điền thông tin bên dưới để khởi tạo tài khoản EIGU')
-                : (language === 'en' ? `6-digit code sent to ${email}` : `Mã 6 số đã được gửi tới email ${email}`)}
+                ? (language === 'en' ? 'Enter your details below to get started' : 'Nhập thông tin bên dưới để bắt đầu sử dụng EIGU Platform')
+                : (language === 'en' ? `Enter the 6-digit OTP sent to ${email}` : `Nhập mã xác thực 6 số đã gửi tới email ${email}`)}
             </p>
           </div>
 
@@ -209,7 +274,7 @@ export default function RegisterPage() {
                   <User size={14} style={{ color: 'var(--accent)' }} />
                   <span>{language === 'en' ? 'Username' : 'Tên đăng nhập'}</span>
                 </label>
-                <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="e.g. haruki2402" autoComplete="username" required />
+                <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="username" autoComplete="username" required />
               </div>
 
               <div className="form-group">
@@ -277,10 +342,6 @@ export default function RegisterPage() {
             <div className="auth-form">
               {error && <div className="auth-error show">{error}</div>}
 
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14, marginBottom: 16 }}>
-                {language === 'en' ? 'Please check your inbox and enter the 6-digit code:' : 'Vui lòng kiểm tra hòm thư và nhập 6 số xác thực:'}
-              </p>
-
               <div className="otp-inputs">
                 {otp.map((d, i) => (
                   <input key={i} ref={el => { otpRefs.current[i] = el; }} type="text" maxLength={1} value={d}
@@ -296,6 +357,35 @@ export default function RegisterPage() {
                 </span>
                 <ArrowRight size={18} />
               </button>
+
+              {/* Resend OTP Section with 60s Countdown */}
+              <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: 'var(--text-secondary)' }}>
+                {canResend ? (
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={resending}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--accent, #6366f1)',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: 13,
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    {resending
+                      ? (language === 'en' ? 'Resending OTP...' : 'Đang gửi lại OTP...')
+                      : (language === 'en' ? 'Resend OTP Code' : 'Gửi lại mã OTP')}
+                  </button>
+                ) : (
+                  <span>
+                    {language === 'en' ? 'Resend OTP code in ' : 'Gửi lại mã OTP sau '}
+                    <strong style={{ color: 'var(--accent, #6366f1)', fontVariantNumeric: 'tabular-nums' }}>{countdown}s</strong>
+                  </span>
+                )}
+              </div>
 
               <div className="auth-link" style={{ marginTop: 16 }}>
                 <a href="/auth/login" style={{ fontWeight: 700 }}>

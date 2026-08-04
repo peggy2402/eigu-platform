@@ -49,10 +49,25 @@ export default function LoginPage() {
       window.location.href = '/';
     } catch (err: any) {
       const errMsg = err.message || (language === 'en' ? 'Sign in failed' : 'Đăng nhập thất bại');
+      const isUnverified = /chưa được xác thực|chưa xác minh|not verified|unverified|xác nhận|verify/i.test(errMsg);
+
+      if (isUnverified && identifier) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('eigu_pending_otp_email', identifier);
+        }
+        showToast(
+          language === 'en' ? 'Email Not Verified' : 'Tài Khoản Chưa Xác Thực Email',
+          language === 'en' ? 'Redirecting to OTP verification page...' : 'Đang chuyển hướng sang màn hình nhập mã OTP...',
+          'warning'
+        );
+        router.push(`/auth/register?email=${encodeURIComponent(identifier)}&step=otp`);
+        return;
+      }
+
       setError(errMsg);
       showToast(
         language === 'en' ? 'Sign in failed' : 'Đăng nhập thất bại',
-        err.message || (language === 'en' ? 'Please verify your sign in credentials' : 'Vui lòng kiểm tra lại thông tin đăng nhập'),
+        errMsg,
         'error'
       );
     } finally {

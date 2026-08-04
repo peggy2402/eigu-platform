@@ -165,6 +165,9 @@ export const authApi = {
   verifyEmail: (email: string, otp: string) =>
     request(API_ENDPOINTS.AUTH.VERIFY_EMAIL, { method: 'POST', body: JSON.stringify({ email, otp }) }),
 
+  resendOtp: (email: string) =>
+    request(API_ENDPOINTS.AUTH.RESEND_OTP, { method: 'POST', body: JSON.stringify({ email }) }),
+
   login: (identifier: string, password: string) =>
     request(API_ENDPOINTS.AUTH.LOGIN, {
       method: 'POST',
