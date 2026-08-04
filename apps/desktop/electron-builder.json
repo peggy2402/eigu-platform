@@ -17,7 +17,9 @@
     {
       "from": "apps/desktop/src/assets",
       "to": "assets",
-      "filter": ["**/*"]
+      "filter": [
+        "**/*"
+      ]
     }
   ],
   "publish": [
@@ -32,7 +34,9 @@
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64"]
+        "arch": [
+          "x64"
+        ]
       }
     ],
     "artifactName": "EIGU-Platform-Setup-${version}.${ext}",
@@ -50,11 +54,16 @@
     "target": [
       {
         "target": "pkg",
-        "arch": ["universal"]
+        "arch": [
+          "arm64"
+        ]
       },
       {
         "target": "zip",
-        "arch": ["x64", "arm64"]
+        "arch": [
+          "x64",
+          "arm64"
+        ]
       }
     ],
     "artifactName": "EIGU-Platform-${version}-${arch}.${ext}",
