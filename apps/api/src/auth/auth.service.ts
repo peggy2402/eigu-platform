@@ -112,10 +112,13 @@ export class AuthService implements OnModuleInit {
   private async initTransporter() {
     if (process.env.SMTP_USER && process.env.SMTP_PASS) {
       this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT || '587'),
         secure: process.env.SMTP_SECURE === 'true',
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+        connectionTimeout: 7000,
+        greetingTimeout: 7000,
+        socketTimeout: 8000,
       });
     } else {
       const testAccount = await nodemailer.createTestAccount();
@@ -124,6 +127,9 @@ export class AuthService implements OnModuleInit {
         port: 587,
         secure: false,
         auth: { user: testAccount.user, pass: testAccount.pass },
+        connectionTimeout: 7000,
+        greetingTimeout: 7000,
+        socketTimeout: 8000,
       });
       this.logger.debug('Test email account: ' + testAccount.user);
     }
@@ -139,26 +145,36 @@ export class AuthService implements OnModuleInit {
       return;
     }
     const sender = process.env.SMTP_USER || 'tranvanchien24022003@gmail.com';
-    try {
-      const info = await this.transporter.sendMail({
-        from: `"EIGU Platform" <${sender}>`,
-        to: email,
-        subject: `Your OTP for ${purpose}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff;">
-            <h2 style="color: #6366f1; margin-top: 0;">EIGU Platform</h2>
-            <p style="color: #374151; font-size: 15px;">Mã xác thực OTP của bạn cho <strong>${purpose}</strong>:</p>
-            <div style="font-size: 32px; font-weight: 800; letter-spacing: 8px; text-align: center; padding: 20px; background: #f3f4f6; color: #4f46e5; border-radius: 8px; margin: 20px 0;">
-              ${otp}
+    const mailPromise = (async () => {
+      try {
+        const info = await this.transporter!.sendMail({
+          from: `"EIGU Platform" <${sender}>`,
+          to: email,
+          subject: `Your OTP for ${purpose}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff;">
+              <h2 style="color: #6366f1; margin-top: 0;">EIGU Platform</h2>
+              <p style="color: #374151; font-size: 15px;">Mã xác thực OTP của bạn cho <strong>${purpose}</strong>:</p>
+              <div style="font-size: 32px; font-weight: 800; letter-spacing: 8px; text-align: center; padding: 20px; background: #f3f4f6; color: #4f46e5; border-radius: 8px; margin: 20px 0;">
+                ${otp}
+              </div>
+              <p style="color: #6b7280; font-size: 13px;">Mã xác thực có hiệu lực trong vòng 10 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
             </div>
-            <p style="color: #6b7280; font-size: 13px;">Mã xác thực có hiệu lực trong vòng 10 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
-          </div>
-        `,
-      });
-      this.logger.log(`[SMTP] Successfully sent OTP to ${email} (MessageID: ${info.messageId})`);
-    } catch (err: any) {
-      this.logger.error(`[SMTP ERROR] Failed to send OTP email to ${email}: ${err?.message}`, err?.stack);
-    }
+          `,
+        });
+        this.logger.log(`[SMTP] Successfully sent OTP to ${email} (MessageID: ${info.messageId})`);
+      } catch (err: any) {
+        this.logger.error(`[SMTP ERROR] Failed to send OTP email to ${email}: ${err?.message}`, err?.stack);
+      }
+    })();
+
+    // Non-blocking timeout: if SMTP socket takes > 6s, let HTTP response unblock while email sends in background
+    const timeoutPromise = new Promise<void>((resolve) => setTimeout(() => {
+      this.logger.warn(`[SMTP WARN] Email send for ${email} exceeded 6s, proceeding in background`);
+      resolve();
+    }, 6000));
+
+    await Promise.race([mailPromise, timeoutPromise]);
   }
 
   async register(dto: RegisterDto) {

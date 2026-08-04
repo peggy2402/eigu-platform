@@ -140,11 +140,16 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
         return request(path, options, true);
       }
 
-      if ([500, 502, 503, 504].includes(res.status)) {
-        throw new Error('Máy chủ Backend đang khởi tạo dịch vụ (Cold Start). Vui lòng thử lại sau 5 giây!');
+      const serverMsg = Array.isArray(data.message) ? data.message.join(', ') : (data.message || data.error);
+      let msg = '';
+      if ([502, 503, 504].includes(res.status)) {
+        msg = `[HTTP ${res.status}] Máy chủ đang khởi tạo dịch vụ (Render Cold Start). Vui lòng thử lại sau 5 giây!`;
+      } else if (serverMsg) {
+        msg = `[HTTP ${res.status}] ${serverMsg}`;
+      } else {
+        msg = `[HTTP ${res.status}] Lỗi xử lý từ máy chủ API (${path})`;
       }
 
-      const msg = Array.isArray(data.message) ? data.message.join(', ') : (data.message || data.error || `HTTP ${res.status}`);
       const error = new Error(msg) as any;
       // Attach any extra fields from the response body (e.g. email, isBanned, bannedUntil, banReason)
       if (data.email) error.email = data.email;
@@ -158,7 +163,7 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
   } catch (err: any) {
     clearTimeout(timeoutId);
     if (err.name === 'AbortError') {
-      throw new Error('Kết nối quá thời gian chờ (Timeout). Máy chủ đang thức dậy từ trạng thái tạm nghỉ, vui lòng thử lại sau vài giây!');
+      throw new Error(`[Timeout 45s] Kết nối tới API (${path}) quá 45s. Máy chủ Render đang khởi động lại hoặc gặp sự cố mạng.`);
     }
     throw err;
   }
