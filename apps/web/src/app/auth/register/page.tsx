@@ -48,18 +48,18 @@ export default function RegisterPage() {
     // Proactive background API warm-up (prevents Render Free cold-start timeouts when registering)
     syncApiPrefixFromBootstrap().catch(() => {});
 
-    // Check query params or sessionStorage for unverified pending email
+    // Clean up any legacy sessionStorage key to prevent stale cache traps
     if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('eigu_pending_otp_email');
+
+      // Check URL query params for unverified email redirect from Login page
       const urlParams = new URLSearchParams(window.location.search);
       const queryEmail = urlParams.get('email');
       const queryStep = urlParams.get('step');
-      const pendingEmail = queryEmail || sessionStorage.getItem('eigu_pending_otp_email');
 
-      if (pendingEmail && (queryStep === 'otp' || sessionStorage.getItem('eigu_pending_otp_email'))) {
-        setEmail(pendingEmail);
+      if (queryStep === 'otp' && queryEmail) {
+        setEmail(queryEmail);
         setStep('otp');
-        // Backend auto-sends OTP when login detects unverified email,
-        // so always start 60s countdown regardless of how user got here
         setCountdown(60);
         setCanResend(false);
       }
@@ -115,9 +115,6 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await authApi.register(username, email, password);
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('eigu_pending_otp_email', email);
-      }
       showToast(
         language === 'en' ? 'OTP Sent Successfully!' : 'Gửi OTP thành công!',
         language === 'en' ? `Verification code sent to email ${email}` : `Mã xác thực đã được gửi đến email ${email}`,
@@ -184,9 +181,6 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const data = await authApi.verifyEmail(email, code);
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('eigu_pending_otp_email');
-      }
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       localStorage.removeItem('eigu_disclaimer_accepted');
@@ -396,9 +390,17 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              <div className="auth-link" style={{ marginTop: 16 }}>
+              <div className="auth-link" style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => { setStep('register'); setError(''); }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  {language === 'en' ? 'Back to Register' : 'Tạo tài khoản khác'}
+                </button>
+                <span style={{ color: 'var(--text-muted)' }}>•</span>
                 <a href="/auth/login" style={{ fontWeight: 700 }}>
-                  {language === 'en' ? 'Back to Login page' : 'Quay lại trang Đăng nhập'}
+                  {language === 'en' ? 'Back to Login' : 'Trang Đăng nhập'}
                 </a>
               </div>
             </div>

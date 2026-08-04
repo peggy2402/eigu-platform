@@ -54,9 +54,6 @@ export default function LoginPage() {
       if (isUnverified) {
         // Use the real email from API response (handles case where user typed username instead of email)
         const emailForOtp = (err as any).email || identifier;
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('eigu_pending_otp_email', emailForOtp);
-        }
         showToast(
           language === 'en' ? 'Email Not Verified' : 'Tài Khoản Chưa Xác Thực Email',
           language === 'en' ? 'Redirecting to OTP verification page...' : 'Đang chuyển hướng sang màn hình nhập mã OTP...',
