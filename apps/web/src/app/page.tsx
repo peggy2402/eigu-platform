@@ -29,6 +29,8 @@ import type { PricingModuleDto, PricingTierDto } from '@eigu-platform/shared';
 import TypewriterText from '../components/TypewriterText';
 import FeatureModulesSection from '../components/modules/FeatureModulesSection';
 import DisclaimerModal from '../components/ui/DisclaimerModal';
+import NewsList from '../components/news/NewsList';
+import NewsDetail from '../components/news/NewsDetail';
 
 const TESTIMONIALS_COL1 = [
   { name: 'Quỳnh Mai', handle: '@quynhmai_mmo', avatar: 'https://scontent.fhan2-5.fna.fbcdn.net/v/t1.15752-9/759188241_1776425700453909_6966335744454354739_n.jpg?stp=dst-jpg_tt6&cstp=mx1086x1086&ctp=s1086x1086&_nc_cat=106&ccb=1-7&_nc_sid=9f807c&_nc_ohc=YXc0j8wUbUgQ7kNvwEWGZZQ&_nc_oc=Ado1Pzc1RXZik11wE0uAy5OKmD5HXI7gmueCmDkeT4BfqYy_LuAQaBKeSjdshfP4OJfLNq-DQvr9JhWSo2FwP0Co&_nc_zt=23&_nc_ht=scontent.fhan2-5.fna&_nc_ss=7b2a8&oh=03_Q7cD6AHPtH3npzIp-myWNjM6y7xTS8sREvdbz2ChqX0u-2p5FQ&oe=6A9439E3', text: 'Giao diện dễ dùng, nạp tiền tự động nhanh gọn. Via Facebook ở đây trâu thật sự.' },
@@ -271,6 +273,7 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
 
   // Navigation State
   const [activePath, setActivePath] = useState<string>(initialPath || '/');
+  const [selectedNewsSlug, setSelectedNewsSlug] = useState<string | null>(null);
   const [activeUserView, setActiveUserView] = useState<ViewType>('ho-so');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -1135,37 +1138,17 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
 
         {/* ==================== 4. NEWS PAGE (/news) ==================== */}
         {activePath === '/news' && (
-          <section style={{ padding: '0 24px 80px', maxWidth: 1000, margin: '0 auto' }}>
-            <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 32, textAlign: 'center' }}>
-              {language === 'en' ? 'Product News & System Updates' : 'Tin Tức & Cập Nhật Sản Phẩm'}
-            </h1>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-              {[
-                {
-                  date: '30/07/2026',
-                  title: language === 'en' ? 'Dynamic Pricing Engine v2.5 Launch' : 'Cập nhật Hệ thống Bảng giá Động (Dynamic Pricing Engine) v2.5',
-                  desc: language === 'en' ? 'Real-time module pricing management from Admin Desktop App and updated telemetry infrastructure.' : 'Ra mắt tính năng quản lý bảng giá thời gian thực từ Admin Desktop App và hạ tầng dữ liệu mới.'
-                },
-                {
-                  date: '22/07/2026',
-                  title: language === 'en' ? '24/7 AI Support Assistant Integration' : 'Tích hợp Trợ lý AI Support & Live Chat 24/7',
-                  desc: language === 'en' ? 'Users can chat with AI Assistant and technical support directly across all portal pages.' : 'Người dùng có thể trao đổi trực tiếp với Trợ lý AI và đội ngũ hỗ trợ kỹ thuật trên toàn bộ giao diện.'
-                },
-                {
-                  date: '20/07/2026',
-                  title: language === 'en' ? 'FFmpeg Anti-Detect v3.0 Content ID Bypass' : 'Nâng cấp Engine Anti-Detect FFmpeg v3.0 Bypass Content ID',
-                  desc: language === 'en' ? 'Added Noise Injection, 3D Audio Spatial Panning, and precise Frame Decimation.' : 'Bổ sung Noise Injection, 3D Audio Spatial Panning và Frame Decimation chuẩn xác.'
-                },
-              ].map((item, idx) => (
-                <div key={idx} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
-                  <div style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 700, marginBottom: 8 }}>{item.date}</div>
-                  <h3 style={{ fontSize: 18, marginBottom: 12, color: 'var(--text-primary)' }}>{item.title}</h3>
-                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+          selectedNewsSlug ? (
+            <NewsDetail
+              slug={selectedNewsSlug}
+              onBack={() => setSelectedNewsSlug(null)}
+              onSelectRelated={slug => setSelectedNewsSlug(slug)}
+            />
+          ) : (
+            <NewsList
+              onSelectArticle={slug => setSelectedNewsSlug(slug)}
+            />
+          )
         )}
 
         {/* ==================== 5. FAQ PAGE (/faq) ==================== */}

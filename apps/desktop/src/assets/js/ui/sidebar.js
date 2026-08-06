@@ -58,6 +58,7 @@ function switchView(view, navEl, sub, e) {
     'transaction-management': lang === 'en' ? ['Transaction Management', 'Manage deposit transactions, manual approval & revenue stats'] : ['Quản lý Giao dịch', 'Quản lý lịch sử nạp tiền, phê duyệt thủ công & doanh thu hệ thống'],
     'transaction-history': lang === 'en' ? ['Transaction History', 'VietQR automatic deposit history & balance tracking'] : ['Lịch sử giao dịch', 'Lịch sử nạp tiền tự động VietQR & đối soát số dư'],
     'user-activity-logs': lang === 'en' ? ['Activity Logs', 'System user access & action trail'] : ['Nhật ký hoạt động', 'Theo dõi lịch sử thao tác của các tài khoản hệ thống'],
+    'news-management': lang === 'en' ? ['News Management', 'Manage articles, categories, tags & comments'] : ['Quản lý Tin tức', 'Quản lý bài viết, danh mục, tags và bình luận tin tức'],
     'checkout': lang === 'en' ? ['Checkout & Payment', 'VietQR automatic deposit & instant package activation'] : ['Thanh toán Đơn hàng', 'Thanh toán VietQR tự động & Kích hoạt gói cước tức thì'],
   };
   const [t, s] = titles[view] || ['', ''];
@@ -70,6 +71,11 @@ function switchView(view, navEl, sub, e) {
   if (sub) {
     const subEl = document.querySelector('.nav-sub-item[data-sub="' + sub + '"]');
     if (subEl) subEl.classList.add('active');
+  }
+
+  // Load News Data if entering News Management view
+  if (view === 'news-management' && typeof loadRealNewsData === 'function') {
+    loadRealNewsData();
   }
 
   // Load API Keys if entering Settings view

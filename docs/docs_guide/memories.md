@@ -1224,6 +1224,84 @@ Xử lý:
 ### 32.10 Kiểm Tra Biên Dịch & Xác Nhận Hệ Thống
 - Chạy `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`. Giao diện Segmented Control trên mobile và desktop hoạt động chuẩn xác 100%.
 
+---
+
+## 33. Xây Dựng Module Quản Lý Tin Tức (News Management) Cho Desktop & Website Public (`@MODULE_NEWS.md`)
+
+### 33.1 Bảng Cơ Sở Dữ Liệu Prisma Schema (`apps/api/prisma/schema.prisma`)
+- **NewsCategory**: Quản lý danh mục bài viết (`id`, `name`, `slug`, `description`, `sortOrder`).
+- **NewsTag & NewsTagRelation**: Quản lý thẻ bài viết quan hệ nhiều - nhiều (`id`, `name`, `slug`).
+- **News**: Lưu trữ bài viết tin tức (`title`, `slug`, `summary`, `content`, `thumbnail`, `gallery[]`, `status`, `isFeatured`, `authorId`, `authorName`, `viewCount`, `likeCount`, `commentCount`, `readingTime`, `publishedAt`, `deletedAt`).
+- **NewsComment, NewsCommentReaction, NewsCommentReport**: Hệ thống bình luận lồng nhau kiểu Reddit (`parentId`, `userRole`, `likeCount`, `dislikeCount`).
+- **Lưu ảnh dạng LINK (URL string)**: Toàn bộ `thumbnail`, `gallery` và ảnh trong editor đều lưu dạng URL string, tích hợp live preview và fallback onerror chống vỡ layout.
+
+### 33.2 Backend REST API (`apps/api/src/news/`)
+- **Shared DTO**: Đặt tại `packages/shared/src/lib/news.dto.ts` để đồng bộ interface giữa API, Desktop và Web.
+- **Admin/Staff REST API (`NewsController`)**:
+  - `GET /news`: Danh sách & bộ lọc phân trang, tìm kiếm, sắp xếp.
+  - `GET /news/statistics`: Thống kê tổng bài viết, đã xuất bản, bài nháp, lưu trữ, tổng view và bình luận.
+  - `POST /news`, `PATCH /news/:id`, `DELETE /news/:id` (Soft Delete - Admin only), `PATCH /news/:id/publish`, `PATCH /news/:id/archive`, `POST /news/:id/duplicate`.
+  - Phân quyền: Role Admin có toàn quyền; Staff tạo/sửa/xuất bản/duyệt comment; User chỉ đọc/bình luận.
+- **Public REST API (`PublicNewsController`)**:
+  - `GET /public/news`, `GET /public/news/:slug` (tự động tăng `viewCount`), `GET /public/news/related`, `GET /public/news/latest`, `GET /public/news/categories`, `GET /public/news/tags`.
+  - `GET /public/news/:id/comments`, `POST /public/news/:id/comments`, `POST /public/comments/:id/reaction`, `POST /public/comments/:id/report`.
+
+### 33.3 Ứng Dụng Desktop Electron (`apps/desktop/src/assets/`)
+- **Sidebar & Permission Integration**: Thêm tab *"Quản lý Tin tức"* (`news-management`) vào Sidebar Electron, gán class `staff-only` (hiển thị cho Admin & Staff, ẩn hoàn toàn với User).
+- **Console Quản Lý Bài Viết (`news-mgmt.js`)**:
+  - Khung thống kê 6 chỉ số tổng quan.
+  - Bộ lọc tìm kiếm theo từ khóa, danh mục, trạng thái (Draft/Published/Archived), bài nổi bật, sắp xếp.
+  - Bảng dữ liệu Data Table hiển thị Thumbnail preview, Tiêu đề, Slug, Danh mục, Tác giả, Trạng thái, Lượt xem/Bình luận, Ngày tạo và cụm nút thao tác (Preview, Edit, Duplicate, Publish, Soft Delete).
+  - Modal Soạn Thảo & Chỉnh Sửa Bài Viết: Nhập Thumbnail URL kèm **Live Preview**, Rich Content Editor HTML (H1-H6, quote, chèn link ảnh, video), cấu hình SEO & Meta tags.
+  - Modal Quản Lý Danh Mục & Tags.
+
+### 33.4 Website Next.js Public (`apps/web/src/components/news/`)
+- **Trang Danh Sách Tin Tức (`NewsList.tsx`)**:
+  - Bố cục Grid Card đáp ứng (Desktop 3 cột, Tablet 2 cột, Mobile 1 cột).
+  - Thẻ bài viết hiển thị Thumbnail, Category badge, Tiêu đề, Mô tả tóm tắt, Thời gian đọc, Lượt xem & Bình luận.
+  - Thanh tab lọc theo danh mục & thanh tìm kiếm từ khóa.
+- **Trang Chi Tiết Bài Viết (`NewsDetail.tsx`)**:
+  - Bố cục 2 cột: Cột trái 70% (Tiêu đề, Tác giả, Ngày đăng, Ảnh đại diện, Nội dung bài viết HTML, Tags, Cụm nút Chia sẻ link) / Cột phải 30% (Bài viết liên quan & Mới nhất).
+- **Hệ Thống Bình Luận Threaded Reddit-Style (`NewsCommentSection.tsx`)**:
+  - Cây bình luận phân cấp vô hạn (Recursive Comment Tree).
+  - Hiển thị Role Badge (ADMIN / STAFF / USER), thời gian, Like / Dislike toggle reaction, Reply inline form, Thu gọn / Mở rộng thread.
+
+### 33.5 Kiểm Tra Biên Dịch & Xác Nhận Kỹ Thuật
+- `npx prisma generate --schema=apps/api/prisma/schema.prisma` $\rightarrow$ `✔ Generated Prisma Client`.
+- `npx tsc --noEmit -p apps/api/tsconfig.app.json` $\rightarrow$ `✓ 0 error`.
+- `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`.
+
+### 33.6 Sửa Lỗi Màn Hình Đen (Black Screen / Render Error) Trên Desktop Electron (`apps/desktop`)
+- **Phân tích nguyên nhân**: Khi nhúng script tag `js/ui/news-mgmt.js` trong file `index.html`, thẻ script `js/ui/automation-ui.js` bị thay thế làm thiếu hàm `renderAutomation()`. Việc gọi `renderAutomation()` trong `main.js` mà thiếu file định nghĩa gây ra `ReferenceError: renderAutomation is not defined`, làm ngắt quãng luồng khởi tạo `checkAuth()` và khiến giao diện bị giữ nguyên ở trạng thái `display: none` (Màn hình đen).
+- **Các bước khắc phục**:
+  1. Phục hồi thẻ `<script src="js/ui/automation-ui.js"></script>` trong `apps/desktop/src/assets/index.html`.
+  2. Bổ sung kiểm tra an toàn `typeof renderAutomation === 'function'` và guard `document.getElementById('search-popup-input')` trong `main.js` tránh throwing Uncaught Exception.
+  3. Ưu tiên đường dẫn file nguồn `apps/desktop/src/assets/` me trước `dist/apps/desktop/assets/` trong hàm `getAssetPath()` ở môi trường Dev.
+- **Kết quả**: Ứng dụng Desktop Electron khởi chạy mượt mà 100%, hiển thị đầy đủ giao diện cùng tab *"Quản lý Tin tức"*.
+
+### 33.7 Khắc Phục Ẩn Tab Staff-Only ("Quản Lý Tin Tức") Trên Sidebar Desktop (`main.js`)
+- **Phân tích nguyên nhân**: Trong file `sidebar.component.js`, tab Quản lý Tin tức có thẻ HTML `<div class="nav-item staff-only hidden" ...>`. Khi hàm `updateProfile()` kiểm tra role Admin/Staff trong `main.js`, trước đó chỉ đổi `el.style.display = ''` nhưng quên gỡ class `.hidden`. Do class `.hidden` có thuộc tính `display: none !important`, tab bị ẩn hoàn toàn dù tài khoản đã đăng nhập Admin/Staff.
+- **Giải pháp**: Bổ sung `el.classList.remove('hidden')` khi tài khoản có role `admin` hoặc `staff` trong `main.js`. Tab *"Quản lý Tin tức"* lập tức xuất hiện nổi bật tại thanh Sidebar bên trái.
+
+### 33.8 Sửa Lỗi "⚠️ Bạn Chưa Đăng Nhập" Khi Vào Quản Lý Tin Tức Trên Desktop (`news-mgmt.js`)
+- **Phân tích nguyên nhân**: Ứng dụng Desktop Electron lưu giữ Access Token tại biến toàn cục `accessToken` hoặc `localStorage.getItem('accessToken')`. Trong file `news-mgmt.js`, mã nguồn gọi nhầm key `eigu_token`, dẫn tới kết quả `null` và hiển thị màn hình cảnh báo chưa đăng nhập.
+- **Giải pháp**: Tạo hàm trợ giúp `getNewsAuthToken()` đọc ưu tiên biến `accessToken`, tiếp theo tới `localStorage.getItem('accessToken')`. Đã áp dụng `getNewsAuthToken()` đồng bộ cho tất cả các request CMS Tin tức.
+- **Kết quả**: Sau khi đăng nhập tài khoản Admin/Staff, người dùng truy cập tab *"Quản lý Tin tức"* sẽ thấy ngay Dashboard thống kê và bảng bài viết CMS chuyên nghiệp.
+
+### 33.9 Cập Nhật Tiêu Đề Trang Tin Tức Website (`NewsList.tsx`)
+- Đã chỉnh sửa tiêu đề chính `<h1>` từ *"Tin Tức & Hướng Dẫn Kỹ Thuật TikTok MMO"* thành **"Tin Tức & Hướng Dẫn Kỹ Thuật"** theo yêu cầu giao diện mới.
+
+### 33.10 Tự Động Khởi Tạo Danh Mục Mặc Định & Nút "+ Tạo Danh Mục" Trong Editor (`news-mgmt.js`)
+- **Phân tích nguyên nhân**: Khi cơ sở dữ liệu mới khởi tạo chưa có danh mục bài viết nào (`newsCategoriesState` rỗng), thẻ `<select id="editor-category">` không có thẻ `<option>` để chọn.
+- **Giải pháp**:
+  1. Thêm hàm `autoSeedDefaultCategories()` tự động tạo 4 danh mục chuẩn (*Tin Tức & Cập Nhật*, *Hướng Dẫn Kỹ Thuật*, *Chiến Lược MMO*, *Thông Báo Hệ Thống*) khi ứng dụng khởi chạy nếu chưa có danh mục.
+  2. Bổ sung nút **`+ Tạo Danh Mục`** ngay cạnh nhãn Danh Mục trong modal soạn thảo bài viết, cho phép Admin/Staff tạo danh mục mới tức thì mà không bị gián đoạn khi đang viết bài.
+
+### 33.11 Đưa Thông Báo Toast Lên Trên Modal & Tối Ưu Xử Lý Payload Bài Viết (`toast.css` & `news-mgmt.js` & `news.service.ts`)
+- **Hiển thị Toast trên cùng**: Nâng thuộc tính `z-index` của `#toast-container` trong `toast.css` từ `999999` lên `99999999` (cao hơn z-index của modal `news-editor-modal`). Giúp toàn bộ thông báo thành công hoặc lỗi luôn nổi lên trên cùng, Admin/Staff nhìn thấy và theo dõi tức thì.
+- **Khắc phục lỗi "Yêu cầu không hợp lệ"**: Khi `categoryId` là chuỗi rỗng `""`, mã nguồn đã tự động chuyển đổi sang `undefined` để Backend tự chọn danh mục mặc định của hệ thống thay vì báo lỗi Foreign Key database.
+
+
 
 
 

@@ -18,6 +18,7 @@ import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { PricingModule } from '../pricing/pricing.module';
 import { ThemeEventModule } from '../theme-event/theme-event.module';
 import { PaymentModule } from '../payment/payment.module';
+import { NewsModule } from '../news/news.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { PaymentModule } from '../payment/payment.module';
     PricingModule,
     ThemeEventModule,
     PaymentModule,
+    NewsModule,
   ],
   controllers: [AppController],
   providers: [

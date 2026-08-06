@@ -74,6 +74,12 @@ const SidebarComponent = `
       <span class="nav-label" data-i18n="chat_support">Chat Support</span>
     </div>
 
+    <!-- Tab Quản lý Tin tức dành cho Staff & Admin -->
+    <div class="nav-item staff-only hidden" data-view="news-management" onclick="switchView('news-management', this, null, event)">
+      <span class="nav-icon" data-icon="newspaper"></span>
+      <span class="nav-label" data-i18n="news_management">Quản lý Tin tức</span>
+    </div>
+
     <!-- Tab Quản lý dành cho Admin -->
     <div class="nav-item admin-only hidden" data-view="user-management" onclick="switchView('user-management', this, null, event)">
       <span class="nav-icon" data-icon="userCheck"></span>

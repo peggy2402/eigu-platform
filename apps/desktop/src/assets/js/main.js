@@ -80,8 +80,10 @@ function updateProfile() {
     document.querySelectorAll('.staff-only').forEach(el => {
       if (userProfile.role === 'admin' || userProfile.role === 'staff') {
         el.style.display = '';
+        el.classList.remove('hidden');
       } else {
         el.style.display = 'none';
+        el.classList.add('hidden');
       }
     });
 
@@ -396,16 +398,18 @@ function closeSearchPopup(e) {
 }
 
 addLog('[SYSTEM] EIGU Platform Desktop Client initialized.');
-renderAutomation();
+if (typeof renderAutomation === 'function') {
+  try { renderAutomation(); } catch (err) { console.error('Error in renderAutomation:', err); }
+}
 checkAuth();
 
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault();
     const overlay = document.getElementById('search-popup-overlay');
-    if (overlay.classList.contains('hidden')) {
+    if (overlay && overlay.classList.contains('hidden')) {
       openSearchPopup();
-    } else {
+    } else if (overlay) {
       closeSearchPopup();
     }
   }
@@ -435,12 +439,15 @@ document.addEventListener('keydown', e => {
   }
 });
 
-document.getElementById('search-popup-input').addEventListener('input', function () {
-  const q = this.value.toLowerCase().trim();
-  document.querySelectorAll('.search-result').forEach(el => {
-    el.style.display = q === '' || el.textContent.toLowerCase().includes(q) ? '' : 'none';
+const searchPopupInput = document.getElementById('search-popup-input');
+if (searchPopupInput) {
+  searchPopupInput.addEventListener('input', function () {
+    const q = this.value.toLowerCase().trim();
+    document.querySelectorAll('.search-result').forEach(el => {
+      el.style.display = q === '' || el.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
   });
-});
+}
 
 window.addEventListener('resize', () => {
   const sidebar = document.getElementById('sidebar');

@@ -57,15 +57,15 @@ function getAssetPath(...relativePaths: string[]): string {
     return prodAsarPath;
   } else {
     // Môi trường Dev (nx serve / electron .)
-    const devPath = path.resolve(__dirname, 'assets', ...relativePaths);
-    if (fs.existsSync(devPath)) {
-      return devPath;
-    }
     const devSrcPath = path.resolve(process.cwd(), 'apps/desktop/src/assets', ...relativePaths);
     if (fs.existsSync(devSrcPath)) {
       return devSrcPath;
     }
-    return devPath;
+    const devPath = path.resolve(__dirname, 'assets', ...relativePaths);
+    if (fs.existsSync(devPath)) {
+      return devPath;
+    }
+    return devSrcPath;
   }
 }
 

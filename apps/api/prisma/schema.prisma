@@ -44,6 +44,8 @@ model User {
   feedbacks           Feedback[]
   depositTransactions DepositTransaction[]
   subscriptions       UserSubscription[]
+  news                News[]
+  newsComments        NewsComment[]
 }
 
 model Proxy {
@@ -307,6 +309,125 @@ model UserSubscription {
   @@unique([userId, moduleId])
   @@index([userId])
   @@index([moduleId])
+}
+
+model NewsCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  news        News[]
+}
+
+model NewsTag {
+  id        String            @id @default(uuid())
+  name      String            @unique
+  slug      String            @unique
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  news      NewsTagRelation[]
+}
+
+model NewsTagRelation {
+  newsId String
+  tagId  String
+  news   News    @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  tag    NewsTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([newsId, tagId])
+  @@index([newsId])
+  @@index([tagId])
+}
+
+model News {
+  id             String            @id @default(uuid())
+  title          String
+  slug           String            @unique
+  summary        String?           @db.Text
+  content        String            @db.Text
+  thumbnail      String?
+  gallery        String[]          @default([])
+  categoryId     String?
+  category       NewsCategory?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags           NewsTagRelation[]
+  status         String            @default("draft") // draft, published, archived
+  isFeatured     Boolean           @default(false)
+  authorId       String?
+  authorName     String?
+  author         User?             @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  publishedAt    DateTime?
+  deletedAt      DateTime?
+  viewCount      Int               @default(0)
+  likeCount      Int               @default(0)
+  commentCount   Int               @default(0)
+  readingTime    Int               @default(1)
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+  comments       NewsComment[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([categoryId])
+  @@index([isFeatured])
+  @@index([createdAt])
+}
+
+model NewsComment {
+  id           String                @id @default(uuid())
+  newsId       String
+  news         News                  @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  parentId     String?
+  parent       NewsComment?          @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies      NewsComment[]         @relation("CommentReplies")
+  userId       String?
+  user         User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName     String
+  userAvatar   String?
+  userRole     String?               @default("user")
+  content      String                @db.Text
+  likeCount    Int                   @default(0)
+  dislikeCount Int                   @default(0)
+  status       String                @default("approved") // approved, pending, hidden
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  deletedAt    DateTime?
+  reactions    NewsCommentReaction[]
+  reports      NewsCommentReport[]
+
+  @@index([newsId])
+  @@index([parentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model NewsCommentReaction {
+  id        String      @id @default(uuid())
+  commentId String
+  comment   NewsComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  type      String      // "like" or "dislike"
+  createdAt DateTime    @default(now())
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
+}
+
+model NewsCommentReport {
+  id        String      @id @default(uuid())
+  commentId String
+  comment   NewsComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String?
+  reason    String
+  createdAt DateTime    @default(now())
+
+  @@index([commentId])
 }
 
 

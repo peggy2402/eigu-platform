@@ -2151,6 +2151,11 @@ const ViewsComponent = `
   </div>
 </div>
 
+<!-- Tab Quản lý Tin tức -->
+<div id="view-news-management" class="view">
+  <!-- Dynamically filled by news-mgmt.js -->
+</div>
+
 <!-- Dedicated Checkout View Page -->
 <div id="view-checkout" class="view">
   <!-- Dynamically filled by checkout.component.js -->
