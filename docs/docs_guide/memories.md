@@ -1301,6 +1301,13 @@ Xử lý:
 - **Hiển thị Toast trên cùng**: Nâng thuộc tính `z-index` của `#toast-container` trong `toast.css` từ `999999` lên `99999999` (cao hơn z-index của modal `news-editor-modal`). Giúp toàn bộ thông báo thành công hoặc lỗi luôn nổi lên trên cùng, Admin/Staff nhìn thấy và theo dõi tức thì.
 - **Khắc phục lỗi "Yêu cầu không hợp lệ"**: Khi `categoryId` là chuỗi rỗng `""`, mã nguồn đã tự động chuyển đổi sang `undefined` để Backend tự chọn danh mục mặc định của hệ thống thay vì báo lỗi Foreign Key database.
 
+### 33.12 Tổng Kết Kiểm Tra Biên Dịch & Đồng Bộ Hệ Thống (API, Desktop, Web)
+- **Prisma Engine**: `npx prisma generate --schema=apps/api/prisma/schema.prisma` $\rightarrow$ `✔ Generated Prisma Client (v7.8.0)`.
+- **API NestJS**: `npx tsc --noEmit -p apps/api/tsconfig.app.json` $\rightarrow$ `✓ 0 error`.
+- **Web Next.js**: `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`.
+- **Desktop Electron**: `npx nx build desktop` $\rightarrow$ `✓ SUCCESS`.
+- **Đã kiểm tra hoạt động**: Đăng nhập Admin/Staff hiển thị tab *"Quản lý Tin tức"*, tạo/sửa/xuất bản bài viết thành công, Toast thông báo nổi trên cùng chuẩn xác, trang web `/news` tự động đồng bộ bài viết công khai.
+
 
 
 
