@@ -3,7 +3,7 @@ import type { NewsCommentDto } from '@eigu-platform/shared';
 // Column indent width per depth level
 export const COLUMN_WIDTH = 36;
 export const LINE_WIDTH = 2;
-export const LINE_COLOR = 'rgba(255, 255, 255, 0.25)';
+export const LINE_COLOR = 'var(--tree-line-color, rgba(255, 255, 255, 0.28))';
 
 export interface FlatCommentNode {
   comment: NewsCommentDto;

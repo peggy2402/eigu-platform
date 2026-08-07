@@ -182,18 +182,39 @@ export const CommentBody = memo(function CommentBody({
 
       {/* Floating Reply Form */}
       {isReplying && (
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed rgba(255, 255, 255, 0.15)' }}>
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed var(--border-color)' }}>
           <textarea
             rows={2}
             value={replyText}
             onChange={e => setReplyText(e.target.value)}
             placeholder={`Trả lời ${comment.userName}...`}
-            style={{ width: '100%', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 12, padding: 12, color: 'var(--text-primary)', fontSize: 13, outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}
+            style={{
+              width: '100%',
+              background: 'var(--bg-primary)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 12,
+              padding: '10px 14px',
+              color: 'var(--text-primary)',
+              fontSize: 13,
+              outline: 'none',
+              resize: 'vertical',
+              fontFamily: 'inherit',
+              transition: 'border-color 0.2s',
+            }}
           />
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
             <button
               onClick={() => setReplyToId(null)}
-              style={{ padding: '6px 14px', borderRadius: 10, fontSize: 12, background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.12)', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600 }}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 10,
+                fontSize: 12,
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
             >
               Hủy
             </button>
@@ -201,7 +222,16 @@ export const CommentBody = memo(function CommentBody({
               onClick={() => onPostReply(comment.id)}
               disabled={!replyText.trim()}
               className="btn-primary"
-              style={{ padding: '6px 18px', borderRadius: 10, fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              style={{
+                padding: '6px 18px',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                opacity: !replyText.trim() ? 0.5 : 1,
+              }}
             >
               <Send size={12} />
               <span>Gửi phản hồi</span>

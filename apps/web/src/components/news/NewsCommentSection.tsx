@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageSquare, Send } from 'lucide-react';
+import { MessageSquare, Send, Image as ImageIcon, Smile, AtSign, Star } from 'lucide-react';
 import type { NewsCommentDto } from '@eigu-platform/shared';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -138,52 +138,174 @@ export default function NewsCommentSection({ newsId }: NewsCommentSectionProps) 
 
       {/* Primary Comment Input Box / Login Prompt */}
       {!user ? (
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          borderRadius: 20,
-          padding: '32px 24px',
-          textAlign: 'center',
-          marginBottom: 36,
-          boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
-          backdropFilter: 'blur(16px)',
-        }}>
-          <h4 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 8px' }}>
+        <div
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 16,
+            padding: '28px 24px',
+            textAlign: 'center',
+            marginBottom: 36,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          }}
+        >
+          <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 8px' }}>
             {language === 'en' ? 'Log in to Participate in Discussion' : 'Đăng nhập để tham gia bình luận & tương tác'}
           </h4>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 auto 22px', maxWidth: 520, lineHeight: 1.55 }}>
+          <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', margin: '0 auto 20px', maxWidth: 520, lineHeight: 1.55 }}>
             {language === 'en' ? 'Join our community to ask questions, share tips, and react to technical articles.' : 'Tài khoản thành viên được quyền tham gia thảo luận, trao đổi kinh nghiệm nuôi kênh & thả cảm xúc.'}
           </p>
-          <a href="/auth/login" className="btn-primary" style={{ padding: '11px 30px', borderRadius: 12, fontSize: 14, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', boxShadow: '0 4px 18px var(--accent-glow)' }}>
+          <a href="/auth/login" className="btn-primary" style={{ padding: '10px 24px', borderRadius: 10, fontSize: 13.5, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', boxShadow: '0 4px 14px var(--accent-glow)' }}>
             <span>{language === 'en' ? 'Log In Now' : 'Đăng Nhập Ngay'}</span>
           </a>
         </div>
       ) : (
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 18, padding: 20, marginBottom: 36, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
-          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-            <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', color: '#fff', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 15, border: '1.5px solid rgba(255,255,255,0.15)' }}>
-              {user?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div style={{ flex: 1 }}>
-              <textarea
-                rows={3}
-                value={newCommentText}
-                onChange={e => setNewCommentText(e.target.value)}
-                placeholder={language === 'en' ? 'Share your thoughts, ask a question, or leave feedback...' : 'Viết bình luận của bạn về bài viết này...'}
-                style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 14, color: 'var(--text-primary)', fontSize: 14, resize: 'vertical', fontFamily: 'inherit', outline: 'none', transition: 'border-color 0.2s' }}
-              />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
-                <button
-                  onClick={() => handlePostComment()}
-                  disabled={submitting || !newCommentText.trim()}
-                  className="btn-primary"
-                  style={{ padding: '9px 22px', borderRadius: 10, fontSize: 13.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 8, opacity: !newCommentText.trim() ? 0.6 : 1 }}
-                >
-                  <Send size={15} />
-                  <span>{language === 'en' ? 'Post Comment' : 'Gửi Bình Luận'}</span>
-                </button>
+        <div
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 24,
+            padding: 24,
+            marginBottom: 36,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+          }}
+        >
+          {/* 1. Header Profile Row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+            {/* User Avatar with Green Live Status Dot */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                  color: '#fff',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 18,
+                  border: '2px solid rgba(255,255,255,0.2)',
+                  boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)',
+                }}
+              >
+                {user?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
               </div>
+              <span
+                style={{
+                  position: 'absolute',
+                  bottom: 2,
+                  right: 2,
+                  width: 11,
+                  height: 11,
+                  borderRadius: '50%',
+                  background: '#22c55e',
+                  border: '2px solid var(--bg-card)',
+                }}
+              />
             </div>
+
+            {/* Username & Role Badge */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
+                {user?.username || user?.email}
+              </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  background: 'rgba(99, 102, 241, 0.15)',
+                  color: '#818cf8',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  padding: '2px 10px',
+                  borderRadius: 14,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  alignSelf: 'flex-start',
+                }}
+              >
+                <Star size={11} style={{ fill: '#818cf8' }} />
+                <span>{language === 'en' ? 'EIGU Member' : 'Thành viên EIGU'}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* 2. Textarea Box with Soft Accent Outline */}
+          <div style={{ marginBottom: 18 }}>
+            <textarea
+              rows={3}
+              value={newCommentText}
+              onChange={e => setNewCommentText(e.target.value)}
+              placeholder={language === 'en' ? 'Share your thoughts about this article...' : 'Hãy chia sẻ suy nghĩ của bạn về bài viết này...'}
+              style={{
+                width: '100%',
+                background: 'var(--bg-primary)',
+                border: '2px solid rgba(99, 102, 241, 0.45)',
+                borderRadius: 16,
+                padding: '16px 18px',
+                color: 'var(--text-primary)',
+                fontSize: 14.5,
+                lineHeight: 1.6,
+                resize: 'vertical',
+                fontFamily: 'inherit',
+                outline: 'none',
+                transition: 'border-color 0.25s, box-shadow 0.25s',
+              }}
+            />
+          </div>
+
+          {/* 3. Action Toolbar Row (Left Circle Icons + Right Submit Capsule Button) */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+            {/* Right Capsule Submit Button */}
+            <button
+              onClick={() => handlePostComment()}
+              disabled={submitting || !newCommentText.trim()}
+              style={{
+                padding: '11px 28px',
+                borderRadius: 9999,
+                fontSize: 14,
+                fontWeight: 800,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: newCommentText.trim()
+                  ? 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)'
+                  : 'rgba(129, 140, 248, 0.35)',
+                color: '#ffffff',
+                border: 'none',
+                cursor: !newCommentText.trim() ? 'not-allowed' : 'pointer',
+                boxShadow: newCommentText.trim() ? '0 6px 20px rgba(129, 140, 248, 0.4)' : 'none',
+                opacity: !newCommentText.trim() ? 0.7 : 1,
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+            >
+              <span>{submitting ? (language === 'en' ? 'Sending...' : 'Đang gửi...') : (language === 'en' ? 'Post Comment' : 'Đăng Bình Luận')}</span>
+              <Send size={15} />
+            </button>
+          </div>
+
+          {/* 4. Community Guidelines Amber Callout Banner (Bottom) */}
+          <div
+            style={{
+              background: 'rgba(245, 158, 11, 0.08)',
+              borderLeft: '4px solid #f59e0b',
+              borderRadius: '0 12px 12px 0',
+              padding: '14px 18px',
+              fontSize: 13.5,
+              color: 'var(--text-secondary)',
+              lineHeight: 1.5,
+            }}
+          >
+            <strong style={{ color: '#d97706', fontWeight: 800 }}>
+              {language === 'en' ? 'Community Guidelines:' : 'Quy tắc cộng đồng:'}
+            </strong>{' '}
+            <span>
+              {language === 'en'
+                ? 'Please remain respectful and refrain from abusive language.'
+                : 'Hãy giữ thái độ tôn trọng và tránh sử dụng ngôn từ đả kích nhé!'}
+            </span>
           </div>
         </div>
       )}

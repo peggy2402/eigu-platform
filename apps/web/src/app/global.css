@@ -26,6 +26,7 @@
   --sidebar-w: 260px;
   --sidebar-w-collapsed: 64px;
   --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --tree-line-color: rgba(255, 255, 255, 0.28);
 }
 
 [data-theme="light"] {
@@ -48,6 +49,7 @@
   --danger-bg: rgba(220, 38, 38, 0.08);
   --warning: #d97706;
   --warning-bg: rgba(217, 119, 6, 0.08);
+  --tree-line-color: rgba(120, 113, 108, 0.45);
 }
 
 * {
