@@ -1,6 +1,6 @@
 {
   "name": "@eigu-platform/source",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "license": "MIT",
   "scripts": {
     "postinstall": "prisma generate --schema=apps/api/prisma/schema.prisma",
