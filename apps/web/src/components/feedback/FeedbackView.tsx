@@ -1,6 +1,11 @@
 'use client';
 
+import React from 'react';
+import { useToast } from '../../contexts/ToastContext';
+
 export default function FeedbackView() {
+  const { showToast } = useToast();
+
   return (
     <div className="settings-container">
       <div className="settings-card" style={{ marginBottom: 16, border: '1px solid var(--accent)', background: 'var(--accent-glow)' }}>
@@ -8,7 +13,7 @@ export default function FeedbackView() {
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 16 }}>
           Mọi ý kiến đóng góp hoặc báo lỗi của bạn sẽ giúp chúng tôi phát triển EIGU tốt hơn. (Giới hạn: 3 lần/ngày)
         </p>
-        
+
         <form onSubmit={async (e) => {
           e.preventDefault();
           const target = e.target as typeof e.target & {
@@ -17,8 +22,11 @@ export default function FeedbackView() {
             submitBtn: { disabled: boolean, innerText: string };
           };
           const msg = target.message.value.trim();
-          if (!msg) return alert('Vui lòng nhập nội dung góp ý!');
-          
+          if (!msg) {
+            showToast('Nội dung không được để trống', 'Vui lòng nhập nội dung góp ý!', 'warning');
+            return;
+          }
+
           target.submitBtn.disabled = true;
           const oldText = target.submitBtn.innerText;
           target.submitBtn.innerText = 'Đang gửi...';
@@ -29,33 +37,36 @@ export default function FeedbackView() {
             if (target.file.files[0]) {
               fd.append('image', target.file.files[0]);
             }
-            
-            const token = localStorage.getItem('accessToken');
+
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
             const res = await fetch('/api/feedback/report', {
               method: 'POST',
-              headers: { 'Authorization': `Bearer ${token}` },
+              headers: token ? { 'Authorization': `Bearer ${token}` } : {},
               body: fd
             });
             const data = await res.json();
-            
+
             if (!res.ok) {
               throw new Error(data.message || 'Lỗi gửi báo cáo');
             }
-            
+
+            showToast('Đã gửi báo cáo thành công', 'Cảm ơn bạn đã gửi đóng góp phát triển EIGU Platform!', 'success');
             (target as any).message.value = '';
             if ((target as any).file) (target as any).file.value = '';
+            const display = document.getElementById('file-name-display');
+            if (display) display.innerText = '';
           } catch (err: any) {
-            alert(err.message);
+            showToast('Gửi báo cáo thất bại', err.message || 'Lỗi gửi báo cáo', 'error');
           } finally {
             target.submitBtn.disabled = false;
             target.submitBtn.innerText = oldText;
           }
         }}>
-          <textarea 
+          <textarea
             name="message"
             placeholder="Mô tả lỗi hoặc góp ý của bạn..."
             rows={4}
-            style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: 12, borderRadius: 8, fontSize: 13, marginBottom: 12, resize: 'vertical' }}
+            style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: 12, borderRadius: 8, fontSize: 13, marginBottom: 12, resize: 'vertical', fontFamily: 'inherit', outline: 'none' }}
           />
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>Đính kèm hình ảnh (nếu có):</label>
@@ -75,7 +86,7 @@ export default function FeedbackView() {
               if (display) display.innerText = file ? file.name : '';
             }} />
           </div>
-          <button name="submitBtn" type="submit" className="btn btn-primary" style={{ width: '100%', padding: '10px' }}>
+          <button name="submitBtn" type="submit" className="btn btn-primary" style={{ width: '100%', padding: '10px', fontWeight: 700 }}>
             Gửi Báo Cáo
           </button>
         </form>

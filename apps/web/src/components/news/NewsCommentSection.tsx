@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageSquare, Send, Image as ImageIcon, Smile, AtSign, Star } from 'lucide-react';
+import { MessageSquare, Send, Image as ImageIcon, Smile, AtSign, Star, LogIn } from 'lucide-react';
 import type { NewsCommentDto } from '@eigu-platform/shared';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useToast } from '../../contexts/ToastContext';
 import { CommentTree } from './CommentTree/CommentTree';
 
 interface NewsCommentSectionProps {
@@ -14,6 +15,7 @@ interface NewsCommentSectionProps {
 export default function NewsCommentSection({ newsId }: NewsCommentSectionProps) {
   const { user } = useAuth();
   const { language } = useLanguage();
+  const { showToast } = useToast();
   const [comments, setComments] = useState<NewsCommentDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCommentText, setNewCommentText] = useState('');
@@ -43,12 +45,20 @@ export default function NewsCommentSection({ newsId }: NewsCommentSectionProps) 
 
   const handlePostComment = useCallback(async (parentId?: string) => {
     if (!user) {
-      alert(language === 'en' ? 'Please log in to post comments!' : 'Vui lòng đăng nhập tài khoản để gửi bình luận!');
+      showToast(
+        language === 'en' ? 'Login Required' : 'Yêu cầu đăng nhập',
+        language === 'en' ? 'Please log in to post comments!' : 'Vui lòng đăng nhập tài khoản để gửi bình luận!',
+        'warning'
+      );
       return;
     }
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
     if (!token) {
-      alert(language === 'en' ? 'Session expired. Please log in again.' : 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      showToast(
+        language === 'en' ? 'Session Expired' : 'Phiên đăng nhập hết hạn',
+        language === 'en' ? 'Session expired. Please log in again.' : 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+        'error'
+      );
       return;
     }
 
@@ -75,6 +85,11 @@ export default function NewsCommentSection({ newsId }: NewsCommentSectionProps) 
       });
 
       if (res.ok) {
+        showToast(
+          language === 'en' ? 'Success' : 'Thành công',
+          language === 'en' ? 'Comment posted successfully!' : 'Bình luận của bạn đã được gửi thành công!',
+          'success'
+        );
         if (parentId) {
           setReplyText('');
           setReplyToId(null);
@@ -84,23 +99,40 @@ export default function NewsCommentSection({ newsId }: NewsCommentSectionProps) 
         await fetchComments();
       } else {
         const errData = await res.json().catch(() => ({}));
-        alert(errData.message || (language === 'en' ? 'Failed to post comment' : 'Gửi bình luận thất bại'));
+        showToast(
+          language === 'en' ? 'Error' : 'Lỗi gửi bình luận',
+          errData.message || (language === 'en' ? 'Failed to post comment' : 'Gửi bình luận thất bại'),
+          'error'
+        );
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to post comment:', err);
+      showToast(
+        language === 'en' ? 'Error' : 'Lỗi gửi bình luận',
+        err?.message || (language === 'en' ? 'Failed to post comment' : 'Gửi bình luận thất bại'),
+        'error'
+      );
     } finally {
       setSubmitting(false);
     }
-  }, [user, language, replyText, newCommentText, newsId, fetchComments]);
+  }, [user, language, replyText, newCommentText, newsId, fetchComments, showToast]);
 
   const handleReaction = useCallback(async (commentId: string, type: 'like' | 'dislike') => {
     if (!user) {
-      alert(language === 'en' ? 'Please log in to react to comments!' : 'Vui lòng đăng nhập tài khoản để thả cảm xúc cho bình luận!');
+      showToast(
+        language === 'en' ? 'Login Required' : 'Yêu cầu đăng nhập',
+        language === 'en' ? 'Please log in to react to comments!' : 'Vui lòng đăng nhập tài khoản để thả cảm xúc cho bình luận!',
+        'warning'
+      );
       return;
     }
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
     if (!token) {
-      alert(language === 'en' ? 'Session expired. Please log in again.' : 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      showToast(
+        language === 'en' ? 'Session Expired' : 'Phiên đăng nhập hết hạn',
+        language === 'en' ? 'Session expired. Please log in again.' : 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+        'error'
+      );
       return;
     }
 
@@ -118,12 +150,21 @@ export default function NewsCommentSection({ newsId }: NewsCommentSectionProps) 
         fetchComments();
       } else {
         const errData = await res.json().catch(() => ({}));
-        alert(errData.message || (language === 'en' ? 'Reaction failed' : 'Tương tác thất bại'));
+        showToast(
+          language === 'en' ? 'Error' : 'Tương tác thất bại',
+          errData.message || (language === 'en' ? 'Reaction failed' : 'Tương tác thất bại'),
+          'error'
+        );
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Reaction error:', err);
+      showToast(
+        language === 'en' ? 'Error' : 'Tương tác thất bại',
+        err?.message || (language === 'en' ? 'Reaction failed' : 'Tương tác thất bại'),
+        'error'
+      );
     }
-  }, [user, language, fetchComments]);
+  }, [user, language, fetchComments, showToast]);
 
   return (
     <div style={{ marginTop: 48, borderTop: '1px solid var(--border-color)', paddingTop: 36 }}>
@@ -140,22 +181,39 @@ export default function NewsCommentSection({ newsId }: NewsCommentSectionProps) 
       {!user ? (
         <div
           style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 16,
-            padding: '28px 24px',
+            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%)',
+            border: '1px solid rgba(99, 102, 241, 0.25)',
+            borderRadius: 20,
+            padding: '32px 24px',
             textAlign: 'center',
             marginBottom: 36,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.18)',
           }}
         >
-          <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 8px' }}>
+          <h4 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 8px' }}>
             {language === 'en' ? 'Log in to Participate in Discussion' : 'Đăng nhập để tham gia bình luận & tương tác'}
           </h4>
-          <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', margin: '0 auto 20px', maxWidth: 520, lineHeight: 1.55 }}>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 auto 22px', maxWidth: 520, lineHeight: 1.6 }}>
             {language === 'en' ? 'Join our community to ask questions, share tips, and react to technical articles.' : 'Tài khoản thành viên được quyền tham gia thảo luận, trao đổi kinh nghiệm nuôi kênh & thả cảm xúc.'}
           </p>
-          <a href="/auth/login" className="btn-primary" style={{ padding: '10px 24px', borderRadius: 10, fontSize: 13.5, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', boxShadow: '0 4px 14px var(--accent-glow)' }}>
+          <a
+            href="/auth/login"
+            style={{
+              padding: '11px 28px',
+              borderRadius: 9999,
+              fontSize: 14,
+              fontWeight: 800,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              textDecoration: 'none',
+              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+              color: '#ffffff',
+              boxShadow: '0 6px 20px rgba(99, 102, 241, 0.4)',
+              transition: 'all 0.25s ease',
+            }}
+          >
+            <LogIn size={15} />
             <span>{language === 'en' ? 'Log In Now' : 'Đăng Nhập Ngay'}</span>
           </a>
         </div>
