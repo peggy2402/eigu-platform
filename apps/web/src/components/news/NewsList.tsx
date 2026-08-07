@@ -133,7 +133,7 @@ export default function NewsList({ onSelectArticle }: NewsListProps) {
 
       {/* News Grid (Desktop 3 cols, Tablet 2 cols, Mobile 1 col) */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-secondary)' }}>Đang tải bài viết từ server...</div>
+        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-secondary)' }}>Đang tải bài viết...</div>
       ) : articles.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
