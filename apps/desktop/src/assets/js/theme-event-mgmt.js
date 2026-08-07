@@ -22,16 +22,16 @@ async function loadAdminThemeEventData() {
   container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Đang tải cấu hình Giao diện & Sự kiện...</div>';
 
   try {
-    // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-    const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
-    const res = await fetch(`${baseUrl}/theme-event`);
-    const data = await res.json();
+    const res = await apiFetch('/theme-event');
 
-    if (res.ok && data.success && data.data) {
-      cachedThemeEventConfig = data.data;
-      renderThemeEventForm(data.data);
+    if (res && res.success && res.data) {
+      cachedThemeEventConfig = res.data;
+      renderThemeEventForm(res.data);
+    } else if (res && res.data) {
+      cachedThemeEventConfig = res.data;
+      renderThemeEventForm(res.data);
     } else {
-      throw new Error(data.message || 'Không thể tải cấu hình');
+      throw new Error(res?.message || 'Không thể tải cấu hình');
     }
   } catch (err) {
     console.warn('Lỗi kết nối API ThemeEvent, sử dụng dữ liệu mặc định:', err);
@@ -58,220 +58,190 @@ function renderThemeEventForm(cfg) {
   if (!container) return;
 
   container.innerHTML = `
-    <form id="admin-theme-event-form" onsubmit="handleSaveThemeEvent(event); return false;" style="display:flex; flex-direction:column; gap:24px;">
+    <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
       
-      <!-- Khối 1: Cấu hình Giao diện Bốn Mùa -->
-      <div style="background:var(--bg-primary); border:1px solid var(--border-color); border-radius:14px; padding:22px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border-color);">
-          <div>
-            <h4 style="margin:0; font-size:16px; font-weight:800; color:var(--text-primary);">Giao Diện Bốn Mùa (Seasonal Themes)</h4>
-            <p style="margin:4px 0 0; font-size:13px; color:var(--text-secondary);">Chọn chủ đề mùa để thay đổi màu sắc chủ đạo, logo và hình nền phía User Website.</p>
-          </div>
-          <span style="font-size:12px; padding:4px 10px; border-radius:20px; background:rgba(245,158,11,0.15); color:var(--accent); font-weight:700;">
-            Đang áp dụng: ${escapeHtml(cfg.seasonTitle || cfg.season)}
-          </span>
-        </div>
+      <!-- Card 1: Theme Season Selector -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+        <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Chủ Đề Giao Diện Bốn Mùa (Season Theme)
+        </h4>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:18px;">
-          <div class="season-card ${cfg.season === 'autumn' ? 'selected' : ''}" onclick="selectSeasonOption('autumn', '#f59e0b', 'Giao diện Mùa Thu (Amber Autumn)')" style="border:2px solid ${cfg.season === 'autumn' ? 'var(--accent)' : 'var(--border-color)'}; background:var(--bg-card); padding:14px; border-radius:10px; cursor:pointer; text-align:center;">
-            <div style="display:flex; justify-content:center; margin-bottom:6px;">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
+          <label style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--bg-primary); border: 2px solid ${cfg.season === 'autumn' ? '#f59e0b' : 'var(--border-color)'}; border-radius: 12px; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-weight: 800; font-size: 14px; color: #f59e0b;">🍁 Mùa Thu (Autumn)</span>
+              <input type="radio" name="themeSeason" value="autumn" ${cfg.season === 'autumn' ? 'checked' : ''} onchange="updateThemePreviewColor(this.value)">
             </div>
-            <strong style="display:block; font-size:14px; color:var(--text-primary);">Mùa Thu</strong>
-            <span style="font-size:11px; color:var(--text-muted);">Tông Vàng Amber & Lá Thu</span>
-          </div>
+            <span style="font-size: 11px; color: var(--text-muted);">Tone Amber - Vàng Cam Hổ Phách</span>
+          </label>
 
-          <div class="season-card ${cfg.season === 'spring' ? 'selected' : ''}" onclick="selectSeasonOption('spring', '#ec4899', 'Giao diện Mùa Xuân (Cherry Blossom)')" style="border:2px solid ${cfg.season === 'spring' ? 'var(--accent)' : 'var(--border-color)'}; background:var(--bg-card); padding:14px; border-radius:10px; cursor:pointer; text-align:center;">
-            <div style="display:flex; justify-content:center; margin-bottom:6px;">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2a4 4 0 0 0 0 8 4 4 0 0 0 0-8z"/><path d="M12 14a4 4 0 0 0 0 8 4 4 0 0 0 0-8z"/><path d="M2 12a4 4 0 0 0 8 0 4 4 0 0 0-8 0z"/><path d="M14 12a4 4 0 0 0 8 0 4 4 0 0 0-8 0z"/></svg>
+          <label style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--bg-primary); border: 2px solid ${cfg.season === 'winter' ? '#38bdf8' : 'var(--border-color)'}; border-radius: 12px; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-weight: 800; font-size: 14px; color: #38bdf8;">❄️ Mùa Đông (Winter)</span>
+              <input type="radio" name="themeSeason" value="winter" ${cfg.season === 'winter' ? 'checked' : ''} onchange="updateThemePreviewColor(this.value)">
             </div>
-            <strong style="display:block; font-size:14px; color:var(--text-primary);">Mùa Xuân</strong>
-            <span style="font-size:11px; color:var(--text-muted);">Tông Hồng Phấn Tươi Mới</span>
-          </div>
+            <span style="font-size: 11px; color: var(--text-muted);">Tone Cyan - Xanh Băng Tuyết</span>
+          </label>
 
-          <div class="season-card ${cfg.season === 'summer' ? 'selected' : ''}" onclick="selectSeasonOption('summer', '#06b6d4', 'Giao diện Mùa Hạ (Cyan Summer)')" style="border:2px solid ${cfg.season === 'summer' ? 'var(--accent)' : 'var(--border-color)'}; background:var(--bg-card); padding:14px; border-radius:10px; cursor:pointer; text-align:center;">
-            <div style="display:flex; justify-content:center; margin-bottom:6px;">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <label style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--bg-primary); border: 2px solid ${cfg.season === 'spring' ? '#ec4899' : 'var(--border-color)'}; border-radius: 12px; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-weight: 800; font-size: 14px; color: #ec4899;">🌸 Mùa Xuân (Spring)</span>
+              <input type="radio" name="themeSeason" value="spring" ${cfg.season === 'spring' ? 'checked' : ''} onchange="updateThemePreviewColor(this.value)">
             </div>
-            <strong style="display:block; font-size:14px; color:var(--text-primary);">Mùa Hạ</strong>
-            <span style="font-size:11px; color:var(--text-muted);">Tông Xanh Ngọc Mát Mẻ</span>
-          </div>
+            <span style="font-size: 11px; color: var(--text-muted);">Tone Pink - Hồng Hoa Đào</span>
+          </label>
 
-          <div class="season-card ${cfg.season === 'winter' ? 'selected' : ''}" onclick="selectSeasonOption('winter', '#3b82f6', 'Giao diện Mùa Đông (Frost Winter)')" style="border:2px solid ${cfg.season === 'winter' ? 'var(--accent)' : 'var(--border-color)'}; background:var(--bg-card); padding:14px; border-radius:10px; cursor:pointer; text-align:center;">
-            <div style="display:flex; justify-content:center; margin-bottom:6px;">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><line x1="20" y1="7" x2="4" y2="17"/><line x1="4" y1="7" x2="20" y2="17"/><polyline points="10 4 12 2 14 4"/><polyline points="10 20 12 22 14 20"/></svg>
+          <label style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--bg-primary); border: 2px solid ${cfg.season === 'summer' ? '#22c55e' : 'var(--border-color)'}; border-radius: 12px; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-weight: 800; font-size: 14px; color: #22c55e;">☀️ Mùa Hè (Summer)</span>
+              <input type="radio" name="themeSeason" value="summer" ${cfg.season === 'summer' ? 'checked' : ''} onchange="updateThemePreviewColor(this.value)">
             </div>
-            <strong style="display:block; font-size:14px; color:var(--text-primary);">Mùa Đông</strong>
-            <span style="font-size:11px; color:var(--text-muted);">Tông Xanh Băng Tuyết</span>
-          </div>
-        </div>
-
-        <input type="hidden" id="te-season" value="${escapeHtml(cfg.season || 'autumn')}" />
-
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:14px;">
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">TÊN CHỦ ĐỀ MÙA</label>
-            <input type="text" id="te-season-title" value="${escapeHtml(cfg.seasonTitle || '')}" placeholder="Giao diện Mùa Thu..." style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
-          </div>
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">MÀU CHỦ ĐẠO (Hex Color)</label>
-            <input type="color" id="te-primary-color" value="${cfg.primaryColor || '#f59e0b'}" style="width:100%; height:40px; padding:2px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; cursor:pointer;" />
-          </div>
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">NHÃN BADGE HEADER</label>
-            <input type="text" id="te-badge-text" value="${escapeHtml(cfg.badgeText || '')}" placeholder="Phiên bản Mùa Thu 3.0" style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
-          </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 2fr; gap:14px; padding-top:12px; border-top:1px dashed var(--border-color);">
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">KIỂU PHÔNG NỀN (BACKGROUND)</label>
-            <select id="te-bg-style" style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;">
-              <option value="particles" ${cfg.bgStyle === 'particles' ? 'selected' : ''}>Hạt Động Bốn Mùa (Seasonal Particles)</option>
-              <option value="tech-grid" ${cfg.bgStyle === 'tech-grid' ? 'selected' : ''}>Dạng Grid Công Nghệ (Tech Grid Matrix)</option>
-              <option value="aurora-glow" ${cfg.bgStyle === 'aurora-glow' ? 'selected' : ''}>Quầng Sáng Aurora (Ambient Aurora Glow)</option>
-              <option value="custom-image" ${cfg.bgStyle === 'custom-image' ? 'selected' : ''}>Ảnh Tùy Chỉnh (Custom Background Image)</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">LINK ẢNH NỀN CUSTOM (Nếu chọn Ảnh Tùy Chỉnh)</label>
-            <input type="text" id="te-bg-image-url" value="${escapeHtml(cfg.bgImageUrl || '')}" placeholder="https://domain.com/background.jpg" style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Khối 2: Cấu hình Popup Sự Kiện (Event Dialog) -->
-      <div style="background:var(--bg-primary); border:1px solid var(--border-color); border-radius:14px; padding:22px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border-color);">
-          <div>
-            <h4 style="margin:0; font-size:16px; font-weight:800; color:var(--text-primary);">Popup Sự Kiện (Event Banner Dialog)</h4>
-            <p style="margin:4px 0 0; font-size:13px; color:var(--text-secondary);">Hiển thị cửa sổ Popup thông báo khi người dùng truy cập trang chủ Website.</p>
-          </div>
-          <label style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-primary); cursor:pointer;">
-            <input type="checkbox" id="te-is-event-active" ${cfg.isEventActive ? 'checked' : ''} style="accent-color:var(--accent); width:18px; height:18px;" onchange="toggleEventNoticePreview(this.checked)" />
-            Bật Popup Sự kiện trên Website
+            <span style="font-size: 11px; color: var(--text-muted);">Tone Emerald - Xanh Năng Lượng</span>
           </label>
         </div>
 
-        <div id="event-fields-container" style="display:flex; flex-direction:column; gap:14px; opacity:${cfg.isEventActive ? '1' : '0.5'}; transition:opacity 0.3s;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
           <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">TIÊU ĐỀ SỰ KIỆN *</label>
-            <input type="text" id="te-event-title" value="${escapeHtml(cfg.eventTitle || '')}" placeholder="Sự Kiện Mùa Thu..." style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Tiêu đề hiển thị chủ đề</label>
+            <input type="text" id="theme-season-title" value="${cfg.seasonTitle || ''}" class="form-input" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);">
           </div>
-
           <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">MÔ TẢ NGẮN SỰ KIỆN</label>
-            <input type="text" id="te-event-subtitle" value="${escapeHtml(cfg.eventSubtitle || '')}" placeholder="Nhận ngay ưu đãi..." style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Nhãn Badge Phiên Bản (Hero Badge)</label>
+            <input type="text" id="theme-badge-text" value="${cfg.badgeText || ''}" class="form-input" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);">
           </div>
-
           <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">LINK ẢNH BANNER SỰ KIỆN (WebP/PNG/JPG)</label>
-            <input type="text" id="te-event-banner-url" value="${escapeHtml(cfg.eventBannerUrl || '')}" placeholder="https://static.9proxy-cdn.net/..." style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" oninput="updateBannerPreview(this.value)" />
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-            <div>
-              <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">CHỮ TRÊN NÚT BẤM (CTA)</label>
-              <input type="text" id="te-event-button-text" value="${escapeHtml(cfg.eventButtonText || 'Xem Bảng Giá')}" style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
-            </div>
-            <div>
-              <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">LINK ĐÍCH CHUYỂN HƯỚNG</label>
-              <input type="text" id="te-event-button-link" value="${escapeHtml(cfg.eventButtonLink || '#pricing')}" style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Mã màu nhấn (Primary Hex)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="color" id="theme-color-picker" value="${cfg.primaryColor || '#f59e0b'}" onchange="document.getElementById('theme-primary-color').value = this.value" style="width: 42px; height: 38px; border: none; border-radius: 6px; cursor: pointer; background: none;">
+              <input type="text" id="theme-primary-color" value="${cfg.primaryColor || '#f59e0b'}" class="form-input" style="flex: 1; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);">
             </div>
           </div>
-
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">GHI CHÚ CHÂN POPUP</label>
-            <input type="text" id="te-event-notice" value="${escapeHtml(cfg.eventNotice || '')}" placeholder="Áp dụng cho tất cả tài khoản..." style="width:100%; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px; outline:none;" />
-          </div>
-        </div>
-
-        <!-- Banner Preview -->
-        <div style="margin-top:16px; padding:14px; background:var(--bg-card); border:1px dashed var(--border-color); border-radius:10px; text-align:center;">
-          <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:700;">KHUNG XEM TRƯỚC BANNER POPUP (PREVIEW)</div>
-          <img id="event-banner-preview-img" src="${escapeHtml(cfg.eventBannerUrl || 'https://static.9proxy-cdn.net/media/assets/web-images/images/home/airplanes.webp')}" alt="Banner Preview" style="max-height:160px; max-width:100%; object-fit:contain; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3);" onError="this.src='https://static.9proxy-cdn.net/media/assets/web-images/images/home/airplanes.webp'" />
         </div>
       </div>
 
-      <!-- Action Footer -->
-      <div style="display:flex; justify-content:flex-end; gap:12px;">
-        <button type="button" class="btn-outline" style="padding:10px 20px; font-size:13px; border-radius:8px; margin:0;" onclick="loadAdminThemeEventData()">Hủy Thay Đổi</button>
-        <button type="submit" class="btn-primary" style="padding:10px 24px; width:auto; font-size:13px; border-radius:8px;">Lưu Cấu Hình Giao Diện & Sự Kiện</button>
+      <!-- Card 2: Popup Event Announcement Manager -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+          <h4 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Cấu Hình Popup Sự Kiện (Event Announcement Modal)
+          </h4>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text-primary);">
+            <input type="checkbox" id="theme-event-active" ${cfg.isEventActive ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--accent);">
+            <span>Bật hiển thị Popup khi user vào ứng dụng</span>
+          </label>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Tiêu đề chính sự kiện</label>
+            <input type="text" id="theme-event-title" value="${cfg.eventTitle || ''}" class="form-input" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);">
+          </div>
+
+          <div>
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Nội dung phụ mô tả sự kiện</label>
+            <textarea id="theme-event-subtitle" rows="2" class="form-input" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); resize: vertical;">${cfg.eventSubtitle || ''}</textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div>
+              <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Ảnh Banner sự kiện (Image URL)</label>
+              <input type="text" id="theme-event-banner-url" value="${cfg.eventBannerUrl || ''}" class="form-input" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);">
+            </div>
+            <div>
+              <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Nút kêu gọi hành động (Button Label)</label>
+              <input type="text" id="theme-event-button-text" value="${cfg.eventButtonText || ''}" class="form-input" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div>
+              <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Liên kết điều hướng (Action Link)</label>
+              <input type="text" id="theme-event-button-link" value="${cfg.eventButtonLink || '#pricing'}" class="form-input" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);">
+            </div>
+            <div>
+              <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Ghi chú Footer Popup</label>
+              <input type="text" id="theme-event-notice" value="${cfg.eventNotice || ''}" class="form-input" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary);">
+            </div>
+          </div>
+        </div>
       </div>
-    </form>
+
+      <!-- Action Button Row -->
+      <div style="display: flex; justify: flex-end; gap: 14px;">
+        <button type="button" onclick="saveAdminThemeEventConfig()" style="padding: 12px 28px; border-radius: 10px; background: var(--accent); color: #ffffff; border: none; font-size: 14px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px var(--accent-glow);">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Lưu Cấu Hình Giao Diện & Sự Kiện
+        </button>
+      </div>
+
+    </div>
   `;
 }
 
-function selectSeasonOption(seasonKey, colorHex, seasonTitle) {
-  document.getElementById('te-season').value = seasonKey;
-  document.getElementById('te-primary-color').value = colorHex;
-  document.getElementById('te-season-title').value = seasonTitle;
-
-  const namesMap = {
-    spring: ['Mùa Xuân', 'Phiên bản Mùa Xuân 3.0', 'Sự Kiện Mùa Xuân - Tri Ân Khách Hàng EIGU Platform'],
-    summer: ['Mùa Hạ', 'Phiên bản Mùa Hạ 3.0', 'Sự Kiện Mùa Hạ - Rực Rỡ Sáng Tạo EIGU Platform'],
-    autumn: ['Mùa Thu', 'Phiên bản Mùa Thu 3.0', 'Sự Kiện Mùa Thu - Tri Ân Khách Hàng EIGU Platform'],
-    winter: ['Mùa Đông', 'Phiên bản Mùa Đông 3.0', 'Sự Kiện Mùa Đông - Bứt Phá Doanh Số EIGU Platform'],
+function updateThemePreviewColor(seasonKey) {
+  const configMap = {
+    autumn: {
+      color: '#f59e0b',
+      title: 'Giao diện Mùa Thu (Amber Autumn)',
+      badge: 'Phiên bản Mùa Thu 3.0',
+      eventTitle: 'Sự Kiện Mùa Thu - Tri Ân Khách Hàng EIGU Platform',
+    },
+    winter: {
+      color: '#38bdf8',
+      title: 'Giao diện Mùa Đông (Ice Cyan)',
+      badge: 'Phiên bản Mùa Đông 3.0',
+      eventTitle: 'Sự Kiện Mùa Đông - Chào Đón Giáng Sinh & Năm Mới EIGU Platform',
+    },
+    spring: {
+      color: '#ec4899',
+      title: 'Giao diện Mùa Xuân (Sakura Pink)',
+      badge: 'Phiên bản Mùa Xuân 3.0',
+      eventTitle: 'Sự Kiện Mùa Xuân - Chào Tết Giáp Thìn EIGU Platform',
+    },
+    summer: {
+      color: '#22c55e',
+      title: 'Giao diện Mùa Hè (Emerald Summer)',
+      badge: 'Phiên bản Mùa Hè 3.0',
+      eventTitle: 'Sự Kiện Mùa Hè - Bứt Phá Doanh Số MMO EIGU Platform',
+    },
   };
 
-  const [sName, sBadge, sEventTitle] = namesMap[seasonKey] || namesMap.autumn;
+  const selected = configMap[seasonKey] || configMap.autumn;
 
-  const badgeEl = document.getElementById('te-badge-text');
-  const eventTitleEl = document.getElementById('te-event-title');
-  if (badgeEl) badgeEl.value = sBadge;
-  if (eventTitleEl) eventTitleEl.value = sEventTitle;
+  const hexInput = document.getElementById('theme-primary-color');
+  const pickerInput = document.getElementById('theme-color-picker');
+  const titleInput = document.getElementById('theme-season-title');
+  const badgeInput = document.getElementById('theme-badge-text');
+  const eventTitleInput = document.getElementById('theme-event-title');
 
-  document.querySelectorAll('.season-card').forEach(el => {
-    el.style.borderColor = 'var(--border-color)';
-    el.classList.remove('selected');
-  });
-
-  const target = event ? event.currentTarget : null;
-  if (target) {
-    target.style.borderColor = 'var(--accent)';
-    target.classList.add('selected');
-  }
+  if (hexInput) hexInput.value = selected.color;
+  if (pickerInput) pickerInput.value = selected.color;
+  if (titleInput) titleInput.value = selected.title;
+  if (badgeInput) badgeInput.value = selected.badge;
+  if (eventTitleInput) eventTitleInput.value = selected.eventTitle;
 }
 
-function toggleEventNoticePreview(checked) {
-  const container = document.getElementById('event-fields-container');
-  if (container) {
-    container.style.opacity = checked ? '1' : '0.5';
-  }
-}
+async function saveAdminThemeEventConfig() {
+  const seasonEl = document.querySelector('input[name="themeSeason"]:checked');
+  const seasonTitle = document.getElementById('theme-season-title')?.value || '';
+  const badgeText = document.getElementById('theme-badge-text')?.value || '';
+  const primaryColor = document.getElementById('theme-primary-color')?.value || '#f59e0b';
 
-function updateBannerPreview(url) {
-  const img = document.getElementById('event-banner-preview-img');
-  if (img && url) {
-    img.src = url;
-  }
-}
-
-async function handleSaveThemeEvent(e) {
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  const season = document.getElementById('te-season').value;
-  const seasonTitle = document.getElementById('te-season-title').value.trim();
-  const primaryColor = document.getElementById('te-primary-color').value;
-  const badgeText = document.getElementById('te-badge-text').value.trim();
-  const isEventActive = document.getElementById('te-is-event-active').checked;
-  const eventTitle = document.getElementById('te-event-title').value.trim();
-  const eventSubtitle = document.getElementById('te-event-subtitle').value.trim();
-  const eventBannerUrl = document.getElementById('te-event-banner-url').value.trim();
-  const eventButtonText = document.getElementById('te-event-button-text').value.trim();
-  const eventButtonLink = document.getElementById('te-event-button-link').value.trim();
-  const eventNotice = document.getElementById('te-event-notice').value.trim();
-  const bgStyle = document.getElementById('te-bg-style').value;
-  const bgImageUrl = document.getElementById('te-bg-image-url').value.trim();
+  const isEventActive = document.getElementById('theme-event-active')?.checked || false;
+  const eventTitle = document.getElementById('theme-event-title')?.value || '';
+  const eventSubtitle = document.getElementById('theme-event-subtitle')?.value || '';
+  const eventBannerUrl = document.getElementById('theme-event-banner-url')?.value || '';
+  const eventButtonText = document.getElementById('theme-event-button-text')?.value || '';
+  const eventButtonLink = document.getElementById('theme-event-button-link')?.value || '';
+  const eventNotice = document.getElementById('theme-event-notice')?.value || '';
 
   const payload = {
-    season,
+    season: seasonEl ? seasonEl.value : 'autumn',
     seasonTitle,
-    primaryColor,
     badgeText,
+    primaryColor,
     isEventActive,
     eventTitle,
     eventSubtitle,
@@ -279,43 +249,34 @@ async function handleSaveThemeEvent(e) {
     eventButtonText,
     eventButtonLink,
     eventNotice,
-    bgStyle,
-    bgImageUrl,
   };
 
-  // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
-
   try {
-    const res = await fetch(`${baseUrl}/theme-event`, {
+    const res = await apiFetch('/theme-event', {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: payload,
     });
 
-    const data = await res.json();
-    if (res.ok && data.success) {
-      cachedThemeEventConfig = data.data;
+    if (res && (res.success || res.data)) {
+      cachedThemeEventConfig = res.data || payload;
       if (typeof showToast === 'function') {
         showToast('Thành công', 'Đã cập nhật Giao diện Bốn Mùa & Popup Sự Kiện!', 'success');
       } else {
         alert('Đã cập nhật Giao diện & Sự kiện thành công!');
       }
-      renderThemeEventForm(data.data);
+      renderThemeEventForm(res.data || payload);
     } else {
-      if (typeof showToast === 'function') showToast('Lỗi', data.message || 'Cập nhật thất bại', 'error');
-      else alert(`Lỗi: ${data.message || 'Cập nhật thất bại'}`);
+      if (typeof showToast === 'function') showToast('Lỗi', res?.message || 'Cập nhật thất bại', 'error');
+      else alert(`Lỗi: ${res?.message || 'Cập nhật thất bại'}`);
     }
   } catch (err) {
-    console.warn('Lỗi kết nối API ThemeEvent:', err);
-    cachedThemeEventConfig = payload;
-    if (typeof showToast === 'function') {
-      showToast('Thành công', 'Đã lưu cấu hình (Chế độ xem trước)', 'success');
-    }
-    renderThemeEventForm(payload);
+    console.error('Lỗi khi lưu ThemeEvent:', err);
+    if (typeof showToast === 'function') showToast('Lỗi', err.message || 'Không thể lưu cấu hình', 'error');
+    else alert('Lỗi: ' + (err.message || 'Không thể lưu cấu hình'));
   }
-
-  return false;
 }
+
+// Global Exports
+window.loadAdminThemeEventData = loadAdminThemeEventData;
+window.saveAdminThemeEventConfig = saveAdminThemeEventConfig;
+window.updateThemePreviewColor = updateThemePreviewColor;

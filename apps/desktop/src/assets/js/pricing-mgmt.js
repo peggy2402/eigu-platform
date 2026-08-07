@@ -240,22 +240,8 @@ async function loadAdminPricingData() {
   container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Đang kết nối Database để tải Bảng giá...</div>';
 
   try {
-    const token = localStorage.getItem('accessToken');
-    // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-    const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
-
-    const res = await fetch(`${baseUrl}/pricing/admin`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    if (!res.ok) {
-      throw new Error(`HTTP error ${res.status}`);
-    }
-
-    const data = await res.json();
-    if (!data.success || !Array.isArray(data.modules) || data.modules.length === 0) {
+    const data = await apiFetch('/pricing/admin');
+    if (!data || !data.success || !Array.isArray(data.modules) || data.modules.length === 0) {
       // Use full default EIGU modules if DB returns empty
       cachedAdminModules = DEFAULT_EIGU_MODULES;
       cachedAdminBadges = data.badges || [];

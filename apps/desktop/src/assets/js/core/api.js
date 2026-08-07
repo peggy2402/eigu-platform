@@ -37,8 +37,14 @@ async function syncObfuscationConfig() {
   if (isSyncingConfig) return;
   isSyncingConfig = true;
   try {
-    const rawBase = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'https://api.eigu.site/api';
-    const origin = rawBase.split('/api')[0] || 'https://api.eigu.site';
+    let rawBase = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'https://api.eigu.site/api';
+    if (!rawBase.startsWith('http://') && !rawBase.startsWith('https://')) {
+      rawBase = 'https://api.eigu.site/api';
+    }
+    let origin = 'https://api.eigu.site';
+    try {
+      origin = new URL(rawBase).origin;
+    } catch (e) { }
 
     const bootstrapUrl = `${origin}/api/system-config/bootstrap`;
 
@@ -122,7 +128,7 @@ setInterval(async () => {
 
 async function apiFetch(path, options = {}, isRetry = false) {
   const token = (typeof accessToken !== 'undefined' && accessToken) ? accessToken : localStorage.getItem('accessToken');
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -137,8 +143,13 @@ async function apiFetch(path, options = {}, isRetry = false) {
     fullUrl = `${cleanBase}/${cleanPath}`;
   }
 
+  const fetchOptions = { ...options, headers };
+  if (fetchOptions.body && typeof fetchOptions.body === 'object' && !(fetchOptions.body instanceof FormData)) {
+    fetchOptions.body = JSON.stringify(fetchOptions.body);
+  }
+
   try {
-    const res = await fetch(fullUrl, { ...options, headers });
+    const res = await fetch(fullUrl, fetchOptions);
     const data = await res.json();
 
     // 🔒 Xử lý Lỗi 401 Unauthorized (AccessToken Hết Hạn) -> Silent Refresh + Retry tự động
