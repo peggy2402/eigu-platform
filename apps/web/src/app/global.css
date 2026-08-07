@@ -3076,3 +3076,92 @@ input[type="submit"]:active {
     display: inline;
   }
 }
+
+/* News Article HTML Body Typography & Nested Lists (Fix Issue 1) */
+.news-article-html-body {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text-primary);
+}
+
+.news-article-html-body h1,
+.news-article-html-body h2,
+.news-article-html-body h3,
+.news-article-html-body h4 {
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-top: 28px;
+  margin-bottom: 14px;
+  line-height: 1.35;
+}
+
+.news-article-html-body h2 {
+  font-size: 20px;
+}
+
+.news-article-html-body h3 {
+  font-size: 17px;
+}
+
+.news-article-html-body p {
+  margin-bottom: 16px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+
+.news-article-html-body ol,
+.news-article-html-body ul {
+  padding-left: 28px;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.news-article-html-body ol {
+  list-style-type: decimal;
+}
+
+.news-article-html-body ul {
+  list-style-type: disc;
+}
+
+.news-article-html-body li {
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.news-article-html-body li strong {
+  color: var(--text-primary);
+}
+
+/* Nested lists indent as children of parent items */
+.news-article-html-body ol ol,
+.news-article-html-body ul ol,
+.news-article-html-body ol ul,
+.news-article-html-body ul ul {
+  padding-left: 24px;
+  margin: 8px 0;
+}
+
+/* News Detail Mobile Responsive Styles (Fix Issue 2) */
+@media (max-width: 900px) {
+  .news-detail-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .news-detail-container {
+    padding: 0 16px 40px !important;
+  }
+
+  .comment-thread-item {
+    margin-bottom: 12px !important;
+  }
+
+  .news-card-item {
+    border-radius: 14px !important;
+  }
+}

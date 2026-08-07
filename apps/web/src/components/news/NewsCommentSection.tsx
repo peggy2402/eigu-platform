@@ -138,14 +138,23 @@ export default function NewsCommentSection({ newsId }: NewsCommentSectionProps) 
 
       {/* Primary Comment Input Box / Login Prompt */}
       {!user ? (
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 18, padding: '28px 24px', textAlign: 'center', marginBottom: 32, boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}>
-          <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 8px' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: 20,
+          padding: '32px 24px',
+          textAlign: 'center',
+          marginBottom: 36,
+          boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
+          backdropFilter: 'blur(16px)',
+        }}>
+          <h4 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 8px' }}>
             {language === 'en' ? 'Log in to Participate in Discussion' : 'Đăng nhập để tham gia bình luận & tương tác'}
           </h4>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 auto 20px', maxWidth: 520, lineHeight: 1.5 }}>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 auto 22px', maxWidth: 520, lineHeight: 1.55 }}>
             {language === 'en' ? 'Join our community to ask questions, share tips, and react to technical articles.' : 'Tài khoản thành viên được quyền tham gia thảo luận, trao đổi kinh nghiệm nuôi kênh & thả cảm xúc.'}
           </p>
-          <a href="/auth/login" className="btn-primary" style={{ padding: '10px 26px', borderRadius: 10, fontSize: 13.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+          <a href="/auth/login" className="btn-primary" style={{ padding: '11px 30px', borderRadius: 12, fontSize: 14, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', boxShadow: '0 4px 18px var(--accent-glow)' }}>
             <span>{language === 'en' ? 'Log In Now' : 'Đăng Nhập Ngay'}</span>
           </a>
         </div>
