@@ -967,7 +967,7 @@ body {
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-size: 14px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
   font-family: var(--font);
 }
 
@@ -979,6 +979,34 @@ body {
 
 .form-group input::placeholder {
   color: var(--text-muted);
+}
+
+/* Fix Browser Autofill (Light Blue Background & Dark Text) in Dark / Light Mode */
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus,
+.form-group input:-webkit-autofill:active,
+.pw-wrapper input:-webkit-autofill,
+.pw-wrapper input:-webkit-autofill:hover,
+.pw-wrapper input:-webkit-autofill:focus,
+.pw-wrapper input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-primary, #0c0a09) inset !important;
+  -webkit-text-fill-color: var(--text-primary, #ffffff) !important;
+  caret-color: var(--text-primary, #ffffff) !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+[data-theme="light"] .form-group input:-webkit-autofill,
+[data-theme="light"] .form-group input:-webkit-autofill:hover,
+[data-theme="light"] .form-group input:-webkit-autofill:focus,
+[data-theme="light"] .form-group input:-webkit-autofill:active,
+[data-theme="light"] .pw-wrapper input:-webkit-autofill,
+[data-theme="light"] .pw-wrapper input:-webkit-autofill:hover,
+[data-theme="light"] .pw-wrapper input:-webkit-autofill:focus,
+[data-theme="light"] .pw-wrapper input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
 }
 
 .auth-btn {
