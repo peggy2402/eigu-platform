@@ -1326,6 +1326,50 @@ Xử lý:
 ### 34.3 Kết Quả
 - Ô nhập tài khoản và mật khẩu ở Chế độ Tối khi autofill hay nhập tay luôn có **nền màu đen/tối** và **chữ màu trắng sáng**, khớp 100% với giao diện bên Đăng ký.
 
+---
+
+## Phase 35: Bảo Mật Thông Báo, Quản Lý Gói Đã Mua / Nâng Cấp & Đồng Bộ Bảng Giá Đa Nền Tảng (07/08/2026 - 08/08/2026)
+
+### 35.1 Phân Quyền & Cách Ly Dữ Liệu Thông Báo (Targeted Notification System & Strict Data Isolation)
+- **4 Cấp độ Thông báo Target**:
+  1. `all`: Thông báo chung toàn hệ thống.
+  2. `user` / `staff` / `admin`: Thông báo định hướng theo vai trò người dùng.
+  3. `userId` / `user:<userId>`: Thông báo cá nhân hóa (Nạp tiền, biến động số dư, giao dịch).
+  4. `email` / `email:<userEmail>`: Thông báo định danh theo email.
+- **Cách ly dữ liệu nghiêm ngặt**:
+  - Cập nhật `NotificationsService.findAllForUser` trong `apps/api/src/notifications/notifications.service.ts` lọc dữ liệu thông qua JWT context. Đảm bảo User A không bao giờ nhìn thấy thông báo nạp tiền/tài chính cá nhân của User B.
+  - Cập nhật `payment.service.ts` bắn thông báo giao dịch duy nhất cho `matchedTx.userId`.
+
+### 35.2 Bổ Sung Tab "Gói Đã Mua / Nâng Cấp" & Modal Nạp Tiền VietQR (`TransactionHistoryView.tsx` & `DepositModal.tsx`)
+- **Tab Gói đã mua trên Web (`apps/web/src/components/payment/TransactionHistoryView.tsx`)**:
+  - Thêm tab xem danh sách gói dịch vụ đã mua/đang active của tài khoản (Mô-đun dịch vụ, Gói đăng ký, Cấu hình luồng/máy, Chi phí tháng, Thời hạn sử dụng, Trạng thái & Nút *"Thanh toán ngay →"* / *"Nâng cấp gói →"*).
+  - Sửa lỗi cú pháp CSS-in-JS `No value exists in scope for shorthand property 'fontWeight'`.
+- **Nâng cấp Modal Nạp tiền (`apps/web/src/components/payment/DepositModal.tsx`)**:
+  - Đưa modal lên tầng z-index cao nhất (`z-index: 999999`) với phông nền mờ ảo (`backdrop-filter: blur(16px)`).
+  - Thay thế màu dốc gradient bằng màu tùy chỉnh chủ đề mùa (`var(--accent)`).
+
+### 35.3 Đồng Bộ Logic Khấu Trừ Nâng Cấp Gói & Bảng Giá Trên Web & Desktop (`PricingGrid.tsx`, `PricingCard.tsx`, `pricing-ui.js`)
+- **Đồng bộ 100% logic hiển thị giữa Web và Desktop**:
+  - **Gói đang dùng (`tierId` trùng)**: Badge **`✓ GÓI CƯỚC ĐANG DÙNG`**, nút disabled **`✓ Gói cước đang dùng`**.
+  - **Gói cấp thấp hơn**: Nút disabled **`Gói cấp thấp hơn`**.
+  - **Gói nâng cấp cao hơn**:
+    - Tự động tính chênh lệch: `upgradeFee = tier.price - currentTierPrice`.
+    - Trừ số dư ví hiện có: `netVietQR = Math.max(0, upgradeFee - balance)`.
+    - Hiển thị thông tin minh bạch 3 dòng:
+      - *Trừ gói cũ (-450.000đ) ➔ Chênh lệch: +750.000đ*
+      - *Trừ ví 299.000đ ➔ Cần nạp nốt: 451.000đ*
+    - Nút bấm thông minh: `Nâng cấp (Nạp 451.000đ) →` (khi thiếu số dư) hoặc `Nâng cấp (Trừ 750.000đ từ ví) →` (khi đủ số dư ví).
+
+### 35.4 Tinh Chỉnh UI Bình Luận & Sửa Lỗi Import CommentTree (`NewsCommentSection.tsx` & `CommentTree.tsx`)
+- **Tùy biến màu nút bấm**: Thay dải màu gradient tím ở nút *"Đăng Nhập Ngay"* và *"Đăng Bình Luận"* bằng màu chủ đề mùa `var(--accent)` và hiệu ứng phát sáng `var(--accent-glow)`.
+- **Khắc phục lỗi Turbopack build `Export default doesn't exist in target module`**:
+  - Bổ sung `export default CommentTree;` ở cuối `apps/web/src/components/news/CommentTree/CommentTree.tsx`.
+  - Cập nhật cú pháp import `import { CommentTree } from './CommentTree/CommentTree';` trong `NewsCommentSection.tsx`.
+
+### 35.5 Kiểm Tra Biên Dịch & Đồng Bộ Git Repositories
+- **Kiểm thử biên dịch Web**: `npx nx build web` $\rightarrow$ `✓ Compiled successfully (16/16 static & dynamic pages)`.
+- **Đồng bộ Git Branch**: Đã merge và push thành công toàn bộ mã nguồn lên nhánh `developer` và `vanchien` (`git push origin vanchien`).
+
 
 
 
