@@ -1308,6 +1308,24 @@ Xử lý:
 - **Desktop Electron**: `npx nx build desktop` $\rightarrow$ `✓ SUCCESS`.
 - **Đã kiểm tra hoạt động**: Đăng nhập Admin/Staff hiển thị tab *"Quản lý Tin tức"*, tạo/sửa/xuất bản bài viết thành công, Toast thông báo nổi trên cùng chuẩn xác, trang web `/news` tự động đồng bộ bài viết công khai.
 
+## Phase 34: Khắc Phục Lỗi Màu Sắc Ô Nhập Tài Khoản & Mật Khẩu Đăng Nhập Ở Chế Độ Tối (Dark Mode) Trên Web & Desktop (07/08/2026)
+
+### 34.1 Phân Tích Nguyên Nhân
+- Khi người dùng ở Chế độ Tối (Dark Mode), trình duyệt (Chrome, Edge, Brave, Safari) tự động điền (autofill) tài khoản và mật khẩu đã lưu. Trình duyệt tự động áp dụng rule CSS native `:-webkit-autofill` ép màu nền thành màu xanh sáng/trắng (`#e8f0fe`) và chữ màu đen (`#000000`), làm mất đồng bộ với giao diện Dark Mode (vốn là nền đen chữ trắng giống như bên phần Đăng ký).
+
+### 34.2 Giải Pháp & File Đã Chỉnh Sửa
+1. **Ứng dụng Web Next.js ([global.css](file:///d:/eigu-platform/apps/web/src/app/global.css))**:
+   - Thêm quy tắc CSS ghi đè `:-webkit-autofill` cho `.form-group input` và `.pw-wrapper input`:
+     - Sử dụng `-webkit-box-shadow: 0 0 0px 1000px var(--bg-primary, #0c0a09) inset !important;`
+     - Sử dụng `-webkit-text-fill-color: var(--text-primary, #ffffff) !important;`
+     - Đặt `caret-color: var(--text-primary, #ffffff) !important;` và `transition: background-color 5000s ease-in-out 0s !important;` để ngăn trình duyệt đổi màu nền.
+   - Thêm bộ tương thích `[data-theme="light"]` để khi người dùng chuyển sang Chế độ Sáng, ô autofill vẫn tự động hiển thị nền trắng chữ tối chuẩn UX.
+2. **Ứng dụng Desktop Electron ([auth.css](file:///d:/eigu-platform/apps/desktop/src/assets/css/auth.css))**:
+   - Đồng bộ cấu hình ghi đè `:-webkit-autofill` cho ô gõ đăng nhập trong CSS Desktop Electron.
+
+### 34.3 Kết Quả
+- Ô nhập tài khoản và mật khẩu ở Chế độ Tối khi autofill hay nhập tay luôn có **nền màu đen/tối** và **chữ màu trắng sáng**, khớp 100% với giao diện bên Đăng ký.
+
 
 
 
