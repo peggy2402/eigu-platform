@@ -121,8 +121,8 @@ function filterAndRenderAdminSubscriptions() {
       const statusBadge = !isExpired && sub.status === 'ACTIVE'
         ? `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đang sử dụng</span>`
         : sub.status === 'UPGRADED'
-        ? `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đã nâng cấp</span>`
-        : `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px; white-space: nowrap;">Hết hạn</span>`;
+          ? `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đã nâng cấp</span>`
+          : `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px; white-space: nowrap;">Hết hạn</span>`;
 
       const priceStr = sub.price ? `${sub.price.toLocaleString('vi-VN')}đ/tháng` : 'Miễn phí';
       const createdDateStr = new Date(sub.createdAt).toLocaleDateString('vi-VN');
@@ -627,8 +627,8 @@ async function loadUserSubscriptionHistory() {
         const statusBadge = !isExpired && sub.status === 'ACTIVE'
           ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đang sử dụng</span>`
           : sub.status === 'UPGRADED'
-          ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đã nâng cấp</span>`
-          : `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px; white-space: nowrap;">Hết hạn</span>`;
+            ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đã nâng cấp</span>`
+            : `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px; white-space: nowrap;">Hết hạn</span>`;
 
         const priceStr = sub.price ? `-${sub.price.toLocaleString('vi-VN')}đ` : 'Miễn phí';
         const dateStr = sub.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('vi-VN') : 'Vĩnh viễn';
@@ -684,8 +684,8 @@ async function loadUserSubscriptionHistory() {
           const statusBadge = !isExpired && sub.status === 'ACTIVE'
             ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đang sử dụng</span>`
             : sub.status === 'UPGRADED'
-            ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đã nâng cấp</span>`
-            : `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px; white-space: nowrap;">Hết hạn</span>`;
+              ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-weight: 700; font-size: 11px; white-space: nowrap;">Đã nâng cấp</span>`
+              : `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 700; font-size: 11px; white-space: nowrap;">Hết hạn</span>`;
 
           const priceStr = sub.price ? `${sub.price.toLocaleString('vi-VN')}đ/tháng` : 'Miễn phí';
           const dateStr = sub.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('vi-VN') : 'Vĩnh viễn';
@@ -798,7 +798,7 @@ async function loadUserTransactionHistory(page = 1) {
 
         let actionBtn = '';
         if (item.status === 'PENDING') {
-          actionBtn = `<button type="button" onclick="resumePendingDepositDesktop('${item.code}')" style="padding: 5px 12px; border-radius: 6px; background: var(--accent); color: #ffffff; border: none; font-size: 11px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; white-space: nowrap;">Thanh toán ngay →</button>`;
+          actionBtn = `<button type="button" onclick="resumePendingDepositDesktop('${item.code}')" style="padding: 5px 12px; border-radius: 6px; background: var(--accent); color: #ffffff; border: none; font-size: 11px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; white-space: nowrap;">Thanh toán →</button>`;
         } else {
           actionBtn = `<span style="font-size: 11px; color: var(--text-muted);">—</span>`;
         }

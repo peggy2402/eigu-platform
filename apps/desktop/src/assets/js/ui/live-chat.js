@@ -19,7 +19,7 @@ function initChatWebSocket() {
   if (!chatSocket) {
     try {
       // const wsUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getWsUrl('/chat') : 'http://localhost:3001/chat';
-      const wsUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getWsUrl('/chat') : 'https://eigu-api.onrender.com/chat';
+      const wsUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getWsUrl('/chat') : 'https://api.eigu.site/chat';
       chatSocket = ioFunc(wsUrl, {
         transports: ['websocket', 'polling'],
         reconnection: true,
@@ -59,7 +59,7 @@ async function loadChatHistoryFromApi() {
 
   try {
     // const apiUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getApiUrl(`/chat/history?userEmail=${encodeURIComponent(email)}`) : `http://localhost:3001/api/chat/history?userEmail=${encodeURIComponent(email)}`;
-    const apiUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getApiUrl(`/chat/history?userEmail=${encodeURIComponent(email)}`) : `https://eigu-api.onrender.com/api/chat/history?userEmail=${encodeURIComponent(email)}`;
+    const apiUrl = window.EIGU_CONFIG ? window.EIGU_CONFIG.getApiUrl(`/chat/history?userEmail=${encodeURIComponent(email)}`) : `https://api.eigu.site/api/chat/history?userEmail=${encodeURIComponent(email)}`;
     const res = await fetch(apiUrl);
     if (!res.ok) return;
     const msgs = await res.json();

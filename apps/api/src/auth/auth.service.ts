@@ -11,6 +11,8 @@ import * as bcrypt from 'bcryptjs';
 import * as nodemailer from 'nodemailer';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+import * as fs from 'fs';
+import * as path from 'path';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -247,6 +249,25 @@ export class AuthService implements OnModuleInit {
     }
   }
 
+  private getLogoSrc(): string {
+    try {
+      const pathsToTry = [
+        path.join(process.cwd(), 'apps/web/public/logo.png'),
+        path.join(process.cwd(), 'dist/apps/web/public/logo.png'),
+        path.join(process.cwd(), 'public/logo.png'),
+      ];
+      for (const p of pathsToTry) {
+        if (fs.existsSync(p)) {
+          const buf = fs.readFileSync(p);
+          return `data:image/png;base64,${buf.toString('base64')}`;
+        }
+      }
+    } catch (e) {
+      // fallback
+    }
+    return 'https://eigu.site/logo.png';
+  }
+
   private generateOtp(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
@@ -272,7 +293,7 @@ export class AuthService implements OnModuleInit {
           <!-- Header Banner with Logo -->
           <tr>
             <td style="padding: 32px 28px 24px 28px; background: linear-gradient(180deg, rgba(99, 102, 241, 0.18) 0%, rgba(19, 20, 31, 0) 100%); text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
-              <img src="https://eigu.site/logo.png" alt="EIGU Logo" width="52" height="52" style="display: block; margin: 0 auto 12px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);" />
+              <img src="${this.getLogoSrc()}" alt="EIGU Logo" width="52" height="52" style="display: block; margin: 0 auto 12px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);" />
               <div style="font-size: 20px; font-weight: 900; color: #ffffff; letter-spacing: 0.5px;">EIGU Platform</div>
               <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; font-weight: 500;">AI Video Automation & MMO Growth Engine</div>
             </td>
@@ -379,7 +400,7 @@ export class AuthService implements OnModuleInit {
           <!-- Header Banner with Logo -->
           <tr>
             <td style="padding: 32px 28px 24px 28px; background: linear-gradient(180deg, rgba(99, 102, 241, 0.18) 0%, rgba(19, 20, 31, 0) 100%); text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
-              <img src="https://eigu.site/logo.png" alt="EIGU Logo" width="52" height="52" style="display: block; margin: 0 auto 12px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);" />
+              <img src="${this.getLogoSrc()}" alt="EIGU Logo" width="52" height="52" style="display: block; margin: 0 auto 12px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);" />
               <div style="font-size: 20px; font-weight: 900; color: #ffffff; letter-spacing: 0.5px;">EIGU Platform</div>
               <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; font-weight: 500;">AI Video Automation & MMO Growth Engine</div>
             </td>

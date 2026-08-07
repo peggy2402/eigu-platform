@@ -312,7 +312,7 @@ export class PaymentService {
       await this.notificationsService.create(
         'Nạp tiền thành công',
         `Tài khoản của bạn đã được cộng thành công +${formattedAmt} qua Ngân hàng (Đơn #${matchedTx.code}).`,
-        'user',
+        matchedTx.userId,
         '24h',
       );
 
@@ -521,7 +521,7 @@ export class PaymentService {
       await this.notificationsService.create(
         'Nạp tiền thành công',
         `Đơn nạp #${txItem.code} (${amount.toLocaleString('vi-VN')}đ) của bạn đã được Admin phê duyệt thành công!`,
-        'user',
+        txItem.userId,
         '24h',
       );
 

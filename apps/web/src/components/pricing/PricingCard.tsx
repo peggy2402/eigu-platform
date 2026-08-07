@@ -1,8 +1,9 @@
 'use client';
 
-import { Check, Zap, Sparkles } from 'lucide-react';
+import { Check, Zap, Sparkles, CheckCircle2 } from 'lucide-react';
 import type { PricingTierDto } from '@eigu-platform/shared';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { translatePricingText } from '../../lib/pricingTranslations';
 
 interface PricingCardProps {
@@ -10,11 +11,14 @@ interface PricingCardProps {
   moduleSlug: string;
   maxThreads: number;
   isHorizontal?: boolean;
-  onSelectTier: (tier: PricingTierDto) => void;
+  onSelectTier: (tier: PricingTierDto, payableDiffAmount?: number) => void;
+  currentSub?: any;
 }
 
-export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal, onSelectTier }: PricingCardProps) {
+export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal, onSelectTier, currentSub }: PricingCardProps) {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
+
   const isTrial = tier.code === 'trial' || tier.billingPeriod === 'trial';
   const isPopular = tier.badge?.includes('PHỔ BIẾN') || tier.code === 'pro';
   const isEnterprise = isHorizontal || tier.code === 'enterprise' || tier.code.includes('enterprise') || tier.label.toLowerCase().includes('enterprise') || tier.label.toLowerCase().includes('doanh nghiệp');
@@ -25,7 +29,19 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal
   const resolutionLabel = language === 'en' ? 'Resolution:' : 'Độ phân giải:';
   const featuresLabel = language === 'en' ? 'Key Features' : 'Tính năng nổi bật';
 
-  // Horizontal Enterprise Layout (Matching User Screenshot 1:1)
+  const currentBalance = Number(user?.balance || 0);
+
+  // Active Subscription Upgrade Logic
+  const currentTierPrice = currentSub ? Number(currentSub.price || currentSub.tierPrice || currentSub.tier?.price || 0) : 0;
+  const isCurrent = currentSub && (currentSub.tierId === tier.id || currentSub.tierCode === tier.code);
+  const isHigher = currentSub && !isCurrent && tier.price > currentTierPrice;
+  const isLower = currentSub && !isCurrent && tier.price < currentTierPrice;
+  const payableDiffAmount = isHigher ? (tier.price - currentTierPrice) : 0;
+
+  const deductedBal = Math.min(currentBalance, payableDiffAmount);
+  const netVietQR = Math.max(0, payableDiffAmount - currentBalance);
+
+  // Horizontal Enterprise Layout
   if (isEnterprise) {
     return (
       <div
@@ -33,7 +49,7 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal
         style={{
           width: '100%',
           background: 'linear-gradient(135deg, rgba(20, 24, 38, 0.95) 0%, rgba(14, 16, 26, 0.98) 100%)',
-          border: '1.5px solid rgba(239, 68, 68, 0.35)',
+          border: isCurrent ? '2px solid var(--accent)' : '1.5px solid rgba(239, 68, 68, 0.35)',
           borderRadius: 24,
           padding: '28px 36px',
           position: 'relative',
@@ -47,8 +63,28 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal
           overflow: 'visible',
         }}
       >
-        {/* Top Right Red Discount Badge (Hanging on top border to prevent covering strikethrough price) */}
-        {(tier.badge || tier.discount > 0) && (
+        {/* Top Right Badge */}
+        {isCurrent ? (
+          <div
+            style={{
+              position: 'absolute',
+              top: -12,
+              right: 28,
+              background: 'var(--accent)',
+              color: '#ffffff',
+              fontSize: 11,
+              fontWeight: 800,
+              padding: '4px 14px',
+              borderRadius: 20,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              boxShadow: '0 4px 14px var(--accent-glow)',
+              zIndex: 10,
+            }}
+          >
+            ✓ GÓI ĐANG DÙNG
+          </div>
+        ) : (tier.badge || tier.discount > 0) && (
           <div
             style={{
               position: 'absolute',
@@ -70,9 +106,8 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal
           </div>
         )}
 
-        {/* Left Column: Title, Subtitle, Features in 2 columns */}
+        {/* Left Column */}
         <div style={{ flex: '1 1 540px', minWidth: 280 }}>
-          {/* Header */}
           <div style={{ marginBottom: 18 }}>
             <h3 className="enterprise-title" style={{ fontSize: 24, fontWeight: 800, marginBottom: 6, letterSpacing: '-0.3px' }}>
               {translatePricingText(tier.label, language) || (language === 'en' ? 'Enterprise Plan (30 Machines)' : 'Gói Doanh Nghiệp (30 Máy)')}
@@ -82,14 +117,7 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal
             </p>
           </div>
 
-          {/* 2-Column Features */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '10px 24px',
-            }}
-          >
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px 24px' }}>
             {(tier.features && tier.features.length >= 4
               ? tier.features
               : [
@@ -108,7 +136,7 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal
           </div>
         </div>
 
-        {/* Right Column: Pricing, Notes & Gold CTA Button */}
+        {/* Right Column CTA */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', flexShrink: 0, textAlign: 'right', paddingTop: 10 }}>
           {tier.formattedOriginalPrice && (
             <div className="enterprise-orig-price" style={{ fontSize: 14, textDecoration: 'line-through', marginBottom: 2 }}>
@@ -125,39 +153,78 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal
             </span>
           </div>
 
-          <div style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600, marginBottom: 2 }}>
-            {translatePricingText('Ưu đãi có giới hạn', language)}
-          </div>
-          <div className="enterprise-price-sub" style={{ fontSize: 11, marginBottom: 18 }}>
-            {t('pricing_vat') || 'Giá đã bao gồm VAT'}
-          </div>
+          {isHigher && (
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', textAlign: 'right', marginBottom: 8, lineHeight: 1.4 }}>
+              <div>Trừ gói cũ ({currentTierPrice.toLocaleString('vi-VN')}đ) ➔ Chênh lệch: <strong style={{ color: 'var(--accent)' }}>+{payableDiffAmount.toLocaleString('vi-VN')}đ</strong></div>
+              {currentBalance > 0 && (
+                <div style={{ color: netVietQR === 0 ? '#22c55e' : '#38bdf8', fontWeight: 700 }}>
+                  {netVietQR === 0
+                    ? `✓ Đủ số dư ví (${currentBalance.toLocaleString('vi-VN')}đ)`
+                    : `Trừ ví ${deductedBal.toLocaleString('vi-VN')}đ ➔ Cần nạp: ${netVietQR.toLocaleString('vi-VN')}đ`}
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Gold CTA Button */}
-          <button
-            onClick={() => onSelectTier(tier)}
-            style={{
-              padding: '12px 32px',
-              borderRadius: 14,
-              fontSize: 14.5,
-              fontWeight: 800,
-              cursor: 'pointer',
-              border: 'none',
-              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-              color: '#000000',
-              boxShadow: '0 6px 20px rgba(245, 158, 11, 0.4)',
-              transition: 'all 0.25s ease',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'scale(1.04)';
-              e.currentTarget.style.boxShadow = '0 8px 26px rgba(245, 158, 11, 0.55)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(245, 158, 11, 0.4)';
-            }}
-          >
-            {t('pricing_select') || 'Chọn gói này'}
-          </button>
+          {/* CTA Button */}
+          {isCurrent ? (
+            <button
+              disabled
+              style={{
+                padding: '12px 32px',
+                borderRadius: 14,
+                fontSize: 14.5,
+                fontWeight: 800,
+                cursor: 'not-allowed',
+                border: '1.5px solid var(--accent)',
+                background: 'rgba(99, 102, 241, 0.15)',
+                color: 'var(--accent)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <CheckCircle2 size={16} /> Gói cước đang dùng
+            </button>
+          ) : isLower ? (
+            <button
+              disabled
+              style={{
+                padding: '12px 32px',
+                borderRadius: 14,
+                fontSize: 14.5,
+                fontWeight: 600,
+                cursor: 'not-allowed',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-muted)',
+              }}
+            >
+              Gói cấp thấp hơn
+            </button>
+          ) : (
+            <button
+              onClick={() => onSelectTier(tier, payableDiffAmount)}
+              style={{
+                padding: '12px 32px',
+                borderRadius: 14,
+                fontSize: 14.5,
+                fontWeight: 800,
+                cursor: 'pointer',
+                border: 'none',
+                background: 'var(--accent)',
+                color: '#ffffff',
+                boxShadow: '0 6px 20px var(--accent-glow)',
+                transition: 'all 0.25s ease',
+              }}
+            >
+              {isHigher
+                ? (netVietQR === 0
+                  ? `Nâng cấp (Trừ ${payableDiffAmount.toLocaleString('vi-VN')}đ ví) →`
+                  : `Nâng cấp (Nạp ${netVietQR.toLocaleString('vi-VN')}đ) →`)
+                : (t('pricing_select') || 'Chọn gói này')}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -176,18 +243,37 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal
       className={`pricing-card ${isPopular ? 'popular' : ''}`}
       style={{
         background: isPopular ? 'linear-gradient(180deg, var(--bg-card-hover) 0%, var(--bg-card) 100%)' : 'var(--bg-card)',
-        border: isPopular ? '2px solid var(--accent)' : '1px solid var(--border-color)',
+        border: isCurrent ? '2px solid var(--accent)' : (isPopular ? '2px solid var(--accent)' : '1px solid var(--border-color)'),
         borderRadius: 'var(--radius-lg)',
         padding: '28px 24px',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        boxShadow: isPopular ? '0 12px 32px var(--accent-glow)' : '0 4px 16px rgba(0,0,0,0.2)',
+        boxShadow: isCurrent ? '0 12px 32px var(--accent-glow)' : (isPopular ? '0 12px 32px var(--accent-glow)' : '0 4px 16px rgba(0,0,0,0.2)'),
         transition: 'transform 0.2s, box-shadow 0.2s',
       }}
     >
       {/* Dynamic Badge */}
-      {tier.badge && (
+      {isCurrent ? (
+        <div
+          style={{
+            position: 'absolute',
+            top: -12,
+            right: 20,
+            background: 'var(--accent)',
+            color: '#fff',
+            fontSize: 11,
+            fontWeight: 800,
+            padding: '4px 12px',
+            borderRadius: 20,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            boxShadow: '0 4px 12px var(--accent-glow)',
+          }}
+        >
+          ✓ GÓI CƯỚC ĐANG DÙNG
+        </div>
+      ) : tier.badge && (
         <div
           style={{
             position: 'absolute',
@@ -226,7 +312,7 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontSize: 32, fontWeight: 800, color: isPopular ? 'var(--accent)' : 'var(--text-primary)' }}>
+          <span style={{ fontSize: 32, fontWeight: 800, color: isPopular || isCurrent ? 'var(--accent)' : 'var(--text-primary)' }}>
             {tier.price === 0 ? freeLabel : tier.formattedPrice}
           </span>
           {tier.price > 0 && (
@@ -235,38 +321,108 @@ export default function PricingCard({ tier, moduleSlug, maxThreads, isHorizontal
             </span>
           )}
         </div>
+        {isHigher && (
+          <div style={{ fontSize: 11.5, marginTop: 6, lineHeight: 1.4 }}>
+            <div style={{ color: 'var(--text-muted)' }}>
+              Trừ gói cũ ({currentTierPrice.toLocaleString('vi-VN')}đ) ➔ Chênh lệch: <strong style={{ color: 'var(--accent)' }}>+{payableDiffAmount.toLocaleString('vi-VN')}đ</strong>
+            </div>
+            {currentBalance > 0 && (
+              <div style={{ color: netVietQR === 0 ? '#22c55e' : '#38bdf8', fontWeight: 700, marginTop: 2 }}>
+                {netVietQR === 0
+                  ? `✓ Đủ số dư ví (${currentBalance.toLocaleString('vi-VN')}đ)`
+                  : `Trừ ví ${deductedBal.toLocaleString('vi-VN')}đ ➔ Cần nạp: ${netVietQR.toLocaleString('vi-VN')}đ`}
+              </div>
+            )}
+          </div>
+        )}
         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
           {t('pricing_vat')}
         </div>
       </div>
 
       {/* CTA Button */}
-      <button
-        onClick={() => onSelectTier(tier)}
-        style={{
-          width: '100%',
-          padding: '12px 16px',
-          borderRadius: 'var(--radius-sm)',
-          fontSize: 14,
-          fontWeight: 700,
-          cursor: 'pointer',
-          border: isPopular ? 'none' : '1px solid var(--accent)',
-          background: isPopular ? 'var(--accent)' : 'var(--accent-glow)',
-          color: isPopular ? '#fff' : 'var(--accent)',
-          transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-          boxShadow: isPopular ? '0 4px 16px var(--accent-glow)' : 'none',
-          marginBottom: 24,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-        }}
-      >
-        {isPopular && <Sparkles size={16} />}
-        {t('pricing_select')}
-      </button>
+      {isCurrent ? (
+        <button
+          disabled
+          style={{
+            width: '100%',
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: 14,
+            fontWeight: 800,
+            background: 'rgba(99, 102, 241, 0.15)',
+            color: 'var(--accent)',
+            border: '1.5px solid var(--accent)',
+            cursor: 'not-allowed',
+            marginBottom: 24,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+          }}
+        >
+          <CheckCircle2 size={16} /> Gói cước đang dùng
+        </button>
+      ) : isLower ? (
+        <button
+          disabled
+          style={{
+            width: '100%',
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: 14,
+            fontWeight: 600,
+            background: 'var(--bg-secondary)',
+            color: 'var(--text-muted)',
+            border: '1px solid var(--border-color)',
+            cursor: 'not-allowed',
+            marginBottom: 24,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          Gói cấp thấp hơn
+        </button>
+      ) : (
+        <button
+          onClick={() => onSelectTier(tier, payableDiffAmount)}
+          style={{
+            width: '100%',
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: 14,
+            fontWeight: 800,
+            cursor: 'pointer',
+            border: 'none',
+            background: 'var(--accent)',
+            color: '#ffffff',
+            boxShadow: '0 4px 16px var(--accent-glow)',
+            marginBottom: 24,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            transition: 'all 0.25s ease',
+          }}
+        >
+          {isHigher ? (
+            <>
+              <Sparkles size={16} />
+              {netVietQR === 0
+                ? `Nâng cấp (Trừ ${payableDiffAmount.toLocaleString('vi-VN')}đ ví) →`
+                : `Nâng cấp (Nạp ${netVietQR.toLocaleString('vi-VN')}đ) →`}
+            </>
+          ) : (
+            <>
+              {isPopular && <Sparkles size={16} />}
+              {t('pricing_select')}
+            </>
+          )}
+        </button>
+      )}
 
-      {/* Specs (Machines, Threads & Resolution) */}
+      {/* Specs */}
       <div style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', padding: '12px 14px', marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
           <span style={{ color: 'var(--text-secondary)' }}>{machinesLabel}</span>

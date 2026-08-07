@@ -1,21 +1,36 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import PricingCard from './PricingCard';
 import type { PricingModuleDto, PricingTierDto } from '@eigu-platform/shared';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { translatePricingText } from '../../lib/pricingTranslations';
+import { pricingApi } from '../../lib/api';
 
 interface PricingGridProps {
   moduleData: PricingModuleDto | null;
   loading: boolean;
   error: string | null;
   onRetry: () => void;
-  onSelectTier: (tier: PricingTierDto, moduleSlug: string) => void;
+  onSelectTier: (tier: PricingTierDto, moduleSlug: string, payableDiffAmount?: number) => void;
 }
-
-import { useLanguage } from '../../contexts/LanguageContext';
-import { translatePricingText } from '../../lib/pricingTranslations';
 
 export default function PricingGrid({ moduleData, loading, error, onRetry, onSelectTier }: PricingGridProps) {
   const { language } = useLanguage();
+  const { token } = useAuth();
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (token) {
+      pricingApi.getMySubscriptions()
+        .then(res => {
+          const list = Array.isArray(res) ? res : (res?.data || []);
+          setSubscriptions(list);
+        })
+        .catch(err => console.warn('[PricingGrid] Subscriptions fetch error:', err));
+    }
+  }, [token]);
 
   if (loading) {
     return (
@@ -78,7 +93,11 @@ export default function PricingGrid({ moduleData, loading, error, onRetry, onSel
     );
   }
 
-  // Calculate max threads for calculating relative progress percentage
+  const currentSub = subscriptions.find(s =>
+    (moduleData?.slug && s.moduleSlug === moduleData.slug) ||
+    (moduleData?.id && s.moduleId === moduleData.id)
+  );
+
   const maxThreads = Math.max(...moduleData.tiers.map(t => t.threads), 1);
 
   const isEnterpriseCode = (code: string, label: string) =>
@@ -118,7 +137,8 @@ export default function PricingGrid({ moduleData, loading, error, onRetry, onSel
               tier={tier}
               moduleSlug={moduleData.slug}
               maxThreads={maxThreads}
-              onSelectTier={selectedTier => onSelectTier(selectedTier, moduleData.slug)}
+              currentSub={currentSub}
+              onSelectTier={(selectedTier, diffAmt) => onSelectTier(selectedTier, moduleData.slug, diffAmt)}
             />
           ))}
         </div>
@@ -132,7 +152,8 @@ export default function PricingGrid({ moduleData, loading, error, onRetry, onSel
           moduleSlug={moduleData.slug}
           maxThreads={maxThreads}
           isHorizontal={true}
-          onSelectTier={selectedTier => onSelectTier(selectedTier, moduleData.slug)}
+          currentSub={currentSub}
+          onSelectTier={(selectedTier, diffAmt) => onSelectTier(selectedTier, moduleData.slug, diffAmt)}
         />
       ))}
     </div>

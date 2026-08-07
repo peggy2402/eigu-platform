@@ -65,3 +65,13 @@ All AI assistants (Antigravity, Claude, GPT, Gemini) working on this workspace M
 ### B. Notification System (`ToastContext.tsx`)
 - Import `useToast` from `apps/web/src/contexts/ToastContext.tsx`.
 - Call `showToast(title, description, 'success' | 'error' | 'warning' | 'info')`.
+
+### C. Targeted Notification System & User Data Isolation
+- **4 Notification Target Levels**:
+  1. `all`: System-wide global announcements.
+  2. `user` / `staff` / `admin`: Role-targeted announcements.
+  3. `userId` / `user:<userId>`: User-specific private notifications (e.g. deposit / transaction alerts).
+  4. `email` / `email:<userEmail>`: Email-specific notifications.
+- **Strict Data Isolation**:
+  - `NotificationsService.findAllForUser` filters DB queries using JWT token context to ensure User A NEVER receives User B's financial / deposit / private notifications.
+  - Payment notifications (`payment.service.ts`) MUST target `matchedTx.userId` or `txItem.userId`.

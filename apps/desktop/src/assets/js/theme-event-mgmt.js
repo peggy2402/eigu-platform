@@ -23,7 +23,7 @@ async function loadAdminThemeEventData() {
 
   try {
     // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-    const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+    const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
     const res = await fetch(`${baseUrl}/theme-event`);
     const data = await res.json();
 
@@ -284,7 +284,7 @@ async function handleSaveThemeEvent(e) {
   };
 
   // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
 
   try {
     const res = await fetch(`${baseUrl}/theme-event`, {

@@ -43,7 +43,7 @@ export class SecurityCenterController {
     return {
       generatedCode: generated,
       // fullPreviewUrl: `http://localhost:3001/api/${generated}`,
-      fullPreviewUrl: `https://eigu-api.onrender.com/api/${generated}`,
+      fullPreviewUrl: `https://api.eigu.site/api/${generated}`,
     };
   }
 

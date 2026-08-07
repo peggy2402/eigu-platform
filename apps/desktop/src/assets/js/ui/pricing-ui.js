@@ -182,15 +182,21 @@ async function openModulePricingModalDesktop(moduleSlug = 'cut') {
         infoSubText = `<span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">Gói cước cấp thấp hơn</span>`;
       } else if (isHigher) {
         if (netVietQR === 0) {
-          infoSubText = `<span style="font-size: 10px; color: #4ade80; font-weight: 700; display: block; margin-top: 2px;">Chênh lệch ${upgradeFee.toLocaleString('vi-VN')}đ &bull; Đủ số dư</span>`;
+          infoSubText = `<div style="font-size: 9.5px; color: #4ade80; font-weight: 700; margin-top: 2px;">
+            <span style="color: var(--text-muted);">Chênh lệch: +${upgradeFee.toLocaleString('vi-VN')}đ</span><br/>
+            <span>✓ Đủ số dư ví (${currentBalance.toLocaleString('vi-VN')}đ)</span>
+          </div>`;
         } else {
-          infoSubText = `<span style="font-size: 10px; color: #38bdf8; font-weight: 700; display: block; margin-top: 2px;">Cần thêm: <strong style="color:#22c55e;">${netVietQR.toLocaleString('vi-VN')}đ</strong></span>`;
+          infoSubText = `<div style="font-size: 9.5px; color: #38bdf8; font-weight: 700; margin-top: 2px;">
+            <span style="color: var(--text-muted);">Chênh lệch: +${upgradeFee.toLocaleString('vi-VN')}đ</span><br/>
+            <span>Trừ ví ${deductedBal.toLocaleString('vi-VN')}đ ➔ <strong style="color:#22c55e;">Cần nạp: ${netVietQR.toLocaleString('vi-VN')}đ</strong></span>
+          </div>`;
         }
       } else {
         if (netVietQR === 0) {
           infoSubText = `<span style="font-size: 10px; color: #4ade80; font-weight: 700; display: block; margin-top: 2px;">✓ Đủ số dư tài khoản</span>`;
         } else if (currentBalance > 0) {
-          infoSubText = `<span style="font-size: 10px; color: #38bdf8; font-weight: 700; display: block; margin-top: 2px;">Trừ số dư ${deductedBal.toLocaleString('vi-VN')}đ &bull;: <strong style="color:#22c55e;">${netVietQR.toLocaleString('vi-VN')}đ</strong></span>`;
+          infoSubText = `<span style="font-size: 10px; color: #38bdf8; font-weight: 700; display: block; margin-top: 2px;">Trừ số dư ${deductedBal.toLocaleString('vi-VN')}đ &bull; <strong style="color:#22c55e;">Cần nạp: ${netVietQR.toLocaleString('vi-VN')}đ</strong></span>`;
         } else {
           infoSubText = `<span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">/ ${tier.billingPeriod === 'yearly' ? 'năm' : (tier.billingPeriod === 'trial' ? '7 ngày' : 'tháng')}</span>`;
         }
@@ -211,7 +217,7 @@ async function openModulePricingModalDesktop(moduleSlug = 'cut') {
                 </button>
               `;
       } else if (isHigher) {
-        const btnLabel = netVietQR === 0 ? `Nâng cấp (${upgradeFee.toLocaleString('vi-VN')}đ)` : `Nâng cấp (Nạp ${netVietQR.toLocaleString('vi-VN')}đ)`;
+        const btnLabel = netVietQR === 0 ? `Nâng cấp (Trừ ${upgradeFee.toLocaleString('vi-VN')}đ ví)` : `Nâng cấp (Nạp ${netVietQR.toLocaleString('vi-VN')}đ)`;
         buttonHtml = `
                 <button type="button" class="btn-primary" onclick="handlePurchaseTierDesktop('${moduleInfo.id}', '${tier.id}', '${moduleInfo.name}', '${tier.label}', ${tier.price}, ${upgradeFee}, '${moduleInfo.slug}')" style="width: 100% !important; padding: 7px 4px; border-radius: 8px; font-size: 10px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); border: none; white-space: nowrap;">
                   ${btnLabel} →

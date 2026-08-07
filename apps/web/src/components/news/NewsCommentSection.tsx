@@ -207,9 +207,9 @@ export default function NewsCommentSection({ newsId }: NewsCommentSectionProps) 
               alignItems: 'center',
               gap: 8,
               textDecoration: 'none',
-              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+              background: 'var(--accent)',
               color: '#ffffff',
-              boxShadow: '0 6px 20px rgba(99, 102, 241, 0.4)',
+              boxShadow: '0 4px 14px var(--accent-glow)',
               transition: 'all 0.25s ease',
             }}
           >
@@ -329,12 +329,12 @@ export default function NewsCommentSection({ newsId }: NewsCommentSectionProps) 
                 alignItems: 'center',
                 gap: 8,
                 background: newCommentText.trim()
-                  ? 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)'
-                  : 'rgba(129, 140, 248, 0.35)',
-                color: '#ffffff',
-                border: 'none',
+                  ? 'var(--accent)'
+                  : 'var(--bg-secondary)',
+                color: newCommentText.trim() ? '#ffffff' : 'var(--text-muted)',
+                border: newCommentText.trim() ? 'none' : '1px solid var(--border-color)',
                 cursor: !newCommentText.trim() ? 'not-allowed' : 'pointer',
-                boxShadow: newCommentText.trim() ? '0 6px 20px rgba(129, 140, 248, 0.4)' : 'none',
+                boxShadow: newCommentText.trim() ? '0 4px 14px var(--accent-glow)' : 'none',
                 opacity: !newCommentText.trim() ? 0.7 : 1,
                 transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
               }}

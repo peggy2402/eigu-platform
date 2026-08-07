@@ -123,13 +123,21 @@ function renderNotifications() {
   const badgeEl = document.getElementById('notif-badge');
   if (!listEl) return;
 
-  const isStaffOrAdmin = typeof userProfile !== 'undefined' && userProfile && (userProfile.role === 'admin' || userProfile.role === 'staff');
+  const currentUserId = typeof userProfile !== 'undefined' && userProfile ? (userProfile.id || userProfile.userId || userProfile.sub) : null;
+  const currentEmail = typeof userProfile !== 'undefined' && userProfile ? userProfile.email : null;
+  const currentRole = typeof userProfile !== 'undefined' && userProfile ? (userProfile.role || '').toLowerCase() : 'user';
 
-  // Filter notifications based on role
+  // Filter notifications based on role, user ID, or email target
   const filteredData = notificationsData.filter(n => {
-    if (!n.targetRole || n.targetRole === 'all') return true;
-    if (isStaffOrAdmin) return n.targetRole === 'staff';
-    return n.targetRole === 'user';
+    const target = (n.target || n.targetRole || 'all').toLowerCase();
+    if (target === 'all') return true;
+    if (target === currentRole) return true;
+    if (currentRole === 'admin') return true; // Admin sees all
+    if (currentUserId && (target === String(currentUserId).toLowerCase() || target === `user:${String(currentUserId).toLowerCase()}`)) return true;
+    if (currentEmail && (target === String(currentEmail).toLowerCase() || target === `email:${String(currentEmail).toLowerCase()}`)) return true;
+    if ((currentRole === 'staff' || currentRole === 'admin') && target === 'staff') return true;
+    if (target === 'user') return true;
+    return false;
   });
 
   // Always sort newest first (descending by rawTime)

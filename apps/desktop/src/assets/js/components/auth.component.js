@@ -78,6 +78,11 @@ const AuthComponent = `
           <input type="text" maxlength="1" class="otp-digit" data-idx="5" />
         </div>
         <button class="auth-btn" style="margin-top:16px;" onclick="handleVerifyOtp()">Xác thực</button>
+        <div style="text-align:center;margin-top:14px;font-size:13px;">
+          <a onclick="resetRegisterStep()" style="color:var(--accent);cursor:pointer;">← Đổi email khác</a>
+          &nbsp;·&nbsp;
+          <a id="reg-resend-btn" onclick="handleResendRegisterOtp()" style="color:var(--text-secondary);cursor:pointer;">Gửi lại OTP</a>
+        </div>
       </div>
       <div class="auth-link"><a onclick="showAuth('login')">Quay lại đăng nhập</a></div>
     </div>
@@ -94,7 +99,9 @@ const AuthComponent = `
         <button class="auth-btn" onclick="handleForgot()">Gửi OTP</button>
       </div>
       <div id="forgot-step2" class="hidden">
-        <p style="text-align:center;color:var(--text-secondary);font-size:14px;margin-bottom:16px;">Nhập OTP và mật khẩu mới</p>
+        <p style="text-align:center;color:var(--text-secondary);font-size:14px;margin-bottom:16px;">
+          Nhập OTP gửi đến<br /><strong id="forgot-otp-email" style="color:var(--text-primary);"></strong>
+        </p>
         <div class="otp-inputs" style="margin-bottom:16px;">
           <input type="text" maxlength="1" class="otp-digit forgot" data-idx="0" />
           <input type="text" maxlength="1" class="otp-digit forgot" data-idx="1" />
@@ -103,14 +110,19 @@ const AuthComponent = `
           <input type="text" maxlength="1" class="otp-digit forgot" data-idx="4" />
           <input type="text" maxlength="1" class="otp-digit forgot" data-idx="5" />
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom:20px;">
           <label>Mật khẩu mới</label>
           <div class="pw-wrapper">
             <input type="password" id="forgot-newpass" placeholder="••••••••" />
             <button class="pw-toggle" onclick="togglePw(this)" type="button" tabindex="-1"><span data-icon="eye"></span></button>
           </div>
         </div>
-        <button class="auth-btn" onclick="handleResetPass()">Đặt lại mật khẩu</button>
+        <button class="auth-btn" onclick="handleResetPass()" style="margin-top:4px;">Đặt lại mật khẩu</button>
+        <div style="text-align:center;margin-top:14px;font-size:13px;">
+          <a onclick="resetForgotStep()" style="color:var(--accent);cursor:pointer;">← Đổi email khác</a>
+          &nbsp;·&nbsp;
+          <a id="forgot-resend-btn" onclick="handleForgot()" style="color:var(--text-secondary);cursor:pointer;">Gửi lại OTP</a>
+        </div>
       </div>
       <div class="auth-link"><a onclick="showAuth('login')">Quay lại đăng nhập</a></div>
     </div>

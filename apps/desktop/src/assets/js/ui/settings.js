@@ -213,10 +213,10 @@ function updateApiRoutePreview() {
   if (!prefix) prefix = 'v1';
 
   // const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
-  const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+  const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'https://api.eigu.site/api';
   let baseHost = currentFullUrl.replace(/\/api\/.*$/, '').replace(/\/$/, '');
   // if (!baseHost) baseHost = 'http://localhost:3001';
-  if (!baseHost) baseHost = 'https://eigu-api.onrender.com';
+  if (!baseHost) baseHost = 'https://api.eigu.site';
 
   const fullServerUrl = `${baseHost}/api/${prefix}`;
   preview.textContent = fullServerUrl;
@@ -241,7 +241,7 @@ async function loadAdminApiConfig() {
 
   if (input) {
     // const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
-    const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+    const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'https://api.eigu.site/api';
     const match = currentFullUrl.match(/\/api\/(.+)$/);
     input.value = match ? match[1] : 'v1';
     updateApiRoutePreview();
@@ -380,10 +380,10 @@ async function saveAdminApiConfig() {
   }
 
   // const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'http://localhost:3001/api';
-  const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+  const currentFullUrl = typeof window.getApiBaseUrl === 'function' ? window.getApiBaseUrl() : 'https://api.eigu.site/api';
   let baseHost = currentFullUrl.replace(/\/api\/.*$/, '').replace(/\/$/, '');
   // if (!baseHost) baseHost = 'http://localhost:3001';
-  if (!baseHost) baseHost = 'https://eigu-api.onrender.com';
+  if (!baseHost) baseHost = 'https://api.eigu.site';
 
   const fullApiPrefix = `api/${prefix}`;
   const fullServerUrl = `${baseHost}/${fullApiPrefix}`;

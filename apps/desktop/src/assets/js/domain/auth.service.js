@@ -103,6 +103,7 @@ async function handleRegister() {
     document.getElementById('register-step2').classList.remove('hidden');
     document.querySelectorAll('#register-step2 .otp-digit').forEach(inp => inp.value = '');
     if (document.querySelector('#register-step2 .otp-digit')) document.querySelector('#register-step2 .otp-digit').focus();
+    if (typeof startOtpCountdown === 'function') startOtpCountdown('register');
   } catch(e) { setAuthError('register', e.message); }
   finally { btn.disabled = false; btn.textContent = 'Đăng ký'; }
 }
@@ -125,35 +126,71 @@ async function handleVerifyOtp() {
   finally { btn.disabled = false; btn.textContent = 'Xác thực'; }
 }
 
+async function handleResendRegisterOtp() {
+  if (!registerEmail) return setAuthError('register', 'Không tìm thấy email đăng ký');
+  try {
+    await apiFetch('/auth/resend-otp', { method: 'POST', body: JSON.stringify({ email: registerEmail }) });
+    if (typeof showToast === 'function') {
+      showToast('Đã gửi lại mã OTP', 'Vui lòng kiểm tra lại hộp thư email của bạn', 'success');
+    }
+    if (typeof startOtpCountdown === 'function') startOtpCountdown('register');
+  } catch(e) {
+    setAuthError('register', e.message);
+  }
+}
+
 let forgotEmail = '';
 async function handleForgot() {
-  forgotEmail = document.getElementById('forgot-email').value.trim();
+  const emailInput = document.getElementById('forgot-email');
+  if (emailInput && emailInput.value.trim()) {
+    forgotEmail = emailInput.value.trim();
+  }
   if (!forgotEmail) return setAuthError('forgot', 'Vui lòng nhập email');
+  if (!EMAIL_RE.test(forgotEmail)) return setAuthError('forgot', 'Email không hợp lệ');
+
   const btn = document.querySelector('#forgot-step1 .auth-btn');
-  btn.disabled = true; btn.textContent = 'Đang gửi...';
+  if (btn) { btn.disabled = true; btn.textContent = 'Đang gửi...'; }
+
   try {
-    await apiFetch('/auth/forgot-password', { method:'POST', body:JSON.stringify({email:forgotEmail}) });
-    document.getElementById('forgot-step1').classList.add('hidden');
-    document.getElementById('forgot-step2').classList.remove('hidden');
+    await apiFetch('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email: forgotEmail }) });
+    const emailDisplay = document.getElementById('forgot-otp-email');
+    if (emailDisplay) emailDisplay.textContent = forgotEmail;
+
+    if (typeof showToast === 'function') {
+      showToast('Mã OTP đã được gửi', 'Vui lòng kiểm tra hộp thư email của bạn', 'success');
+    }
+
+    const step1 = document.getElementById('forgot-step1');
+    const step2 = document.getElementById('forgot-step2');
+    if (step1) step1.classList.add('hidden');
+    if (step2) step2.classList.remove('hidden');
+
     document.querySelectorAll('#forgot-step2 .otp-digit').forEach(inp => inp.value = '');
-    if (document.querySelector('#forgot-step2 .otp-digit')) document.querySelector('#forgot-step2 .otp-digit').focus();
-  } catch(e) { setAuthError('forgot', e.message); }
-  finally { btn.disabled = false; btn.textContent = 'Gửi OTP'; }
+    const firstOtp = document.querySelector('#forgot-step2 .otp-digit');
+    if (firstOtp) firstOtp.focus();
+    if (typeof startOtpCountdown === 'function') startOtpCountdown('forgot');
+  } catch(e) {
+    setAuthError('forgot', e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Gửi OTP'; }
+  }
 }
 
 async function handleResetPass() {
   let otp = '';
   document.querySelectorAll('#forgot-step2 .otp-digit').forEach(inp => otp += inp.value);
   const newPassword = document.getElementById('forgot-newpass').value;
-  if (otp.length !== 6 || !newPassword) return setAuthError('forgot', 'Nhập đủ OTP và mật khẩu mới');
+  if (otp.length !== 6 || !newPassword) return setAuthError('forgot', 'Nhập đủ 6 số OTP và mật khẩu mới');
   const btn = document.querySelector('#forgot-step2 .auth-btn');
-  btn.disabled = true; btn.textContent = 'Đang xử lý...';
+  if (btn) { btn.disabled = true; btn.textContent = 'Đang xử lý...'; }
   try {
-    await apiFetch('/auth/reset-password', { method:'POST', body:JSON.stringify({email:forgotEmail,otp,newPassword}) });
-    showToast('Đặt lại mật khẩu thành công! Vui lòng đăng nhập.', 'success');
+    await apiFetch('/auth/reset-password', { method: 'POST', body: JSON.stringify({ email: forgotEmail, otp, newPassword }) });
+    if (typeof showToast === 'function') {
+      showToast('Đặt lại mật khẩu thành công!', 'Vui lòng đăng nhập bằng mật khẩu mới.', 'success');
+    }
     showAuth('login');
   } catch(e) { setAuthError('forgot', e.message); }
-  finally { btn.disabled = false; btn.textContent = 'Đặt lại mật khẩu'; }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'Đặt lại mật khẩu'; } }
 }
 
 let _isLoggingOut = false;
@@ -211,8 +248,18 @@ async function handleLogout() {
 
     document.getElementById('auth-container').style.display = 'flex';
     document.getElementById('app-container').style.display = 'none';
-    showAuth('login');
+    if (typeof showAuth === 'function') showAuth('login');
   } finally {
     _isLoggingOut = false;
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.handleLogin = handleLogin;
+  window.handleRegister = handleRegister;
+  window.handleVerifyOtp = handleVerifyOtp;
+  window.handleResendRegisterOtp = handleResendRegisterOtp;
+  window.handleForgot = handleForgot;
+  window.handleResetPass = handleResetPass;
+  window.handleLogout = handleLogout;
 }

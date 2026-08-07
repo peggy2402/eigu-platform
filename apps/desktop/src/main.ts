@@ -216,7 +216,7 @@ app.whenReady().then(() => {
 
   // Kết nối đến NestJS API
   // const socket = io('http://localhost:3001/workflow');
-  const socket = io('https://eigu-api.onrender.com/workflow');
+  const socket = io('https://api.eigu.site/workflow');
 
   socket.on('connect', () => {
     console.log('✅ Đã kết nối tới API Gateway');
@@ -234,7 +234,7 @@ app.whenReady().then(() => {
     }
 
     const defaultHost = (app.isPackaged || process.env.NODE_ENV === 'production')
-      ? 'https://eigu-api.onrender.com'
+      ? 'https://api.eigu.site'
       : `http://localhost:${port}`;
 
     let rawUrl = process.env.NEXT_PUBLIC_API_URL || process.env.EIGU_API_URL || defaultHost;
@@ -251,7 +251,7 @@ app.whenReady().then(() => {
     const apiPrefix = process.env.API_PREFIX || 'api';
     const apiUrl = resolveApiUrl();
     const defaultWs = (app.isPackaged || process.env.NODE_ENV === 'production')
-      ? 'https://eigu-api.onrender.com'
+      ? 'https://api.eigu.site'
       : `http://localhost:${port}`;
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.EIGU_WS_URL || defaultWs;
 
@@ -263,7 +263,7 @@ app.whenReady().then(() => {
     const apiPrefix = process.env.API_PREFIX || 'api';
     const apiUrl = resolveApiUrl();
     const defaultWs = (app.isPackaged || process.env.NODE_ENV === 'production')
-      ? 'https://eigu-api.onrender.com'
+      ? 'https://api.eigu.site'
       : `http://localhost:${port}`;
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.EIGU_WS_URL || defaultWs;
     return { apiUrl, wsUrl, apiPrefix, port };

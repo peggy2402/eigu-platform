@@ -153,3 +153,5 @@ export const CommentTree = memo(function CommentTree({
     </div>
   );
 });
+
+export default CommentTree;

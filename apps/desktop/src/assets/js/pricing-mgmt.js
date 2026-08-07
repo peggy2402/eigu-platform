@@ -242,7 +242,7 @@ async function loadAdminPricingData() {
   try {
     const token = localStorage.getItem('accessToken');
     // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-    const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+    const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
 
     const res = await fetch(`${baseUrl}/pricing/admin`, {
       headers: {
@@ -483,7 +483,7 @@ async function handleSavePricingModule(e) {
 
   const token = localStorage.getItem('accessToken');
   // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
 
   try {
     const url = id ? `${baseUrl}/pricing/modules/${id}` : `${baseUrl}/pricing/modules`;
@@ -526,7 +526,7 @@ async function deletePricingModule(modId, modName) {
 
   const token = localStorage.getItem('accessToken');
   // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
 
   try {
     const res = await fetch(`${baseUrl}/pricing/modules/${modId}`, {
@@ -717,7 +717,7 @@ async function handleSavePricingTier(e) {
 
   const token = localStorage.getItem('accessToken');
   // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
 
   try {
     const url = id ? `${baseUrl}/pricing/tiers/${id}` : `${baseUrl}/pricing/tiers`;
@@ -758,7 +758,7 @@ async function deletePricingTier(tierId, tierLabel) {
 
   const token = localStorage.getItem('accessToken');
   // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
 
   try {
     const res = await fetch(`${baseUrl}/pricing/tiers/${tierId}`, {
@@ -802,7 +802,7 @@ async function handleSavePricingBadge(e) {
 
   const token = localStorage.getItem('accessToken');
   // const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'http://localhost:3001/api';
-  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://eigu-api.onrender.com/api';
+  const baseUrl = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : 'https://api.eigu.site/api';
 
   try {
     const res = await fetch(`${baseUrl}/pricing/badges`, {

@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class NotificationsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(q?: string, target?: string, sortBy?: string) {
+  async findAllForUser(user?: any, q?: string, targetQuery?: string, sortBy?: string) {
     const now = new Date();
     // Tự động xóa các thông báo đã quá hạn sử dụng
     await this.prisma.notification.deleteMany({
@@ -16,12 +16,53 @@ export class NotificationsService {
       },
     });
 
+    // 🔒 PHÂN QUYỀN VÀ BẢO MẬT DỮ LIỆU THÔNG BÁO CÁ NHÂN HÓA (Data Isolation):
+    // 1. "all": Thông báo chung cho toàn hệ thống
+    // 2. "user" / "staff" / "admin": Thông báo theo vai trò
+    // 3. "userId" / "user:userId": Thông báo chỉ định đích danh cá nhân
+    // 4. "email" / "email:userEmail": Thông báo chỉ định theo Email
+    const allowedTargets: string[] = ['all'];
+
+    if (user) {
+      const role = (user.role || '').toLowerCase();
+      if (role) {
+        allowedTargets.push(role);
+        if (role === 'admin' || role === 'staff') {
+          allowedTargets.push('staff');
+          allowedTargets.push('user');
+        }
+      }
+
+      const userId = user.id || user.userId || user.sub;
+      if (userId) {
+        allowedTargets.push(String(userId));
+        allowedTargets.push(`user:${userId}`);
+      }
+
+      if (user.email) {
+        allowedTargets.push(String(user.email));
+        allowedTargets.push(`email:${user.email}`);
+      }
+    } else {
+      allowedTargets.push('user');
+    }
+
     const where: any = {
       OR: [
         { expiresAt: null },
         { expiresAt: { gt: now } },
       ],
     };
+
+    if (targetQuery && targetQuery !== 'all') {
+      if (user && (user.role || '').toLowerCase() === 'admin') {
+        where.target = targetQuery;
+      } else {
+        where.target = { in: allowedTargets.filter(t => t === targetQuery) };
+      }
+    } else {
+      where.target = { in: allowedTargets };
+    }
 
     if (q) {
       where.AND = [
@@ -34,10 +75,6 @@ export class NotificationsService {
       ];
     }
 
-    if (target && target !== 'all') {
-      where.target = target;
-    }
-
     let orderBy: any = { createdAt: 'desc' };
     if (sortBy === 'oldest') orderBy = { createdAt: 'asc' };
     if (sortBy === 'title') orderBy = { title: 'asc' };
@@ -47,6 +84,10 @@ export class NotificationsService {
       orderBy,
       take: 50,
     });
+  }
+
+  async findAll(q?: string, target?: string, sortBy?: string) {
+    return this.findAllForUser(undefined, q, target, sortBy);
   }
 
   async create(title: string, content: string, target = 'all', ttl = '24h') {
@@ -86,11 +127,36 @@ export class NotificationsService {
     });
   }
 
-  async markAllRead() {
+  async markAllReadForUser(user?: any) {
+    if (!user) {
+      await this.prisma.notification.updateMany({
+        where: { isRead: false, target: 'all' },
+        data: { isRead: true },
+      });
+      return { success: true };
+    }
+
+    const userId = user.id || user.userId || user.sub;
+    const role = (user.role || '').toLowerCase();
+    const userTargets: string[] = ['all'];
+    if (role) userTargets.push(role);
+    if (userId) {
+      userTargets.push(String(userId));
+      userTargets.push(`user:${userId}`);
+    }
+    if (user.email) {
+      userTargets.push(String(user.email));
+      userTargets.push(`email:${user.email}`);
+    }
+
     await this.prisma.notification.updateMany({
-      where: { isRead: false },
+      where: { isRead: false, target: { in: userTargets } },
       data: { isRead: true },
     });
     return { success: true };
+  }
+
+  async markAllRead() {
+    return this.markAllReadForUser(undefined);
   }
 }

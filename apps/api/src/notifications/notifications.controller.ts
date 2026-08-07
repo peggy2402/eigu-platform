@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Patch, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Patch, Body, Param, Query, Req } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 
 @Controller('notifications')
@@ -7,11 +7,13 @@ export class NotificationsController {
 
   @Get()
   async findAll(
+    @Req() req: any,
     @Query('q') q?: string,
     @Query('target') target?: string,
     @Query('sortBy') sortBy?: string,
   ) {
-    return this.notificationsService.findAll(q, target, sortBy);
+    const user = req?.user;
+    return this.notificationsService.findAllForUser(user, q, target, sortBy);
   }
 
   @Post()
@@ -41,7 +43,8 @@ export class NotificationsController {
   }
 
   @Patch('read-all')
-  async markAllRead() {
-    return this.notificationsService.markAllRead();
+  async markAllRead(@Req() req: any) {
+    const user = req?.user;
+    return this.notificationsService.markAllReadForUser(user);
   }
 }

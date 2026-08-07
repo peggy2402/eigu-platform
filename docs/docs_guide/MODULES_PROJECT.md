@@ -58,12 +58,17 @@ Phân hệ hỗ trợ khách hàng thời gian thực (Real-time Live Support) k
 ---
 
 ### 2.4. 🔔 `NotificationsModule` (`apps/api/src/notifications/`)
-Phân hệ trung tâm thông báo toàn hệ thống và phát thông báo đa điểm.
+Phân hệ trung tâm thông báo toàn hệ thống, phát thông báo đa điểm và bảo mật dữ liệu riêng tư 4 cấp độ (Data Isolation & Targeted Notifications).
 
 - **Các Chức Năng Chi Tiết**:
-  - **Tải Thông Báo Cá Nhân (`GET /notifications`)**: Lấy danh sách thông báo riêng của từng tài khoản.
-  - **Phát Thông Báo Hệ Thống (`POST /notifications`)**: Admin tạo và phát thông báo (System Broadcaster) tới toàn bộ các ứng dụng máy trạm (Desktop, Web, Mobile).
-  - **Quản Lý & Đánh Dấu Đã Đọc (`PATCH /notifications/read-all` & `DELETE /notifications/:id`)**: Đánh dấu tất cả thông báo đã đọc hoặc xóa thông báo cũ.
+  - **Tải Thông Báo Cá Nhân Hóa (`GET /notifications`)**: Đọc thông tin JWT của từng tài khoản để lọc chính xác danh sách thông báo theo 4 cấp độ đối tượng:
+    1. **Toàn thể hệ thống (`target: "all"`)**: Mọi người dùng đều xem được.
+    2. **Theo vai trò (`target: "user" | "staff" | "admin"`)**: Chỉ tài khoản có vai trò tương ứng mới nhận được.
+    3. **Chỉ định Đích danh Cá nhân (`target: "<userId>" | "user:<userId>"`)**: Chỉ duy nhất người dùng có `userId` trùng khớp mới xem được (Ví dụ: Thông báo Nạp tiền tự động SePay `#728688`).
+    4. **Chỉ định Theo Email (`target: "<email>" | "email:<email>"`)**: Chỉ duy nhất tài khoản có Email trùng khớp mới xem được.
+  - **Phát Thông Báo Hệ Thống (`POST /notifications`)**: Admin tạo và phát thông báo (System Broadcaster) tới toàn bộ các ứng dụng máy trạm (Desktop, Web, Mobile) với lựa chọn target linh hoạt (`all`, `user`, `staff`, `userId`, `email`).
+  - **Quản Lý & Đánh Dấu Đã Đọc Cá Nhân Hóa (`PATCH /notifications/read-all` & `DELETE /notifications/:id`)**: Đánh dấu đã đọc đúng danh sách thông báo được cấp phép của từng tài khoản, không làm ảnh hưởng đến trạng thái đọc của các tài khoản khác.
+  - **Chống Trùng Lặp & Bảo Mật Tuyệt Đối (Data Isolation)**: Ngăn chặn 100% tình trạng người dùng A nhìn thấy thông báo biến động số dư/nạp tiền của người dùng B.
 
 ---
 

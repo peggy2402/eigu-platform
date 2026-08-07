@@ -6,8 +6,8 @@ export const DEFAULT_WEB_PORT = 3000;
 
 // export const DEFAULT_API_BASE_URL = 'http://localhost:3001/api';
 // export const DEFAULT_WEBSOCKET_URL = 'http://localhost:3001';
-export const DEFAULT_API_BASE_URL = 'https://eigu-api.onrender.com/api';
-export const DEFAULT_WEBSOCKET_URL = 'https://eigu-api.onrender.com';
+export const DEFAULT_API_BASE_URL = 'https://api.eigu.site/api';
+export const DEFAULT_WEBSOCKET_URL = 'https://api.eigu.site';
 /**
  * Lấy URL Gốc của API Server dựa theo Biến môi trường hoặc Cấu hình Cục bộ
  */
@@ -31,7 +31,7 @@ export function getApiBaseUrl(): string {
       prefix = rawPrefix.startsWith('api/') ? rawPrefix : `api/${rawPrefix}`;
     }
 
-    const defaultHost = (env['NODE_ENV'] === 'production') ? 'https://eigu-api.onrender.com' : 'http://localhost:3001';
+    const defaultHost = (env['NODE_ENV'] === 'production') ? 'https://api.eigu.site' : 'http://localhost:3001';
     let rawUrl = env['NEXT_PUBLIC_API_URL'] || env['EIGU_API_URL'] || env['API_URL'] || defaultHost;
     rawUrl = rawUrl.replace(/\/$/, '');
 

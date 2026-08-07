@@ -28,7 +28,7 @@ export default function WorkflowFlow({ onWsStatus }: { onWsStatus: (s: string) =
 
   useEffect(() => {
     // const s = io('http://localhost:3001/workflow', { transports: ['websocket', 'polling'] });
-    const s = io('https://eigu-api.onrender.com/workflow', { transports: ['websocket', 'polling'] });
+    const s = io('https://api.eigu.site/workflow', { transports: ['websocket', 'polling'] });
     socketRef.current = s;
     s.on('connect', () => onWsStatus('connected'));
     s.on('disconnect', () => onWsStatus('disconnected'));
