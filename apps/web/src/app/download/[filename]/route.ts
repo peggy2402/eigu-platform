@@ -38,7 +38,7 @@ export async function GET(
       return NextResponse.redirect(asset.browser_download_url, 307);
     }
 
-    return NextResponse.redirect(data.html_url || 'https://peggy-mc.site', 307);
+    return NextResponse.redirect(data.html_url || 'https://eigu.site', 307);
   } catch (error) {
     console.error('[Download Proxy Error] Exception:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

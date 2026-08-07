@@ -34,7 +34,7 @@ export class AuthService implements OnModuleInit {
   private async seedDefaultUser() {
     try {
       const passwordHash = await bcrypt.hash('123456', 10);
-      
+
       // Seed Admin User
       const existingAdmin = await this.prisma.user.findFirst({
         where: { OR: [{ email: 'admin@eigu.com' }, { username: 'admin' }] }
@@ -194,7 +194,7 @@ export class AuthService implements OnModuleInit {
       error: null,
     };
 
-    const sender = process.env.SMTP_FROM || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@') ? process.env.SMTP_USER : 'noreply@peggy-mc.site');
+    const sender = process.env.SMTP_FROM || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@') ? process.env.SMTP_USER : 'noreply@eigu.site');
     const testOtp = this.generateOtp();
     const subject = `[EIGU Platform] Test Diagnostic OTP Email ${testOtp}`;
     const html = `<p>Test OTP Code: <strong>${testOtp}</strong></p>`;
@@ -253,7 +253,7 @@ export class AuthService implements OnModuleInit {
 
   private async sendOtpEmail(email: string, otp: string, purpose: string) {
     const resendKey = process.env.RESEND_API_KEY || (process.env.SMTP_PASS?.startsWith('re_') ? process.env.SMTP_PASS : null);
-    const sender = process.env.SMTP_FROM || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@') ? process.env.SMTP_USER : 'noreply@peggy-mc.site');
+    const sender = process.env.SMTP_FROM || (process.env.SMTP_USER && process.env.SMTP_USER.includes('@') ? process.env.SMTP_USER : 'noreply@eigu.site');
     const subject = `[EIGU Platform] Mã xác thực OTP ${otp} - ${purpose}`;
     const html = `
 <!DOCTYPE html>
@@ -272,7 +272,7 @@ export class AuthService implements OnModuleInit {
           <!-- Header Banner with Logo -->
           <tr>
             <td style="padding: 32px 28px 24px 28px; background: linear-gradient(180deg, rgba(99, 102, 241, 0.18) 0%, rgba(19, 20, 31, 0) 100%); text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
-              <img src="https://peggy-mc.site/logo.png" alt="EIGU Logo" width="52" height="52" style="display: block; margin: 0 auto 12px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);" />
+              <img src="https://eigu.site/logo.png" alt="EIGU Logo" width="52" height="52" style="display: block; margin: 0 auto 12px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);" />
               <div style="font-size: 20px; font-weight: 900; color: #ffffff; letter-spacing: 0.5px;">EIGU Platform</div>
               <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; font-weight: 500;">AI Video Automation & MMO Growth Engine</div>
             </td>
@@ -321,7 +321,7 @@ export class AuthService implements OnModuleInit {
           <tr>
             <td style="padding: 20px 24px; background: #0f1019; border-top: 1px solid rgba(255, 255, 255, 0.06); text-align: center;">
               <div style="font-size: 12px; color: #64748b; margin-bottom: 6px;">
-                Cần trợ giúp? Truy cập website: <a href="https://peggy-mc.site" style="color: #818cf8; text-decoration: none; font-weight: 600;">peggy-mc.site</a>
+                Cần trợ giúp? Truy cập website: <a href="https://eigu.site" style="color: #818cf8; text-decoration: none; font-weight: 600;">eigu.site</a>
               </div>
               <div style="font-size: 11px; color: #475569;">
                 © 2026 EIGU Platform. All rights reserved.
@@ -379,7 +379,7 @@ export class AuthService implements OnModuleInit {
           <!-- Header Banner with Logo -->
           <tr>
             <td style="padding: 32px 28px 24px 28px; background: linear-gradient(180deg, rgba(99, 102, 241, 0.18) 0%, rgba(19, 20, 31, 0) 100%); text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
-              <img src="https://peggy-mc.site/logo.png" alt="EIGU Logo" width="52" height="52" style="display: block; margin: 0 auto 12px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);" />
+              <img src="https://eigu.site/logo.png" alt="EIGU Logo" width="52" height="52" style="display: block; margin: 0 auto 12px auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);" />
               <div style="font-size: 20px; font-weight: 900; color: #ffffff; letter-spacing: 0.5px;">EIGU Platform</div>
               <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; font-weight: 500;">AI Video Automation & MMO Growth Engine</div>
             </td>
@@ -428,7 +428,7 @@ export class AuthService implements OnModuleInit {
           <tr>
             <td style="padding: 20px 24px; background: #0f1019; border-top: 1px solid rgba(255, 255, 255, 0.06); text-align: center;">
               <div style="font-size: 12px; color: #64748b; margin-bottom: 6px;">
-                Cần trợ giúp? Truy cập website: <a href="https://peggy-mc.site" style="color: #818cf8; text-decoration: none; font-weight: 600;">peggy-mc.site</a>
+                Cần trợ giúp? Truy cập website: <a href="https://eigu.site" style="color: #818cf8; text-decoration: none; font-weight: 600;">eigu.site</a>
               </div>
               <div style="font-size: 11px; color: #475569;">
                 © 2026 EIGU Platform. All rights reserved.
