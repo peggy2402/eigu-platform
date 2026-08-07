@@ -25,9 +25,9 @@ export class ObfuscatedPrefixMiddleware implements NestMiddleware {
     if (parts.length >= 2) {
       const candidateCode = parts[1]; // e.g. 'v2-test-2026' or 'system-config'
 
-      // Allow public bootstrap endpoint if URL is /api/system-config/bootstrap
-      if (candidateCode === 'system-config') {
-        const rest = parts.slice(1).join('/'); // 'system-config/bootstrap'
+      // Allow public endpoints (/api/public/...) and bootstrap endpoint (/api/system-config/bootstrap)
+      if (candidateCode === 'public' || candidateCode === 'system-config') {
+        const rest = parts.slice(1).join('/'); // 'public/news' or 'system-config/bootstrap'
         req.url = '/' + rest + queryString;
         return next();
       }

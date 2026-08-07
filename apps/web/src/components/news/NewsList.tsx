@@ -21,7 +21,7 @@ export default function NewsList({ onSelectArticle }: NewsListProps) {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/eigu-v1-t24v02c03';
+        const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace(/\/$/, '');
         let url = `${apiBase}/public/news?limit=24`;
         if (selectedCat) url += `&categoryId=${selectedCat}`;
         if (searchQuery.trim()) url += `&search=${encodeURIComponent(searchQuery.trim())}`;
@@ -133,11 +133,13 @@ export default function NewsList({ onSelectArticle }: NewsListProps) {
 
       {/* News Grid (Desktop 3 cols, Tablet 2 cols, Mobile 1 col) */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-secondary)' }}>⏳ Đang tải bài viết...</div>
+        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-secondary)' }}>Đang tải bài viết từ server...</div>
       ) : articles.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-card)', borderRadius: 16, border: '1px border-color' }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>📭</div>
-          <h3 style={{ fontSize: 18, color: 'var(--text-primary)' }}>Không tìm thấy bài viết nào</h3>
+        <div style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+            <Newspaper size={36} style={{ color: 'var(--text-muted)' }} />
+          </div>
+          <h3 style={{ fontSize: 18, color: 'var(--text-primary)', marginBottom: 6 }}>Không tìm thấy bài viết nào</h3>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Thử chọn danh mục khác hoặc thay đổi từ khóa tìm kiếm</p>
         </div>
       ) : (
@@ -175,8 +177,8 @@ export default function NewsList({ onSelectArticle }: NewsListProps) {
                     </span>
                   )}
                   {item.isFeatured && (
-                    <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 800, background: 'rgba(234, 179, 8, 0.9)', color: '#000', padding: '3px 8px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
-                      ⭐ HOT
+                    <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 800, background: 'rgba(234, 179, 8, 0.95)', color: '#000', padding: '3px 8px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Sparkles size={11} fill="#000" /> HOT
                     </span>
                   )}
                 </div>

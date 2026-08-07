@@ -49,20 +49,20 @@ export class PublicNewsController {
   }
 
   @Post(':id/comments')
+  @UseGuards(JwtAuthGuard)
   async createComment(@Param('id') newsId: string, @Body() dto: CreateCommentDto, @Req() req: any) {
-    // Optional auth user or anonymous guest comment
-    const user = req.user || null;
-    return this.newsService.createComment(newsId, dto, user);
+    return this.newsService.createComment(newsId, dto, req.user);
   }
 
   @Post('comments/:id/reaction')
-  async reactionComment(@Param('id') commentId: string, @Body() dto: CommentReactionDto, @Body('userId') userId: string) {
-    const activeUserId = userId || 'anonymous-device-' + Date.now();
-    return this.newsService.reactionComment(commentId, dto, activeUserId);
+  @UseGuards(JwtAuthGuard)
+  async reactionComment(@Param('id') commentId: string, @Body() dto: CommentReactionDto, @Req() req: any) {
+    return this.newsService.reactionComment(commentId, dto, req.user.id);
   }
 
   @Post('comments/:id/report')
-  async reportComment(@Param('id') commentId: string, @Body() dto: CommentReportDto, @Body('userId') userId?: string) {
-    return this.newsService.reportComment(commentId, dto, userId);
+  @UseGuards(JwtAuthGuard)
+  async reportComment(@Param('id') commentId: string, @Body() dto: CommentReportDto, @Req() req: any) {
+    return this.newsService.reportComment(commentId, dto, req.user.id);
   }
 }

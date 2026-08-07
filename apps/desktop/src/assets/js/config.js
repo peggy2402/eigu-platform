@@ -42,7 +42,7 @@
     getApiUrl: function (endpoint) {
       const base = this.API_BASE_URL.replace(/\/$/, '');
       const path = (endpoint || '').replace(/^\//, '');
-      return `${base}/${path}`;
+      return path ? `${base}/${path}` : base;
     },
     getWsUrl: function (namespace) {
       const base = this.WEBSOCKET_URL.replace(/\/$/, '');

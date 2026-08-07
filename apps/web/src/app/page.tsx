@@ -292,6 +292,32 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
     }
   }, [user, token]);
 
+  // Sync browser back/forward buttons and initial URL path for /news/[slug]
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path.startsWith('/news/') && path !== '/news') {
+        setActivePath('/news');
+        setSelectedNewsSlug(decodeURIComponent(path.replace('/news/', '')));
+      } else {
+        setActivePath(path || '/');
+        setSelectedNewsSlug(null);
+      }
+    };
+
+    // Initial check on mount
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith('/news/') && currentPath !== '/news') {
+      setActivePath('/news');
+      setSelectedNewsSlug(decodeURIComponent(currentPath.replace('/news/', '')));
+    }
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // Pricing State
   const [pricingModules, setPricingModules] = useState<PricingModuleDto[]>(FALLBACK_PRICING_MODULES);
   const [activeModuleSlug, setActiveModuleSlug] = useState<string>('cut');
@@ -1141,12 +1167,27 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
           selectedNewsSlug ? (
             <NewsDetail
               slug={selectedNewsSlug}
-              onBack={() => setSelectedNewsSlug(null)}
-              onSelectRelated={slug => setSelectedNewsSlug(slug)}
+              onBack={() => {
+                setSelectedNewsSlug(null);
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', '/news');
+                }
+              }}
+              onSelectRelated={slug => {
+                setSelectedNewsSlug(slug);
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', `/news/${slug}`);
+                }
+              }}
             />
           ) : (
             <NewsList
-              onSelectArticle={slug => setSelectedNewsSlug(slug)}
+              onSelectArticle={slug => {
+                setSelectedNewsSlug(slug);
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', `/news/${slug}`);
+                }
+              }}
             />
           )
         )}

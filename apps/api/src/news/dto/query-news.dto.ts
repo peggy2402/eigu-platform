@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsInt, IsBoolean, IsEnum } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { NewsStatus } from '@eigu-platform/shared';
+import type { NewsStatus } from '@eigu-platform/shared';
 
 export class QueryNewsDto {
   @IsOptional()

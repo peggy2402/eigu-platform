@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Eye, Calendar, User, Share2, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Clock, Eye, Calendar, User, Share2, Copy, Check, Bookmark, Flame, MessageSquare } from 'lucide-react';
 import type { NewsDto } from '@eigu-platform/shared';
 import { useLanguage } from '../../contexts/LanguageContext';
 import NewsCommentSection from './NewsCommentSection';
@@ -24,7 +24,7 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
     const fetchArticleDetail = async () => {
       setLoading(true);
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/eigu-v1-t24v02c03';
+        const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace(/\/$/, '');
         const [artRes, relRes, latRes] = await Promise.all([
           fetch(`${apiBase}/public/news/${slug}`),
           fetch(`${apiBase}/public/news/related?slug=${slug}&limit=4`),
@@ -65,7 +65,7 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
   if (loading) {
     return (
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Đang tải nội dung bài viết...
+        Đang tải nội dung bài viết...
       </div>
     );
   }
@@ -73,10 +73,11 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
   if (!article) {
     return (
       <div style={{ maxWidth: 800, margin: '60px auto', textAlign: 'center', padding: 40, background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border-color)' }}>
-        <h2>⚠️ Không tìm thấy bài viết</h2>
+        <h2 style={{ fontSize: 20, color: 'var(--text-primary)', marginBottom: 8 }}>Không tìm thấy bài viết</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>Bài viết này không tồn tại hoặc đã bị gỡ bỏ.</p>
-        <button onClick={onBack} className="btn-primary" style={{ padding: '10px 20px', borderRadius: 8 }}>
-          ← Quay lại Tin tức
+        <button onClick={onBack} className="btn-primary" style={{ padding: '10px 20px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <ArrowLeft size={16} />
+          <span>Quay lại Tin tức</span>
         </button>
       </div>
     );
@@ -200,7 +201,8 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
           {/* Related Articles Card */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 16, padding: 20, marginBottom: 24 }}>
             <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
-              📌 Bài Viết Liên Quan
+              <Bookmark size={16} style={{ color: 'var(--accent)' }} />
+              <span>Bài Viết Liên Quan</span>
             </h3>
             {related.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Chưa có bài viết liên quan</div>
@@ -237,7 +239,8 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
           {/* Latest Articles Card */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 16, padding: 20 }}>
             <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
-              🔥 Mới Cập Nhật
+              <Flame size={16} style={{ color: '#f97316' }} />
+              <span>Mới Cập Nhật</span>
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {latest.map(item => (
@@ -246,12 +249,16 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
                   onClick={() => onSelectRelated(item.slug)}
                   style={{ cursor: 'pointer', paddingBottom: 10, borderBottom: '1px solid var(--border-color)' }}
                 >
-                  <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px', lineHeight: 1.4 }}>
+                  <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 6px', lineHeight: 1.4 }}>
                     {item.title}
                   </h4>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', gap: 10 }}>
-                    <span>👁️ {item.viewCount || 0} views</span>
-                    <span>💬 {item.commentCount || 0} comments</span>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Eye size={12} /> {item.viewCount || 0} lượt xem
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <MessageSquare size={12} /> {item.commentCount || 0} bình luận
+                    </span>
                   </div>
                 </div>
               ))}

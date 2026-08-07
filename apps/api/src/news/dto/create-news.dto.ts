@@ -1,5 +1,5 @@
 import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsArray, IsEnum, IsUrl } from 'class-validator';
-import { NewsStatus } from '@eigu-platform/shared';
+import type { NewsStatus } from '@eigu-platform/shared';
 
 export class CreateNewsDto {
   @IsString()
