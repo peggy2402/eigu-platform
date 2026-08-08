@@ -6,6 +6,8 @@ import type { NewsDto } from '@eigu-platform/shared';
 import { useLanguage } from '../../contexts/LanguageContext';
 import NewsCommentSection from './NewsCommentSection';
 
+import { useToast } from '../../contexts/ToastContext';
+
 interface NewsDetailProps {
   slug: string;
   onBack: () => void;
@@ -14,11 +16,37 @@ interface NewsDetailProps {
 
 export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetailProps) {
   const { language } = useLanguage();
+  const { showToast } = useToast();
   const [article, setArticle] = useState<NewsDto | null>(null);
   const [related, setRelated] = useState<NewsDto[]>([]);
   const [latest, setLatest] = useState<NewsDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const getShareableUrl = () => {
+    if (typeof window === 'undefined') return '';
+
+    // Allow optional custom domain override via NEXT_PUBLIC_SHARE_DOMAIN
+    const customShareDomain = process.env.NEXT_PUBLIC_SHARE_DOMAIN;
+    if (customShareDomain) {
+      const cleanDomain = customShareDomain.replace(/\/$/, '');
+      const path = window.location.pathname.startsWith('/news')
+        ? window.location.pathname
+        : `/news/${slug}`;
+      return `${cleanDomain}${path}`;
+    }
+
+    // Default: Always take the exact active webpage URL currently being viewed
+    if (!window.location.pathname.includes(slug)) {
+      return `${window.location.origin}/news/${slug}`;
+    }
+
+    return window.location.href;
+  };
+
+  useEffect(() => {
+    setShareUrl(getShareableUrl());
+  }, [slug]);
 
   useEffect(() => {
     const fetchArticleDetail = async () => {
@@ -54,10 +82,45 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [slug]);
 
+  const handleShare = (platform: 'facebook' | 'zalo' | 'telegram' | 'x', e: React.MouseEvent) => {
+    e.preventDefault();
+    const currentUrl = shareUrl || getShareableUrl();
+    if (!currentUrl) return;
+
+    const encodedUrl = encodeURIComponent(currentUrl);
+    const encodedTitle = article ? encodeURIComponent(article.title) : '';
+
+    let shareTarget = '';
+    switch (platform) {
+      case 'facebook':
+        shareTarget = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedTitle}`;
+        break;
+      case 'zalo':
+        shareTarget = `https://zalo.me/share?url=${encodedUrl}`;
+        break;
+      case 'telegram':
+        shareTarget = `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`;
+        break;
+      case 'x':
+        shareTarget = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
+        break;
+    }
+
+    if (shareTarget) {
+      window.open(shareTarget, '_blank', 'noopener,noreferrer,width=600,height=550');
+    }
+  };
+
   const copyPageLink = () => {
-    if (typeof window !== 'undefined') {
-      navigator.clipboard.writeText(window.location.href);
+    const currentUrl = shareUrl || getShareableUrl();
+    if (currentUrl) {
+      navigator.clipboard.writeText(currentUrl);
       setCopied(true);
+      showToast(
+        language === 'en' ? 'Link Copied' : 'Đã sao chép link',
+        language === 'en' ? 'Article link has been copied to clipboard' : 'Đã sao chép liên kết bài viết vào khay nhớ tạm',
+        'success'
+      );
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -199,7 +262,8 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               {/* Facebook Share */}
               <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
+                href={shareUrl ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(article?.title || '')}` : '#'}
+                onClick={(e) => handleShare('facebook', e)}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Chia sẻ lên Facebook"
@@ -224,7 +288,8 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
 
               {/* Zalo Share */}
               <a
-                href={`https://zalo.me/share?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
+                href={shareUrl ? `https://zalo.me/share?url=${encodeURIComponent(shareUrl)}` : '#'}
+                onClick={(e) => handleShare('zalo', e)}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Chia sẻ lên Zalo"
@@ -248,7 +313,8 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
 
               {/* Telegram Share */}
               <a
-                href={`https://t.me/share/url?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(article.title)}`}
+                href={shareUrl ? `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(article.title)}` : '#'}
+                onClick={(e) => handleShare('telegram', e)}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Chia sẻ qua Telegram"
@@ -273,7 +339,8 @@ export default function NewsDetail({ slug, onBack, onSelectRelated }: NewsDetail
 
               {/* Twitter / X Share */}
               <a
-                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(article.title)}`}
+                href={shareUrl ? `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(article.title)}` : '#'}
+                onClick={(e) => handleShare('x', e)}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Chia sẻ lên X (Twitter)"

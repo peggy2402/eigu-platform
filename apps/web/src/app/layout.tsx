@@ -5,7 +5,7 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 import { AuthProvider } from '../contexts/AuthContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eigu.vn';
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eigu.site';
 
 export const viewport: Viewport = {
   themeColor: '#0c0a09',
