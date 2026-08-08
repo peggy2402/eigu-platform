@@ -10,51 +10,54 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://eigu.site').replace(/\/$/, '');
   const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace(/\/$/, '');
 
+  let title = 'Chi tiết bài viết';
+  let description = 'Đọc bài viết tin tức mới nhất tại EIGU Platform';
+  let imageUrl = `${siteUrl}/logo.png`;
+
   try {
     const res = await fetch(`${apiBase}/public/news/${slug}`, { next: { revalidate: 60 } });
     if (res.ok) {
       const article = await res.json();
-      const title = article.title || 'Bài viết tin tức';
-      const description = article.summary || 'Đọc bài viết mới nhất tại EIGU Platform';
-      let image = article.thumbnail || `${siteUrl}/logo.png`;
-      if (image && !image.startsWith('http')) {
-        image = `${siteUrl}${image.startsWith('/') ? '' : '/'}${image}`;
+      if (article.title) title = article.title;
+      if (article.summary) description = article.summary;
+      if (article.thumbnail) {
+        imageUrl = article.thumbnail.startsWith('http')
+          ? article.thumbnail
+          : `${siteUrl}${article.thumbnail.startsWith('/') ? '' : '/'}${article.thumbnail}`;
       }
-      const pageUrl = `${siteUrl}/news/${slug}`;
-
-      return {
-        title: `${title} | EIGU Platform`,
-        description,
-        openGraph: {
-          title,
-          description,
-          url: pageUrl,
-          siteName: 'EIGU Platform',
-          type: 'article',
-          images: [
-            {
-              url: image,
-              width: 1200,
-              height: 630,
-              alt: title,
-            },
-          ],
-        },
-        twitter: {
-          card: 'summary_large_image',
-          title,
-          description,
-          images: [image],
-        },
-      };
     }
   } catch (err) {
     console.error('Error generating metadata for news page:', err);
   }
 
+  const pageUrl = `${siteUrl}/news/${slug}`;
+
   return {
-    title: 'Chi tiết bài viết | EIGU Platform',
-    description: 'Nền tảng tự động hóa video AI & MMO Reup',
+    metadataBase: new URL(siteUrl),
+    title: `${title} | EIGU Platform`,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: pageUrl,
+      siteName: 'EIGU Platform',
+      type: 'article',
+      images: [
+        {
+          url: imageUrl,
+          secureUrl: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [imageUrl],
+    },
   };
 }
 

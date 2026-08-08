@@ -107,12 +107,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="icon" href="/logo.png" type="image/png" sizes="any" />
         <link rel="apple-touch-icon" href="/logo.png" />
-        <meta property="og:image" content="/og_image.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:type" content="image/png" />
-        <meta name="twitter:image" content="/og_image.png" />
-        <meta name="twitter:card" content="summary_large_image" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
