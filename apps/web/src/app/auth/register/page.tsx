@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, Tag } from 'lucide-react';
 import { authApi, syncApiPrefixFromBootstrap } from '../../../lib/api';
 import { useToast } from '../../../contexts/ToastContext';
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -35,7 +35,9 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
+  const [refCode, setRefCode] = useState('');
   const [showPw, setShowPw] = useState(false);
+
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -52,10 +54,20 @@ export default function RegisterPage() {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('eigu_pending_otp_email');
 
-      // Check URL query params for unverified email redirect from Login page
+      // Check URL query params for referral code (e.g. ?ref=EIGU88X2 or ?refCode=EIGU88X2)
       const urlParams = new URLSearchParams(window.location.search);
       const queryEmail = urlParams.get('email');
       const queryStep = urlParams.get('step');
+      const queryRef = urlParams.get('ref') || urlParams.get('refCode') || urlParams.get('r');
+
+      if (queryRef) {
+        const cleanRef = queryRef.trim().toUpperCase();
+        setRefCode(cleanRef);
+        localStorage.setItem('eigu_ref_code', cleanRef);
+      } else {
+        const savedRef = localStorage.getItem('eigu_ref_code');
+        if (savedRef) setRefCode(savedRef);
+      }
 
       if (queryStep === 'otp' && queryEmail) {
         setEmail(queryEmail);
@@ -65,6 +77,7 @@ export default function RegisterPage() {
       }
     }
   }, []);
+
 
   useEffect(() => {
     let timer: any;
@@ -114,7 +127,7 @@ export default function RegisterPage() {
     }
     setLoading(true);
     try {
-      await authApi.register(username, email, password);
+      await authApi.register(username, email, password, refCode.trim() || undefined);
       showToast(
         language === 'en' ? 'OTP Sent Successfully!' : 'Gửi OTP thành công!',
         language === 'en' ? `Verification code sent to email ${email}` : `Mã xác thực đã được gửi đến email ${email}`,
@@ -352,6 +365,21 @@ export default function RegisterPage() {
                   <input type={showPw ? 'text' : 'password'} value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder="••••••••" autoComplete="new-password" required />
                 </div>
               </div>
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Tag size={14} style={{ color: 'var(--accent)' }} />
+                  <span>{language === 'en' ? 'Referral Code (Optional)' : 'Mã giới thiệu (Không bắt buộc)'}</span>
+                </label>
+                <input
+                  type="text"
+                  value={refCode}
+                  onChange={e => setRefCode(e.target.value.toUpperCase())}
+                  placeholder="VD: EIGU88X2"
+                  style={{ textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}
+                />
+              </div>
+
 
               <button type="submit" className="auth-btn" disabled={loading} style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800, marginTop: 4 }}>
                 <span>

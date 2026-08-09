@@ -860,21 +860,213 @@ const ViewsComponent = `
   </div>
 </div>
 
-<div id="view-tiep-thi" class="view">
-  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(34, 197, 94, 0.06) 100%); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <div id="module-tier-badge-tiep-thi">
-        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; background: rgba(99, 102, 241, 0.15); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.3); font-size: 11px; font-weight: 800;">Gói Dùng Thử / Free</span>
+<div id="view-tiep-thi" class="view" style="padding: 16px; width: 100%; box-sizing: border-box;">
+  <!-- HEADER BANNER -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 16px;">
+    <div>
+      <div style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 12px; background: rgba(99, 102, 241, 0.2); color: var(--accent); font-size: 11px; font-weight: 800; margin-bottom: 6px;">
+        🤝 Affiliate Partner Program (15% Commission)
       </div>
-      <span style="font-size: 12px; color: var(--text-muted);">Chương trình Tiếp thị liên kết & Chiết khấu hoa hồng Affiliate</span>
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">Tiếp Thị Liên Kết & Chiết Khấu Hoa Hồng</h2>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Chia sẻ link giới thiệu EIGU Platform để nhận 15% hoa hồng trọn đời từ các giao dịch nạp tiền & mua gói.</p>
     </div>
-    <button type="button" class="btn-upgrade-glow" onclick="openModulePricingModalDesktop('tiep-thi')">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-      <span>Nâng cấp gói / Bảng giá</span>
+    <button type="button" class="btn-primary" onclick="refreshAffiliateAllDesktop()" style="padding: 8px 14px; font-size: 12px; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px;">
+      🔄 Làm mới dữ liệu
     </button>
+
   </div>
-  <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
-    <div><span data-icon="link" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="affiliate">Tiếp thị liên kết</h3><p style="color:var(--text-muted);" data-i18n="feature_developing">Tính năng đang phát triển</p></div>
+
+  <!-- LINK CARD & 4 METRICS GRID -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+    <!-- LINK & CODE CARD -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify: space-between;">
+      <div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Link & Mã Giới Thiệu Của Bạn</div>
+        
+        <!-- Link Input Box -->
+        <div style="margin-bottom: 10px;">
+          <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Link Tiếp thị:</label>
+          <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 4px 4px 4px 10px;">
+            <input id="aff-ref-link-input" type="text" readonly value="Đang tải..." style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-size: 12px; font-weight: 600;" />
+            <button type="button" onclick="copyAffiliateLinkDesktop()" style="background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 11px; font-weight: 700; cursor: pointer;">
+              Sao chép
+            </button>
+          </div>
+        </div>
+
+        <!-- Code Box -->
+        <div>
+          <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Mã Giới Thiệu (Referral Code):</label>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="aff-ref-code-display" style="padding: 6px 14px; border-radius: 8px; background: rgba(99, 102, 241, 0.15); border: 1px dashed var(--accent); font-size: 14px; font-weight: 900; color: var(--accent); letter-spacing: 2px;">
+              ...
+            </span>
+            <button type="button" onclick="copyAffiliateCodeDesktop()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer;">
+              Chép Mã
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 4 METRIC CARDS 2x2 -->
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px;">
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Lượt Click Link</div>
+        <div id="aff-clicks-count" style="font-size: 20px; font-weight: 900; color: var(--text-primary); margin-top: 4px;">0</div>
+      </div>
+
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px;">
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Thành Viên Đã ĐK</div>
+        <div id="aff-referred-count" style="font-size: 20px; font-weight: 900; color: var(--text-primary); margin-top: 4px;">0</div>
+      </div>
+
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px;">
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Hoa Hồng Tích Lũy</div>
+        <div id="aff-earned-sum" style="font-size: 16px; font-weight: 900; color: #eab308; margin-top: 4px;">0đ</div>
+      </div>
+
+      <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="font-size: 11px; color: #22c55e; font-weight: 700;">Số Dư Khả Dụng</div>
+          <div id="aff-balance-sum" style="font-size: 16px; font-weight: 900; color: #22c55e; margin-top: 2px;">0đ</div>
+        </div>
+        <button type="button" onclick="openAffiliatePayoutModalDesktop()" style="margin-top: 6px; width: 100%; background: #22c55e; color: #fff; border: none; border-radius: 6px; padding: 5px; font-size: 11px; font-weight: 800; cursor: pointer;">
+          Rút Tiền
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS & TABLES -->
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px;">
+    <!-- TAB BUTTONS -->
+    <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 14px;">
+      <button id="aff-tab-btn-referrals" type="button" class="active" onclick="switchAffiliateTabDesktop('referrals')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: rgba(99, 102, 241, 0.2); color: var(--accent);">
+        👥 Thành Viên Đã Giới Thiệu
+      </button>
+      <button id="aff-tab-btn-commissions" type="button" onclick="switchAffiliateTabDesktop('commissions')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--text-muted);">
+        📈 Lịch Sử Hoa Hồng
+      </button>
+      <button id="aff-tab-btn-payouts" type="button" onclick="switchAffiliateTabDesktop('payouts')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--text-muted);">
+        💳 Lịch Sử Rút Tiền
+      </button>
+    </div>
+
+    <!-- TAB 1: REFERRALS TABLE -->
+    <div id="aff-tab-content-referrals">
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Tài Khoản</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Ngày Đăng Ký</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Trạng Thái</th>
+              <th style="padding: 8px 10px; color: var(--text-muted); text-align: right;">Hoa Hồng Tạo Ra</th>
+            </tr>
+          </thead>
+          <tbody id="aff-referrals-tbody">
+            <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải dữ liệu...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: COMMISSIONS TABLE -->
+    <div id="aff-tab-content-commissions" style="display: none;">
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Mã Đơn</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Thành Viên</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Loại Đơn</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Giá Trị Đơn</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Tỉ Lệ</th>
+              <th style="padding: 8px 10px; color: var(--text-muted); text-align: right;">Hoa Hồng Nhận</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Thời Gian</th>
+            </tr>
+          </thead>
+          <tbody id="aff-commissions-tbody">
+            <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải dữ liệu...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: PAYOUTS TABLE -->
+    <div id="aff-tab-content-payouts" style="display: none;">
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Mã Đơn Rút</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Số Tiền</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Ngân Hàng & STK</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Trạng Thái</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Ghi Chú</th>
+              <th style="padding: 8px 10px; color: var(--text-muted);">Thời Gian</th>
+            </tr>
+          </thead>
+          <tbody id="aff-payouts-tbody">
+            <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải dữ liệu...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYOUT MODAL DESKTOP -->
+  <div id="affiliate-payout-modal-desktop" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 18px; max-width: 440px; width: 100%; padding: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary);">Rút Tiền Hoa Hồng Affiliate</h3>
+        <button type="button" onclick="closeAffiliatePayoutModalDesktop()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px;">✕</button>
+      </div>
+
+      <form onsubmit="submitAffiliatePayoutDesktop(event)">
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Số tiền rút (VNĐ):</label>
+          <input id="aff-payout-amount-input" type="number" step="10000" min="200000" value="200000" style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 14px; font-weight: 800;" />
+          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">* Tối thiểu 200.000 VNĐ</div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Ngân hàng:</label>
+          <select id="aff-payout-bank-select" style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 12px; font-weight: 600;">
+            <option value="MBBank">MBBank</option>
+            <option value="Vietcombank">Vietcombank</option>
+            <option value="Techcombank">Techcombank</option>
+            <option value="VPBank">VPBank</option>
+            <option value="ACB">ACB</option>
+            <option value="BIDV">BIDV</option>
+            <option value="VietinBank">VietinBank</option>
+            <option value="TPBank">TPBank</option>
+            <option value="MoMo / ViettelMoney">MoMo / ViettelMoney</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Số tài khoản:</label>
+          <input id="aff-payout-accno-input" type="text" placeholder="Nhập STK ngân hàng..." style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 12px; font-weight: 600;" />
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Tên chủ tài khoản (Viết hoa không dấu):</label>
+          <input id="aff-payout-holder-input" type="text" placeholder="VD: NGUYEN VAN A" style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 12px; font-weight: 600; text-transform: uppercase;" />
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="button" onclick="closeAffiliatePayoutModalDesktop()" style="flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--text-primary); font-size: 12px; font-weight: 700; cursor: pointer;">
+            Hủy bỏ
+          </button>
+          <button type="submit" style="flex: 1; padding: 8px; border-radius: 8px; border: none; background: #22c55e; color: #fff; font-size: 12px; font-weight: 800; cursor: pointer;">
+            Gửi Yêu Cầu Rút
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 <div id="view-doi-nhom" class="view">

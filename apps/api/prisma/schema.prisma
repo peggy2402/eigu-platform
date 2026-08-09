@@ -35,17 +35,26 @@ model User {
   passwordResetExpires DateTime?
 
   balance              Decimal    @default(0.00) @db.Decimal(14, 2)
+  affiliateBalance     Decimal    @default(0.00) @db.Decimal(14, 2)
+  affiliateWithdrawn   Decimal    @default(0.00) @db.Decimal(14, 2)
+  referralCode         String?    @unique
+  referredById         String?
+  referrer             User?      @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals            User[]     @relation("UserReferrals")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  proxies             Proxy[]
-  accounts            TikTokAccount[]
-  feedbacks           Feedback[]
-  depositTransactions DepositTransaction[]
-  subscriptions       UserSubscription[]
-  news                News[]
-  newsComments        NewsComment[]
+  proxies                      Proxy[]
+  accounts                     TikTokAccount[]
+  feedbacks                    Feedback[]
+  depositTransactions          DepositTransaction[]
+  subscriptions                UserSubscription[]
+  news                         News[]
+  newsComments                 NewsComment[]
+  affiliateCommissionsEarned    AffiliateCommission[] @relation("ReferrerCommissions")
+  affiliateCommissionsGenerated AffiliateCommission[] @relation("ReferredCommissions")
+  affiliatePayouts             AffiliatePayout[]
 }
 
 model Proxy {
@@ -429,6 +438,60 @@ model NewsCommentReport {
 
   @@index([commentId])
 }
+
+model AffiliateClick {
+  id           String   @id @default(uuid())
+  referralCode String
+  referrerId   String
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  @@index([referralCode])
+  @@index([referrerId])
+}
+
+model AffiliateCommission {
+  id               String   @id @default(uuid())
+  code             String   @unique
+  referrerId       String
+  referrer         User     @relation("ReferrerCommissions", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredUserId   String
+  referredUser     User     @relation("ReferredCommissions", fields: [referredUserId], references: [id], onDelete: Cascade)
+  sourceType       String   // "DEPOSIT", "SUBSCRIPTION"
+  sourceId         String?
+  orderAmount      Decimal  @db.Decimal(14, 2)
+  rate             Decimal  @db.Decimal(5, 2)
+  commissionAmount Decimal  @db.Decimal(14, 2)
+  status           String   @default("COMPLETED") // PENDING, COMPLETED, CANCELLED
+  createdAt        DateTime @default(now())
+
+  @@index([referrerId])
+  @@index([referredUserId])
+  @@index([code])
+  @@index([status])
+}
+
+model AffiliatePayout {
+  id            String    @id @default(uuid())
+  code          String    @unique
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Decimal   @db.Decimal(14, 2)
+  bankName      String
+  accountNumber String
+  accountHolder String
+  status        String    @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
+  adminNote     String?
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([code])
+  @@index([status])
+}
+
 
 
 

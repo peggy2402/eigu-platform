@@ -1196,7 +1196,7 @@ Xử lý:
 
 ### 32.6 Tích Hợp Nút "Quy Định & Điều Khoản Sử Dụng" Vào Footer & Định Tuyến Song Song FAQ (`Footer.tsx`, `page.tsx`, `LanguageContext.tsx`)
 - **Tích hợp Nút Trong `Footer.tsx`**:
-  - Tại cột **"Bảo Mật"** (Security & Legal), bổ sung thêm nút bấm `li.footer-link` có tên `"Quy định & Điều khoản sử dụng"` (`{t('footer_terms_of_service')}`) xếp **nằm trên** nút `"Chính sách bảo mật & Miễn trừ trách nhiệm"`.
+- Tại cột **"Bảo Mật"** (Security & Legal), bổ sung thêm nút bấm `li.footer-link` có tên `"Quy định & Điều khoản sử dụng"` (`{t('footer_terms_of_service')}`) xếp **nằm trên** nút `"Chính sách bảo mật & Miễn trừ trách nhiệm"`.
 - **Bổ sung key Đa ngôn ngữ (`LanguageContext.tsx`)**:
   - Tiếng Việt: `"Quy định & Điều khoản sử dụng"`, Tiếng Anh: `"Terms of Service & Usage"`.
 - **Tạo Route Redirect & Xử lý Định tuyến Song Song (`apps/web/src/app/terms-of-service/page.tsx` & `page.tsx`)**:
@@ -1369,6 +1369,46 @@ Xử lý:
 ### 35.5 Kiểm Tra Biên Dịch & Đồng Bộ Git Repositories
 - **Kiểm thử biên dịch Web**: `npx nx build web` $\rightarrow$ `✓ Compiled successfully (16/16 static & dynamic pages)`.
 - **Đồng bộ Git Branch**: Đã merge và push thành công toàn bộ mã nguồn lên nhánh `developer` và `vanchien` (`git push origin vanchien`).
+
+---
+
+## Phase 36: Phát Triển Hệ Thống Tiếp Thị Liên Kết (Affiliate Program) & Đồng Bộ Dữ Liệu 100% Giữa Web App & Desktop App (09/08/2026)
+
+### 36.1 Kiến Trúc Cơ Sở Dữ Liệu & API Backend Gateway (NestJS & Prisma)
+- **Cập nhật Schema Prisma ([schema.prisma](file:///d:/eigu-platform/apps/api/prisma/schema.prisma))**:
+  - Bổ sung trường `referralCode` (`String? @unique`), `referredById` (`String?`), `affiliateBalance` (`Decimal @default(0)`), `affiliateWithdrawn` (`Decimal @default(0)`) vào model `User`.
+  - Thêm 3 bảng quan hệ theo dõi tiếp thị liên kết: `AffiliateClick`, `AffiliateCommission`, `AffiliatePayout`.
+- **Xây dựng Affiliate Module ([affiliate.module.ts](file:///d:/eigu-platform/apps/api/src/affiliate/affiliate.module.ts))**:
+  - Triển khai `AffiliateController` & `AffiliateService` với các API: `/affiliate/stats`, `/affiliate/referrals`, `/affiliate/commissions`, `/affiliate/payout-request`, `/affiliate/payouts`, `/affiliate/click/:code`, và các API quản trị Admin `/affiliate/admin/*`.
+
+### 36.2 Đồng Bộ Dữ Liệu Token & Đăng Nhập (`AuthService`)
+- **Trả về đầy đủ thông tin Affiliate trong Response Đăng Nhập ([auth.service.ts](file:///d:/eigu-platform/apps/api/src/auth/auth.service.ts))**:
+  - Khắc phục sự cố response đăng nhập thiếu `referralCode`: Cập nhật `AuthService.getProfile()` và `AuthService.generateTokens()` tự động chọn (`select`) và trả về `referralCode`, `affiliateBalance`, `affiliateWithdrawn` trong payload JWT & `/auth/me`.
+  - Tự động quét và phát sinh mã duy nhất `EIGUxxxx` cho tất cả tài khoản nếu phát hiện chưa có mã giới thiệu (`syncAllUsersReferralCodes`).
+- **Đồng bộ cố định 100% tài khoản cũ trong Database PostgreSQL**:
+  - Đã thực thi script đồng bộ toàn bộ tài khoản trong hệ thống sang mã cố định duy nhất trong PostgreSQL Supabase Cloud:
+    - Admin (`admin@eigu.com` / `admin`): **`EIGUN7EE`**
+    - Staff (`staff@eigu.com` / `staff`): **`EIGUNHCX`**
+    - User (`user@eigu.com` / `user`): **`EIGUDFU9`**
+    - V.v. cho toàn bộ các tài khoản người dùng khác.
+
+### 36.3 Khắc Phục Lỗi Cache & Đồng Bộ Giao Diện Desktop Client ([affiliate.ui.js](file:///d:/eigu-platform/apps/desktop/src/assets/js/ui/affiliate.ui.js) & [views.component.js](file:///d:/eigu-platform/apps/desktop/src/assets/js/components/views.component.js))
+- **Xóa bỏ chuỗi tĩnh (Hardcoded string `EIGU88X2`)**: Thay thế toàn bộ mã mẫu cũ trong HTML tĩnh bằng trạng thái chờ dynamic `Đang tải...` $\rightarrow$ tự động cập nhật ngay mã thực từ Database khi đăng nhập.
+- **Cách ly phiên đăng nhập & Xóa sạch Cache khi Logout**:
+  - Trong hàm `handleLogout()` ([auth.service.js](file:///d:/eigu-platform/apps/desktop/src/assets/js/domain/auth.service.js)), bổ sung lệnh xóa sạch dữ liệu cache cũ (`currentAffiliateStats = null`) và reset các thẻ input về trạng thái ban đầu khi đăng xuất.
+  - Bảo đảm khi Đăng xuất tài khoản A (Admin) và Đăng nhập tài khoản B (`user`, `vietvq`), ứng dụng sẽ hiển thị 100% chính xác mã giới thiệu chuẩn của tài khoản B tương ứng.
+
+### 36.4 Nâng Cấp Nút "Làm Mới Dữ Liệu" Trên Cả Web App & Desktop App
+- **Web App Dashboard ([AffiliateView.tsx](file:///d:/eigu-platform/apps/web/src/components/affiliate/AffiliateView.tsx))**:
+  - Gán nút *"Làm mới dữ liệu"* tới hàm `handleRefreshAll()` xử lý `Promise.all` đồng thời làm mới chỉ số KPI (`fetchStats`), danh sách thành viên giới thiệu (`fetchReferrals`), lịch sử hoa hồng (`fetchCommissions`), và lịch sử rút tiền (`fetchPayouts`) đi kèm thông báo Toast xanh.
+- **Desktop App ([affiliate.ui.js](file:///d:/eigu-platform/apps/desktop/src/assets/js/ui/affiliate.ui.js) & [views.component.js](file:///d:/eigu-platform/apps/desktop/src/assets/js/components/views.component.js))**:
+  - Nút *"🔄 Làm mới dữ liệu"* được gán hàm `refreshAffiliateAllDesktop()` thực hiện tải lại thông tin phiên `/auth/me`, chỉ số thống kê cá nhân, và bảng dữ liệu tab đang mở đi kèm Toast phản hồi mượt mà.
+
+### 36.5 Kiểm Tra Biên Dịch Hệ Thống
+- **API NestJS**: `npx tsc --noEmit -p apps/api/tsconfig.app.json` $\rightarrow$ `✓ 0 error`.
+- **Web Next.js**: `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`.
+- **Desktop Electron**: `npx tsc --noEmit -p apps/desktop/tsconfig.app.json` $\rightarrow$ `✓ 0 error`.
+
 
 
 

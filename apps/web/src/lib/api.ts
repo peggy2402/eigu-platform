@@ -170,8 +170,9 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
 }
 
 export const authApi = {
-  register: (username: string, email: string, password: string) =>
-    request(API_ENDPOINTS.AUTH.REGISTER, { method: 'POST', body: JSON.stringify({ username, email, password }) }),
+  register: (username: string, email: string, password: string, refCode?: string) =>
+    request(API_ENDPOINTS.AUTH.REGISTER, { method: 'POST', body: JSON.stringify({ username, email, password, refCode }) }),
+
 
   verifyEmail: (email: string, otp: string) =>
     request(API_ENDPOINTS.AUTH.VERIFY_EMAIL, { method: 'POST', body: JSON.stringify({ email, otp }) }),

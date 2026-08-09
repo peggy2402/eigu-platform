@@ -50,13 +50,18 @@ export class AuthService implements OnModuleInit {
             isVerified: true,
             role: 'admin',
             balance: 1000000,
+            referralCode: await this.generateUniqueReferralCode(),
           }
         });
         this.logger.log('Default admin user created: admin / 123456');
       } else {
+        const updateData: any = { passwordHash, isVerified: true, role: 'admin' };
+        if (!existingAdmin.referralCode) {
+          updateData.referralCode = await this.generateUniqueReferralCode();
+        }
         await this.prisma.user.update({
           where: { id: existingAdmin.id },
-          data: { passwordHash, isVerified: true, role: 'admin' }
+          data: updateData
         });
       }
 
@@ -73,13 +78,18 @@ export class AuthService implements OnModuleInit {
             isVerified: true,
             role: 'staff',
             balance: 500000,
+            referralCode: await this.generateUniqueReferralCode(),
           }
         });
         this.logger.log('Default staff user created: staff / 123456');
       } else {
+        const updateData: any = { passwordHash, isVerified: true, role: 'staff' };
+        if (!existingStaff.referralCode) {
+          updateData.referralCode = await this.generateUniqueReferralCode();
+        }
         await this.prisma.user.update({
           where: { id: existingStaff.id },
-          data: { passwordHash, isVerified: true, role: 'staff' }
+          data: updateData
         });
       }
 
@@ -96,15 +106,21 @@ export class AuthService implements OnModuleInit {
             isVerified: true,
             role: 'user',
             balance: 150000,
+            referralCode: await this.generateUniqueReferralCode(),
           }
         });
         this.logger.log('Default demo user created: user / 123456');
       } else {
+        const updateData: any = { passwordHash, isVerified: true, role: 'user' };
+        if (!existingUser.referralCode) {
+          updateData.referralCode = await this.generateUniqueReferralCode();
+        }
         await this.prisma.user.update({
           where: { id: existingUser.id },
-          data: { passwordHash, isVerified: true, role: 'user' }
+          data: updateData
         });
       }
+
 
     } catch (err: any) {
       this.logger.error('Failed to seed default users:', err.message);
@@ -480,6 +496,24 @@ export class AuthService implements OnModuleInit {
     await Promise.race([mailPromise, timeoutPromise]);
   }
 
+  private async generateUniqueReferralCode(): Promise<string> {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    let isUnique = false;
+    let attempts = 0;
+    while (!isUnique && attempts < 20) {
+      let rand = '';
+      for (let i = 0; i < 4; i++) {
+        rand += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      code = `EIGU${rand}`;
+      const existing = await this.prisma.user.findFirst({ where: { referralCode: code } });
+      if (!existing) isUnique = true;
+      attempts++;
+    }
+    return code;
+  }
+
   async register(dto: RegisterDto) {
     const existingEmail = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existingEmail) {
@@ -492,9 +526,33 @@ export class AuthService implements OnModuleInit {
     const passwordHash = await bcrypt.hash(dto.password, 12);
     const otp = this.generateOtp();
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const referralCode = await this.generateUniqueReferralCode();
+
+    let referredById: string | undefined = undefined;
+    if (dto.refCode) {
+      const cleanRef = dto.refCode.trim().toUpperCase();
+      const referrer = await this.prisma.user.findFirst({
+        where: {
+          OR: [{ referralCode: cleanRef }, { id: dto.refCode.trim() }],
+        },
+        select: { id: true },
+      });
+      if (referrer) {
+        referredById = referrer.id;
+        this.logger.log(`[Auth] New user ${dto.email} registered using referral code/id "${dto.refCode}" -> Referrer User ID: ${referrer.id}`);
+      }
+    }
 
     const user = await this.prisma.user.create({
-      data: { email: dto.email, username: dto.username, passwordHash, otpCode: otp, otpExpiresAt },
+      data: {
+        email: dto.email,
+        username: dto.username,
+        passwordHash,
+        otpCode: otp,
+        otpExpiresAt,
+        referralCode,
+        referredById,
+      },
     });
 
     await this.sendOtpEmail(dto.email, otp, 'Email Verification');
@@ -702,11 +760,36 @@ export class AuthService implements OnModuleInit {
   }
 
   async getProfile(userId: string, clientIp?: string) {
-    const user = await this.prisma.user.findUnique({
+    let user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, username: true, role: true, isVerified: true, isBanned: true, bannedUntil: true, banReason: true, createdAt: true, hiddenTabs: true, balance: true },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        isVerified: true,
+        isBanned: true,
+        bannedUntil: true,
+        banReason: true,
+        createdAt: true,
+        hiddenTabs: true,
+        balance: true,
+        affiliateBalance: true,
+        affiliateWithdrawn: true,
+        referralCode: true,
+      },
     });
     if (!user) throw new UnauthorizedException('User not found');
+
+    if (!user.referralCode) {
+      const code = await this.generateUniqueReferralCode();
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { referralCode: code },
+      });
+      user = { ...user, referralCode: code };
+    }
+
 
     if (user.isBanned) {
       if (user.bannedUntil) {
@@ -748,8 +831,11 @@ export class AuthService implements OnModuleInit {
     return {
       ...user,
       balance: Number(user.balance || 0),
+      affiliateBalance: Number(user.affiliateBalance || 0),
+      affiliateWithdrawn: Number(user.affiliateWithdrawn || 0),
       tabPermissions: tabPerms.map(tp => ({ tabKey: tp.tabKey, visible: tp.visible })),
     };
+
   }
 
   private async generateTokens(userId: string, email: string, role: string, username?: string | null) {
@@ -762,11 +848,26 @@ export class AuthService implements OnModuleInit {
       secret: process.env.JWT_SECRET || 'eigu-dev-secret-key',
     });
 
-    const user = await this.prisma.user.update({
+    let user = await this.prisma.user.update({
       where: { id: userId },
       data: { refreshToken },
-      select: { hiddenTabs: true, balance: true },
+      select: {
+        hiddenTabs: true,
+        balance: true,
+        referralCode: true,
+        affiliateBalance: true,
+        affiliateWithdrawn: true,
+      },
     });
+
+    if (!user.referralCode) {
+      const code = await this.generateUniqueReferralCode();
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { referralCode: code },
+      });
+      user = { ...user, referralCode: code };
+    }
 
     // Lấy tab permissions (merge với ALL_TABS để có default visible=true)
     const tabPerms = await this.usersService.getTabPermissions(userId);
@@ -779,10 +880,14 @@ export class AuthService implements OnModuleInit {
         email,
         role,
         username,
+        referralCode: user.referralCode,
         balance: Number(user.balance || 0),
+        affiliateBalance: Number(user.affiliateBalance || 0),
+        affiliateWithdrawn: Number(user.affiliateWithdrawn || 0),
         hiddenTabs: user.hiddenTabs,
         tabPermissions: tabPerms.map(tp => ({ tabKey: tp.tabKey, visible: tp.visible })),
       },
     };
+
   }
 }

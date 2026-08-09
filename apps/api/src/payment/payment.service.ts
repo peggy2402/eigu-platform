@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException, NotFoundException, Unauthorize
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { AffiliateService } from '../affiliate/affiliate.service';
 import { SepayWebhookDto } from '@eigu-platform/shared';
 
 @Injectable()
@@ -12,7 +13,9 @@ export class PaymentService {
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly auditLogsService: AuditLogsService,
+    private readonly affiliateService: AffiliateService,
   ) { }
+
 
   /**
    * Tạo giao dịch nạp tiền PENDING và trả về thông tin VietQR SePay
@@ -307,7 +310,15 @@ export class PaymentService {
         });
       });
 
-      // 5. Gửi thông báo hệ thống & Ghi log
+      // 5. Tự động tính hoa hồng tiếp thị liên kết (nếu có người giới thiệu)
+      try {
+        await this.affiliateService.processCommission(matchedTx.userId, 'DEPOSIT', matchedTx.id, finalAmount);
+      } catch (affErr: any) {
+        this.logger.error(`[Affiliate] Lỗi tính hoa hồng cho đơn nạp #${matchedTx.code}:`, affErr?.message);
+      }
+
+      // 6. Gửi thông báo hệ thống & Ghi log
+
       const formattedAmt = finalAmount.toLocaleString('vi-VN') + 'đ';
       await this.notificationsService.create(
         'Nạp tiền thành công',
@@ -516,7 +527,15 @@ export class PaymentService {
         });
       });
 
+      // Tự động tính hoa hồng tiếp thị liên kết
+      try {
+        await this.affiliateService.processCommission(txItem.userId, 'DEPOSIT', txItem.id, amount);
+      } catch (affErr: any) {
+        this.logger.error(`[Affiliate] Lỗi tính hoa hồng cho đơn nạp #${txItem.code}:`, affErr?.message);
+      }
+
       // Audit log & Notif
+
       const adminUser = await this.prisma.user.findUnique({ where: { id: adminUserId }, select: { email: true, username: true, role: true } });
       await this.notificationsService.create(
         'Nạp tiền thành công',

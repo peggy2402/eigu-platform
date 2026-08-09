@@ -15,4 +15,9 @@ export class RegisterDto {
   @IsString()
   @MinLength(6)
   password: string;
+
+  @ApiProperty({ example: 'EIGU88X2', required: false })
+  @IsString()
+  refCode?: string;
 }
+

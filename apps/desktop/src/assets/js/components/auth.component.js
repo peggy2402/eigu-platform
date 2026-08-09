@@ -62,8 +62,13 @@ const AuthComponent = `
             <button class="pw-toggle" onclick="togglePw(this)" type="button" tabindex="-1"><span data-icon="eye"></span></button>
           </div>
         </div>
-        <div style="height:16px;"></div>
+        <div class="form-group">
+          <label>Mã giới thiệu (Không bắt buộc)</label>
+          <input type="text" id="reg-refcode" placeholder="VD: EIGU88X2" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;" />
+        </div>
+        <div style="height:12px;"></div>
         <button class="auth-btn" onclick="handleRegister()">Đăng ký</button>
+
       </div>
       <div id="register-step2" class="hidden">
         <p style="text-align:center;color:var(--text-secondary);font-size:14px;margin-bottom:16px;">

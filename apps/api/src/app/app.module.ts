@@ -19,6 +19,7 @@ import { PricingModule } from '../pricing/pricing.module';
 import { ThemeEventModule } from '../theme-event/theme-event.module';
 import { PaymentModule } from '../payment/payment.module';
 import { NewsModule } from '../news/news.module';
+import { AffiliateModule } from '../affiliate/affiliate.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { NewsModule } from '../news/news.module';
     ThemeEventModule,
     PaymentModule,
     NewsModule,
+    AffiliateModule,
   ],
   controllers: [AppController],
   providers: [

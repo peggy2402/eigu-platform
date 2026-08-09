@@ -233,7 +233,11 @@ async function enterApp(showToastNotice = false) {
   if (typeof loadUserSubscriptionsDesktop === 'function') {
     loadUserSubscriptionsDesktop();
   }
+  if (typeof loadAffiliateStatsDesktop === 'function') {
+    loadAffiliateStatsDesktop();
+  }
 }
+
 
 let bannedCountdownInterval = null;
 
@@ -353,6 +357,12 @@ async function refreshUserProfileDesktop() {
         userProfile = updated;
         if (typeof updateProfile === 'function') {
           updateProfile();
+        }
+        if (typeof applyTabPermissions === 'function') {
+          applyTabPermissions(userProfile.tabPermissions);
+        }
+        if (typeof loadAffiliateStatsDesktop === 'function') {
+          loadAffiliateStatsDesktop();
         }
       }
     }

@@ -31,6 +31,8 @@ import FeatureModulesSection from '../components/modules/FeatureModulesSection';
 import DisclaimerModal from '../components/ui/DisclaimerModal';
 import NewsList from '../components/news/NewsList';
 import NewsDetail from '../components/news/NewsDetail';
+import { AffiliateView } from '../components/affiliate/AffiliateView';
+
 
 const TESTIMONIALS_COL1 = [
   { name: 'Quỳnh Mai', handle: '@quynhmai_mmo', avatar: 'https://eigu.site/1.jpg', text: 'Giao diện dễ dùng, nạp tiền tự động nhanh gọn. Via Facebook ở đây trâu thật sự.' },
@@ -1160,7 +1162,12 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
           </section>
         )}
 
-
+        {/* ==================== 3. AFFILIATE PAGE (/affiliate) ==================== */}
+        {activePath === '/affiliate' && (
+          <section style={{ padding: '0 24px 80px' }}>
+            <AffiliateView token={token || undefined} language={language} />
+          </section>
+        )}
 
         {/* ==================== 4. NEWS PAGE (/news) ==================== */}
         {activePath === '/news' && (

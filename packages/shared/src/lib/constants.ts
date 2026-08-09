@@ -113,5 +113,18 @@ export const API_ENDPOINTS = {
     CHECK_STATUS: (code: string) => `/payment/status/${code}`,
     SEPAY_WEBHOOK: '/payment/sepay-webhook',
   },
+  AFFILIATE: {
+    BASE: '/affiliate',
+    STATS: '/affiliate/stats',
+    REFERRALS: '/affiliate/referrals',
+    COMMISSIONS: '/affiliate/commissions',
+    PAYOUT_REQUEST: '/affiliate/payout-request',
+    PAYOUTS: '/affiliate/payouts',
+    CLICK: (code: string) => `/affiliate/click/${code}`,
+    ADMIN_PAYOUTS: '/affiliate/admin/payouts',
+    ADMIN_PAYOUT_STATUS: (id: string) => `/affiliate/admin/payouts/${id}`,
+    ADMIN_STATS: '/affiliate/admin/stats',
+  },
 } as const;
+
 

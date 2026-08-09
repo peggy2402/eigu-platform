@@ -87,6 +87,9 @@ async function handleRegister() {
   const email = document.getElementById('reg-email').value.trim();
   const password = document.getElementById('reg-pass').value;
   const confirmPw = document.getElementById('reg-pass-confirm').value;
+  const refCodeInp = document.getElementById('reg-refcode');
+  const refCode = (refCodeInp ? refCodeInp.value.trim() : '') || localStorage.getItem('eigu_ref_code') || undefined;
+
   if (!username || !email || !password) return setAuthError('register', 'Vui lòng nhập tên đăng nhập, email và mật khẩu');
   if (username.length < 3) return setAuthError('register', 'Tên đăng nhập ít nhất 3 ký tự');
   if (!EMAIL_RE.test(email)) return setAuthError('register', 'Email không hợp lệ');
@@ -95,7 +98,8 @@ async function handleRegister() {
   const btn = document.querySelector('#register-step1 .auth-btn');
   btn.disabled = true; btn.textContent = 'Đang đăng ký...';
   try {
-    await apiFetch('/auth/register', { method:'POST', body:JSON.stringify({username,email,password}) });
+    await apiFetch('/auth/register', { method:'POST', body:JSON.stringify({username,email,password,refCode}) });
+
     registerEmail = email;
     document.getElementById('reg-otp-email').textContent = email;
     showToast('Đăng ký thành công', 'Vui lòng kiểm tra email để lấy mã OTP', 'success');
@@ -205,6 +209,12 @@ async function handleLogout() {
     accessToken = null;
     refreshToken = null;
     userProfile = null;
+    if (typeof currentAffiliateStats !== 'undefined') currentAffiliateStats = null;
+    const linkEl = document.getElementById('aff-ref-link-input');
+    const codeEl = document.getElementById('aff-ref-code-display');
+    if (linkEl) linkEl.value = 'Đang tải...';
+    if (codeEl) codeEl.innerText = '...';
+
 
     if (typeof bannedCountdownInterval !== 'undefined' && bannedCountdownInterval) {
       clearInterval(bannedCountdownInterval);

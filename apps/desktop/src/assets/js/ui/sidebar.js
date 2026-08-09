@@ -83,6 +83,12 @@ function switchView(view, navEl, sub, e) {
     loadApiKeys();
   }
 
+  // Load Affiliate Stats if entering tiep-thi view
+  if (view === 'tiep-thi' && typeof loadAffiliateStatsDesktop === 'function') {
+    loadAffiliateStatsDesktop();
+  }
+
+
   // Load Real Database User Data if entering User Management view
   if (view === 'user-management' && typeof loadRealUserData === 'function') {
     loadRealUserData();
