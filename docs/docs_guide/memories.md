@@ -1409,6 +1409,33 @@ Xử lý:
 - **Web Next.js**: `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`.
 - **Desktop Electron**: `npx tsc --noEmit -p apps/desktop/tsconfig.app.json` $\rightarrow$ `✓ 0 error`.
 
+---
+
+## Phase 37: Tích Hợp Icon & Widget Chat AI Support 24/7 Góc Dưới Bên Phải Web App (`AIChatWidget.tsx`) (10/08/2026)
+
+### 37.1 Yêu Cầu Kỹ Thuật & Kiến Trúc Thiết Kế
+- Hiển thị Nút bấm Floating Icon dạng hình tròn màu tím gradient nổi bật tại vị trí góc dưới bên phải màn hình (`bottom: 24px`, `right: 24px`, `z-index: 99999`) trên toàn bộ trang Web Next.js.
+- Tích hợp Badge chấm xanh hiệu ứng phát sáng đại diện cho trạng thái *"🟢 Online 24/7 • Instant Help"* đi kèm Tooltip Hint *"Hỗ trợ AI 24/7"*.
+
+### 37.2 Thành Phần Triển Khai (`apps/web/src/components/chat/AIChatWidget.tsx`)
+- **Khung Chat Glassmorphism**: Thiết kế hiệu ứng mờ kính sang trọng (`backdrop-filter: blur(20px)`), viền bo góc 24px, hỗ trợ thu gọn/mở rộng, nút xóa lịch sử chat, sao chép câu trả lời 1-click.
+- **Nút Hỏi Nhanh (Quick Prompt Chips)**:
+  - ⚡ *"Hướng dẫn lách bản quyền FFmpeg MD5?"*
+  - 🚀 *"Tool TikTok Beta cắt video tự động?"*
+  - 💳 *"Nạp tiền tự động & Bảo hành Via?"*
+  - 🎁 *"Cách kích hoạt gói Dùng thử (Trial)?"*
+- **Trí Tuệ Nhân Tạo Trả Lời Tức Thì**: Tích hợp luồng phản hồi thông minh, hiệu ứng Typing animation 3 chấm nhịp nhàng, render định dạng Markdown/HTML đẹp mắt.
+- **Tích Hợp Toàn Cục ([RootLayout](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/app/layout.tsx))**: Nhúng `<AIChatWidget />` trực tiếp bên trong `<ToastProvider>` để xuất hiện trên tất cả các subroute (`/`, `/news`, `/news/[slug]`, `/privacy-policy`...).
+
+### 37.3 Kiểm Tra Biên Dịch & Xác Nhận
+- `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`. Giao diện hoạt động mượt mà, 100% theme-aware (Light/Dark mode) và tương thích hoàn hảo trên các thiết bị Mobile, Tablet & Desktop.
+
+### 37.4 Tối Ưu Giao Diện UI Chat AI: Ẩn Thanh Cuộn (Hidden Scrollbar) & Gom Gợi Ý Câu Hỏi Vào Dropdown Popover (`AIChatWidget.tsx`) (12/08/2026)
+- **Ẩn hoàn toàn thanh cuộn (No Scrollbar)**: Thêm lớp CSS `.no-scrollbar` (sử dụng `scrollbar-width: none;` và `::-webkit-scrollbar { display: none; }`) cho toàn bộ khung tin nhắn và popover menu, loại bỏ hoàn toàn các thanh cuộn xám dày xấu xí trong khi vẫn giữ cuộn mượt mà 100%.
+- **Nút "Gợi ý" dạng Popover Dropdown**: Thay thế dải nút bấm cuộn ngang chiếm diện tích bằng nút bấm nhỏ gọn **`⚡ Gợi ý ▾`** ngay cạnh ô nhập tin nhắn. Khi bấm nút, một danh sách popover chứa các câu hỏi thường gặp sẽ xổ lên tinh tế, bấm chọn câu hỏi sẽ tự động gửi và đóng menu tức thì.
+
+
+
 
 
 

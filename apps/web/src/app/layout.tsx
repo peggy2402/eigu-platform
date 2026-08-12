@@ -4,6 +4,7 @@ import { ToastProvider } from '../contexts/ToastContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { AuthProvider } from '../contexts/AuthContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
+import AIChatWidget from '../components/chat/AIChatWidget';
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eigu.site';
 
@@ -115,6 +116,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ThemeProvider>
               <ToastProvider>
                 {children}
+                <AIChatWidget />
               </ToastProvider>
             </ThemeProvider>
           </LanguageProvider>
