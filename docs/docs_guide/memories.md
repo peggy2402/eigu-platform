@@ -1434,6 +1434,15 @@ Xử lý:
 - **Ẩn hoàn toàn thanh cuộn (No Scrollbar)**: Thêm lớp CSS `.no-scrollbar` (sử dụng `scrollbar-width: none;` và `::-webkit-scrollbar { display: none; }`) cho toàn bộ khung tin nhắn và popover menu, loại bỏ hoàn toàn các thanh cuộn xám dày xấu xí trong khi vẫn giữ cuộn mượt mà 100%.
 - **Nút "Gợi ý" dạng Popover Dropdown**: Thay thế dải nút bấm cuộn ngang chiếm diện tích bằng nút bấm nhỏ gọn **`⚡ Gợi ý ▾`** ngay cạnh ô nhập tin nhắn. Khi bấm nút, một danh sách popover chứa các câu hỏi thường gặp sẽ xổ lên tinh tế, bấm chọn câu hỏi sẽ tự động gửi và đóng menu tức thì.
 
+### 37.5 Tích Hợp Speed Dial Multi-Channel Contact Stack Khi Hover Trên Desktop Client (`AIChatWidget.tsx`) (12/08/2026)
+- **Tương tác Hover đa kênh**: Khi người dùng rê chuột vào nút Chat AI góc dưới bên phải ở Chế độ Web Desktop, một chuỗi nút liên hệ hỗ trợ sẽ trượt nổi lên theo chiều dọc (Speed Dial Stack) bao gồm:
+  - ✉️ **Gmail**: Gửi Email hỗ trợ trực tiếp (`mailto:support@eigu.site`).
+  - ✈️ **Telegram**: Kênh Telegram Support 24/7 (`https://t.me/eigu_support`).
+  - 💬 **FB Messenger**: Nhắn tin Fanpage Messenger (`https://m.me/eiguplatform`).
+  - 💚 **WhatsApp**: Kênh hỗ trợ WhatsApp (`https://wa.me/84900000000`).
+- **Phân tách thiết bị (Responsive Display)**: Chuỗi Icon Speed Dial này chỉ hiển thị khi ở màn hình Desktop Web (`@media (min-width: 768px)`). Trên thiết bị Di động (Mobile `< 768px`), tính năng hover được ẩn hoàn toàn (`display: none !important`) để giữ giao diện di động tối giản, tinh tế và không che khuất màn hình.
+
+
 
 
 

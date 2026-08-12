@@ -11,6 +11,71 @@ interface ChatMessage {
   timestamp: string;
 }
 
+interface ContactChannel {
+  id: string;
+  name: string;
+  nameEn: string;
+  icon: React.ReactNode;
+  color: string;
+  link: string;
+  bgGradient: string;
+}
+
+const CONTACT_CHANNELS: ContactChannel[] = [
+  {
+    id: 'gmail',
+    name: 'Gửi Email (Gmail)',
+    nameEn: 'Send Email (Gmail)',
+    color: '#ea4335',
+    bgGradient: 'linear-gradient(135deg, #ea4335, #c5221f)',
+    link: 'mailto:support@eigu.site',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'telegram',
+    name: 'Telegram Support',
+    nameEn: 'Telegram Support',
+    color: '#229ed9',
+    bgGradient: 'linear-gradient(135deg, #229ed9, #0088cc)',
+    link: 'https://t.me/eigu_support',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .54-1.43.53-.47-.01-1.37-.27-2.05-.49-.83-.27-1.49-.42-1.43-.89.03-.25.38-.51 1.07-.78 4.19-1.82 6.98-3.02 8.37-3.6 3.98-1.66 4.81-1.95 5.35-1.96.12 0 .38.03.55.17.14.12.18.28.2.45-.02.07-.02.16-.04.28z"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'messenger',
+    name: 'FB Messenger',
+    nameEn: 'FB Messenger',
+    color: '#0084ff',
+    bgGradient: 'linear-gradient(135deg, #00c6ff, #0072ff)',
+    link: 'https://m.me/eiguplatform',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.908 1.452 5.504 3.722 7.185V22l3.447-1.892c.905.251 1.87.391 2.831.391 10.007 0 10-9.241 10-9.241S22 2 12 2zm1.203 12.091l-2.617-2.793-5.11 2.793 5.617-5.961 2.68 2.793 5.047-2.793-5.617 5.961z"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'whatsapp',
+    name: 'WhatsApp Support',
+    nameEn: 'WhatsApp Support',
+    color: '#25d366',
+    bgGradient: 'linear-gradient(135deg, #25d366, #128c7e)',
+    link: 'https://wa.me/84900000000',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M16.75 13.96c-.25-.13-1.47-.72-1.7-.81-.22-.09-.39-.13-.56.13-.17.25-.66.81-.81.98-.15.17-.3.19-.55.07-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.36-.77-1.86-.2-.49-.4-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.71 4.29 3.8.6.26 1.07.41 1.44.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.11-.22-.17-.47-.3zM12 2a10 10 0 0 0-8.48 15.3l-1.39 5.07 5.19-1.36A10 10 0 1 0 12 2z"/>
+      </svg>
+    ),
+  },
+];
+
 const QUICK_QUESTIONS_VI = [
   '⚡ Hướng dẫn lách bản quyền FFmpeg MD5?',
   '🚀 Tool TikTok Beta cắt video tự động?',
@@ -112,6 +177,7 @@ export default function AIChatWidget() {
   const [isTyping, setIsTyping] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Initialize default welcome message
@@ -210,55 +276,136 @@ export default function AIChatWidget() {
 
   return (
     <>
-      {/* Floating Trigger Button (Bottom-Right) */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Toggle AI Chat Support"
+      {/* Wrapper container for Floating Trigger Button & Multi-channel Speed Dial Stack */}
+      <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         style={{
           position: 'fixed',
           bottom: 24,
           right: 24,
           zIndex: 99999,
-          width: 58,
-          height: 58,
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, var(--accent), #8b5cf6)',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-          color: '#ffffff',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          boxShadow: '0 10px 32px rgba(99, 102, 241, 0.45)',
-          transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s',
+          gap: 10,
         }}
-        className="ai-chat-trigger-btn"
       >
-        {isOpen ? (
-          <X size={26} />
-        ) : (
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Sparkles size={26} />
-            {/* Green Online Badge */}
-            <span
-              style={{
-                position: 'absolute',
-                top: -4,
-                right: -4,
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                background: '#22c55e',
-                border: '2px solid var(--bg-card)',
-                boxShadow: '0 0 8px #22c55e',
-              }}
-            />
+        {/* Speed Dial Contact Stack (Visible on Desktop Web Hover when Chat Window is closed) */}
+        {!isOpen && (
+          <div
+            className="ai-contact-speed-dial"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 10,
+              opacity: isHovered ? 1 : 0,
+              pointerEvents: isHovered ? 'auto' : 'none',
+              transform: isHovered ? 'translateY(0) scale(1)' : 'translateY(15px) scale(0.8)',
+              transition: 'opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              marginBottom: 4,
+            }}
+          >
+            {CONTACT_CHANNELS.map((channel, index) => (
+              <a
+                key={channel.id}
+                href={channel.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={language === 'en' ? channel.nameEn : channel.name}
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  background: channel.bgGradient,
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+                  transition: `all 0.25s ease ${index * 0.03}s`,
+                  position: 'relative',
+                  textDecoration: 'none',
+                }}
+                className="ai-speed-dial-item"
+              >
+                {channel.icon}
+                {/* Tooltip Label (Desktop only) */}
+                <span
+                  style={{
+                    position: 'absolute',
+                    right: 52,
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    padding: '4px 10px',
+                    borderRadius: 12,
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                    pointerEvents: 'none',
+                    opacity: 0,
+                    transform: 'translateX(6px)',
+                    transition: 'opacity 0.2s, transform 0.2s',
+                    backdropFilter: 'blur(12px)',
+                  }}
+                  className="ai-speed-dial-tooltip"
+                >
+                  {language === 'en' ? channel.nameEn : channel.name}
+                </span>
+              </a>
+            ))}
           </div>
         )}
-      </button>
 
-      {/* Floating Tooltip Hint (Visible when closed) */}
-      {!isOpen && (
+        {/* Main Floating Trigger Button (Bottom-Right) */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle AI Chat Support"
+          style={{
+            width: 58,
+            height: 58,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, var(--accent), #8b5cf6)',
+            border: '1px solid rgba(255, 255, 255, 0.25)',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 10px 32px rgba(99, 102, 241, 0.45)',
+            transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s',
+          }}
+          className="ai-chat-trigger-btn"
+        >
+          {isOpen ? (
+            <X size={26} />
+          ) : (
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Sparkles size={26} />
+              {/* Green Online Badge */}
+              <span
+                style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -4,
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  background: '#22c55e',
+                  border: '2px solid var(--bg-card)',
+                  boxShadow: '0 0 8px #22c55e',
+                }}
+              />
+            </div>
+          )}
+        </button>
+      </div>
+
+      {/* Floating Tooltip Hint (Visible when closed and not hovered) */}
+      {!isOpen && !isHovered && (
         <div
           onClick={() => setIsOpen(true)}
           style={{
@@ -687,6 +834,24 @@ export default function AIChatWidget() {
           border-color: var(--accent) !important;
           color: var(--accent) !important;
           background: var(--accent-glow) !important;
+        }
+        /* Show speed dial tooltips on item hover */
+        .ai-speed-dial-item:hover .ai-speed-dial-tooltip {
+          opacity: 1 !important;
+          transform: translateX(0) !important;
+        }
+        .ai-speed-dial-item:hover {
+          transform: scale(1.12) !important;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
+        }
+        /* Hide Speed Dial completely on Mobile screens (< 768px) */
+        @media (max-width: 767px) {
+          .ai-contact-speed-dial {
+            display: none !important;
+          }
+          .ai-chat-tooltip-hint {
+            display: none !important;
+          }
         }
         /* Hide ugly scrollbars globally for chat widget elements */
         .no-scrollbar::-webkit-scrollbar {
