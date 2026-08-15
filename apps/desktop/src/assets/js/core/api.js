@@ -1,4 +1,4 @@
-const API_BASE = localStorage.getItem('eigu_api_url') || 'https://api.eigu.site/api';
+const API_BASE = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'http://localhost:3001/api';
 
 function formatFriendlyErrorMessage(raw) {
   if (!raw) return 'Có lỗi xảy ra, vui lòng thử lại sau.';
@@ -37,11 +37,11 @@ async function syncObfuscationConfig() {
   if (isSyncingConfig) return;
   isSyncingConfig = true;
   try {
-    let rawBase = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'https://api.eigu.site/api';
+    let rawBase = (window.EIGU_CONFIG && window.EIGU_CONFIG.API_BASE_URL) || 'http://localhost:3001/api';
     if (!rawBase.startsWith('http://') && !rawBase.startsWith('https://')) {
-      rawBase = 'https://api.eigu.site/api';
+      rawBase = 'http://localhost:3001/api';
     }
-    let origin = 'https://api.eigu.site';
+    let origin = 'http://localhost:3001';
     try {
       origin = new URL(rawBase).origin;
     } catch (e) { }

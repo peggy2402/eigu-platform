@@ -21,4 +21,7 @@ export class CreatePayoutDto {
   @IsString()
   @MinLength(2)
   accountHolder: string;
+
+  @ApiProperty({ example: true, required: false, description: 'Lưu thông tin ngân hàng này làm mặc định cho các lần sau' })
+  saveAsDefault?: boolean;
 }

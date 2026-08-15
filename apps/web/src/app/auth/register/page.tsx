@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, Tag } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, Tag, CheckCircle2 } from 'lucide-react';
 import { authApi, syncApiPrefixFromBootstrap } from '../../../lib/api';
 import { useToast } from '../../../contexts/ToastContext';
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -36,6 +36,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [refCode, setRefCode] = useState('');
+  const [isLockedRef, setIsLockedRef] = useState(false);
   const [showPw, setShowPw] = useState(false);
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -63,10 +64,14 @@ export default function RegisterPage() {
       if (queryRef) {
         const cleanRef = queryRef.trim().toUpperCase();
         setRefCode(cleanRef);
+        setIsLockedRef(true);
         localStorage.setItem('eigu_ref_code', cleanRef);
       } else {
         const savedRef = localStorage.getItem('eigu_ref_code');
-        if (savedRef) setRefCode(savedRef);
+        if (savedRef) {
+          setRefCode(savedRef);
+          setIsLockedRef(true);
+        }
       }
 
       if (queryStep === 'otp' && queryEmail) {
@@ -367,18 +372,56 @@ export default function RegisterPage() {
               </div>
 
               <div className="form-group">
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Tag size={14} style={{ color: 'var(--accent)' }} />
-                  <span>{language === 'en' ? 'Referral Code (Optional)' : 'Mã giới thiệu (Không bắt buộc)'}</span>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Tag size={14} style={{ color: 'var(--accent)' }} />
+                    <span>{language === 'en' ? 'Referral Code' : 'Mã giới thiệu'}</span>
+                  </span>
+                  {isLockedRef && (
+                    <span style={{ fontSize: 11, color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700 }}>
+                      <Lock size={12} /> {language === 'en' ? 'Locked from partner link' : 'Đã cố định từ liên kết'}
+                    </span>
+                  )}
                 </label>
-                <input
-                  type="text"
-                  value={refCode}
-                  onChange={e => setRefCode(e.target.value.toUpperCase())}
-                  placeholder="VD: EIGU88X2"
-                  style={{ textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}
-                />
+
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={refCode}
+                    readOnly={isLockedRef}
+                    onChange={e => !isLockedRef && setRefCode(e.target.value.toUpperCase())}
+                    placeholder={language === 'en' ? 'E.g. EIGU88X2 (Optional)' : 'VD: EIGU88X2 (Không bắt buộc)'}
+                    style={{
+                      textTransform: 'uppercase',
+                      letterSpacing: '1.5px',
+                      fontWeight: 700,
+                      background: isLockedRef ? 'rgba(99, 102, 241, 0.08)' : undefined,
+                      borderColor: isLockedRef ? 'rgba(99, 102, 241, 0.4)' : undefined,
+                      color: isLockedRef ? 'var(--text-primary)' : undefined,
+                      cursor: isLockedRef ? 'default' : 'text',
+                      paddingRight: isLockedRef ? 36 : undefined,
+                    }}
+                  />
+                  {isLockedRef && (
+                    <div style={{ position: 'absolute', right: 12, display: 'flex', alignItems: 'center', color: 'var(--accent)', pointerEvents: 'none' }}>
+                      <ShieldCheck size={18} />
+                    </div>
+                  )}
+                </div>
+
+                {refCode && (
+                  <div style={{ fontSize: 11, color: '#22c55e', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
+                    <CheckCircle2 size={13} />
+                    <span>
+                      {isLockedRef
+                        ? (language === 'en' ? 'Partner referral code protected & applied' : 'Mã người giới thiệu được bảo lưu & cố định từ liên kết đối tác')
+                        : (language === 'en' ? 'Referral code applied' : 'Đã áp dụng mã giới thiệu thành công')}
+                    </span>
+                  </div>
+                )}
               </div>
+
+
 
 
               <button type="submit" className="auth-btn" disabled={loading} style={{ height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800, marginTop: 4 }}>

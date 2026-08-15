@@ -16,6 +16,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AffiliateService } from './affiliate.service';
 import { CreatePayoutDto } from './dto/create-payout.dto';
 import { AdminUpdatePayoutDto } from './dto/admin-update-payout.dto';
+import { UpdateBankSettingsDto } from './dto/update-bank-settings.dto';
+import { UpdateAffiliateConfigDto } from './dto/admin-config.dto';
 
 @ApiTags('Affiliate')
 @Controller('affiliate')
@@ -29,6 +31,24 @@ export class AffiliateController {
   async getStats(@Req() req: any) {
     const userId = req.user.id || req.user.userId || req.user.sub;
     return this.affiliateService.getStats(userId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('bank-settings')
+  @ApiOperation({ summary: 'Lấy thông tin tài khoản ngân hàng mặc định của tài khoản' })
+  async getBankSettings(@Req() req: any) {
+    const userId = req.user.id || req.user.userId || req.user.sub;
+    return this.affiliateService.getBankSettings(userId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch('bank-settings')
+  @ApiOperation({ summary: 'Cập nhật tài khoản ngân hàng nhận tiền mặc định' })
+  async updateBankSettings(@Req() req: any, @Body() dto: UpdateBankSettingsDto) {
+    const userId = req.user.id || req.user.userId || req.user.sub;
+    return this.affiliateService.updateBankSettings(userId, dto);
   }
 
   @ApiBearerAuth()
@@ -91,13 +111,13 @@ export class AffiliateController {
   }
 
   // ==========================================
-  // ADMIN API ENDPOINTS
+  // ADMIN API ENDPOINTS (STRICT ADMIN ONLY)
   // ==========================================
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('admin/payouts')
-  @ApiOperation({ summary: '[ADMIN/STAFF] Danh sách tất cả các yêu cầu rút tiền affiliate' })
+  @ApiOperation({ summary: '[ADMIN ONLY] Danh sách tất cả các yêu cầu rút tiền affiliate' })
   async getAdminPayouts(
     @Req() req: any,
     @Query('status') status?: string,
@@ -105,8 +125,8 @@ export class AffiliateController {
     @Query('limit') limit?: number,
   ) {
     const role = (req.user?.role || '').toLowerCase();
-    if (role !== 'admin' && role !== 'staff') {
-      throw new ForbiddenException('Chỉ tài khoản Admin hoặc Staff mới có quyền truy cập');
+    if (role !== 'admin') {
+      throw new ForbiddenException('Chỉ tài khoản Admin tối cao mới có quyền truy cập duyệt đơn rút tiền');
     }
     return this.affiliateService.getAdminPayouts(status, Number(page) || 1, Number(limit) || 20);
   }
@@ -114,15 +134,15 @@ export class AffiliateController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Patch('admin/payouts/:id')
-  @ApiOperation({ summary: '[ADMIN/STAFF] Phê duyệt hoặc từ chối đơn rút tiền affiliate' })
+  @ApiOperation({ summary: '[ADMIN ONLY] Phê duyệt hoặc từ chối đơn rút tiền affiliate' })
   async updatePayoutStatus(
     @Req() req: any,
     @Param('id') id: string,
     @Body() dto: AdminUpdatePayoutDto,
   ) {
     const role = (req.user?.role || '').toLowerCase();
-    if (role !== 'admin' && role !== 'staff') {
-      throw new ForbiddenException('Chỉ tài khoản Admin hoặc Staff mới có quyền truy cập');
+    if (role !== 'admin') {
+      throw new ForbiddenException('Chỉ tài khoản Admin tối cao mới có quyền duyệt đơn rút tiền');
     }
     const adminId = req.user.id || req.user.userId || req.user.sub;
     return this.affiliateService.updatePayoutStatus(id, dto, adminId);
@@ -131,12 +151,38 @@ export class AffiliateController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('admin/stats')
-  @ApiOperation({ summary: '[ADMIN] Báo cáo thống kê affiliate toàn hệ thống' })
+  @ApiOperation({ summary: '[ADMIN ONLY] Báo cáo thống kê affiliate toàn hệ thống' })
   async getAdminStats(@Req() req: any) {
     const role = (req.user?.role || '').toLowerCase();
-    if (role !== 'admin' && role !== 'staff') {
-      throw new ForbiddenException('Chỉ tài khoản Admin hoặc Staff mới có quyền truy cập');
+    if (role !== 'admin') {
+      throw new ForbiddenException('Chỉ tài khoản Admin tối cao mới có quyền xem thống kê tiếp thị');
     }
     return this.affiliateService.getAdminStats();
   }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/config')
+  @ApiOperation({ summary: '[ADMIN ONLY] Lấy cấu hình % hoa hồng và hạn mức rút tiền tiếp thị' })
+  async getAdminConfig(@Req() req: any) {
+    const role = (req.user?.role || '').toLowerCase();
+    if (role !== 'admin') {
+      throw new ForbiddenException('Chỉ tài khoản Admin tối cao mới có quyền xem cấu hình hoa hồng');
+    }
+    return this.affiliateService.getAdminConfig();
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch('admin/config')
+  @ApiOperation({ summary: '[ADMIN ONLY] Cập nhật % hoa hồng và hạn mức rút tiền tiếp thị' })
+  async updateAdminConfig(@Req() req: any, @Body() dto: UpdateAffiliateConfigDto) {
+    const role = (req.user?.role || '').toLowerCase();
+    if (role !== 'admin') {
+      throw new ForbiddenException('Chỉ tài khoản Admin tối cao mới có quyền thay đổi cấu hình hoa hồng');
+    }
+    const adminId = req.user.id || req.user.userId || req.user.sub;
+    return this.affiliateService.updateAdminConfig(dto, adminId);
+  }
 }
+

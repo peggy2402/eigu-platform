@@ -12,6 +12,9 @@ export interface AffiliateStatsDto {
   affiliateWithdrawn: number;
   commissionRate: number; // e.g. 15 (%)
   minPayoutThreshold: number; // e.g. 200000 (VNĐ)
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankAccountHolder?: string | null;
 }
 
 export interface ReferredUserDto {
@@ -42,6 +45,13 @@ export interface CreatePayoutRequestDto {
   bankName: string;
   accountNumber: string;
   accountHolder: string;
+  saveAsDefault?: boolean;
+}
+
+export interface UserBankSettingsDto {
+  bankName: string;
+  bankAccountNumber: string;
+  bankAccountHolder: string;
 }
 
 export interface AffiliatePayoutDto {
@@ -71,4 +81,14 @@ export interface AdminAffiliateStatsDto {
   totalCommissionsPaid: number;
   totalPendingPayoutsAmount: number;
   pendingPayoutsCount: number;
+}
+
+export interface AdminAffiliateConfigDto {
+  commissionRate: number;
+  minPayoutThreshold: number;
+}
+
+export interface UpdateAffiliateConfigDto {
+  commissionRate?: number;
+  minPayoutThreshold?: number;
 }

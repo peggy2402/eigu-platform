@@ -105,6 +105,10 @@ const SidebarComponent = `
       <span class="nav-icon" data-icon="creditCard"></span>
       <span class="nav-label" data-i18n="transaction_management">Quản lý Giao dịch</span>
     </div>
+    <div class="nav-item admin-only hidden" data-view="admin-payouts" onclick="switchView('admin-payouts', this, null, event)">
+      <span class="nav-icon" data-icon="dollarSign"></span>
+      <span class="nav-label" data-i18n="admin_payouts_management">Quản lý Rút tiền</span>
+    </div>
 
     <div class="nav-item" data-view="tiep-thi" onclick="switchView('tiep-thi', this, null, event)">
       <span class="nav-icon" data-icon="link"></span>

@@ -212,3 +212,59 @@ button {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
+
+/* ========================================================================== */
+/* Custom Number Input - Hide ugly default browser spinners completely       */
+/* ========================================================================== */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
+/* ========================================================================== */
+/* Responsive Table vs Card Grid View (Switch to Cards on small windows)      */
+/* ========================================================================== */
+.responsive-table-wrapper {
+  display: block;
+  width: 100%;
+}
+
+.responsive-card-grid {
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+@media (max-width: 780px) {
+  .responsive-table-wrapper {
+    display: none !important;
+  }
+  .responsive-card-grid {
+    display: grid !important;
+  }
+}
+
+.payout-admin-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: all 0.2s ease;
+}
+
+.payout-admin-card:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
+}
+

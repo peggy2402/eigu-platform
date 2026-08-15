@@ -101,7 +101,7 @@ const ViewsComponent = `
       </div>
 
       <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 10px; padding: 12px; margin-bottom: 14px; font-size: 12px; color: #fca5a5; line-height: 1.5;">
-        ⚠️ Thao tác xóa tài khoản không thể hoàn tác. Mọi số dư, gói dịch vụ active và dữ liệu của bạn sẽ bị xóa vĩnh viễn.
+        <span data-icon="alertTriangle" style="color: #ef4444; vertical-align: middle; margin-right: 4px;"></span> Thao tác xóa tài khoản không thể hoàn tác. Mọi số dư, gói dịch vụ active và dữ liệu của bạn sẽ bị xóa vĩnh viễn.
       </div>
 
       <form id="desktop-delete-account-form" onsubmit="handleDeleteAccountDesktop(event)" style="display: flex; flex-direction: column; gap: 14px;">
@@ -489,7 +489,7 @@ const ViewsComponent = `
           <!-- Chế độ A: Ghép nhân vật (max 2 ảnh) -->
           <div id="template-char-submode">
             <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); padding: 8px 12px; border-radius: 8px; font-size: 11px; color: var(--accent); margin-bottom: 10px;">
-              ⚡ <strong>PoC Gemini Omni:</strong> Tải lên 1 Video mẫu + tối đa 2 Ảnh nhân vật để thay thế nhân vật gốc.
+              <span data-icon="zap" style="color: var(--accent); vertical-align: middle; margin-right: 4px;"></span> <strong>PoC Gemini Omni:</strong> Tải lên 1 Video mẫu + tối đa 2 Ảnh nhân vật để thay thế nhân vật gốc.
             </div>
             
             <label style="font-size: 11px; color: var(--text-secondary);">1. Video Mẫu (.mp4):</label>
@@ -545,7 +545,7 @@ const ViewsComponent = `
 
         <!-- ACTION BUTTON: BẮT ĐẦU RENDER HÀNG LOẠT (CỘT BÊN TRÁI — NẰM NGOÀI KHỐI INPUT) -->
         <button id="ai-video-start-btn" class="btn-primary" style="width: 100%; padding: 14px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3); border-radius: 10px;" onclick="startAiVideoRender()">
-          <span data-icon="zap" style="margin-right: 6px; vertical-align: middle;"></span> ⚡ Bắt đầu Render Hàng loạt (Flat / Unlimited)
+          <span data-icon="zap" style="margin-right: 6px; vertical-align: middle;"></span> Bắt đầu Render Hàng loạt (Flat / Unlimited)
         </button>
       </div>
 
@@ -865,23 +865,28 @@ const ViewsComponent = `
   <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 16px;">
     <div>
       <div style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 12px; background: rgba(99, 102, 241, 0.2); color: var(--accent); font-size: 11px; font-weight: 800; margin-bottom: 6px;">
-        🤝 Affiliate Partner Program (15% Commission)
+        <span data-icon="share" style="vertical-align: middle; margin-right: 4px;"></span> Affiliate Partner Program
       </div>
-      <h2 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">Tiếp Thị Liên Kết & Chiết Khấu Hoa Hồng</h2>
-      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Chia sẻ link giới thiệu EIGU Platform để nhận 15% hoa hồng trọn đời từ các giao dịch nạp tiền & mua gói.</p>
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
+        Tiếp Thị Liên Kết & Chiết Khấu Hoa Hồng <span id="aff-banner-rate-badge" style="color: #22c55e;">(15%)</span>
+      </h2>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+        Chia sẻ link giới thiệu EIGU Platform để nhận hoa hồng <strong id="aff-banner-rate-text" style="color: var(--accent);">15%</strong> trọn đời từ các giao dịch nạp tiền & mua gói.
+      </p>
     </div>
     <button type="button" class="btn-primary" onclick="refreshAffiliateAllDesktop()" style="padding: 8px 14px; font-size: 12px; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px;">
-      🔄 Làm mới dữ liệu
+      <span data-icon="refreshCw" style="vertical-align: middle;"></span> Làm mới dữ liệu
     </button>
-
   </div>
 
   <!-- LINK CARD & 4 METRICS GRID -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
     <!-- LINK & CODE CARD -->
-    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify: space-between;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between;">
       <div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Link & Mã Giới Thiệu Của Bạn</div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <span data-icon="link"></span> Link & Mã Giới Thiệu Của Bạn
+        </div>
         
         <!-- Link Input Box -->
         <div style="margin-bottom: 10px;">
@@ -927,7 +932,7 @@ const ViewsComponent = `
         <div id="aff-earned-sum" style="font-size: 16px; font-weight: 900; color: #eab308; margin-top: 4px;">0đ</div>
       </div>
 
-      <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
           <div style="font-size: 11px; color: #22c55e; font-weight: 700;">Số Dư Khả Dụng</div>
           <div id="aff-balance-sum" style="font-size: 16px; font-weight: 900; color: #22c55e; margin-top: 2px;">0đ</div>
@@ -942,109 +947,154 @@ const ViewsComponent = `
   <!-- TABS & TABLES -->
   <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px;">
     <!-- TAB BUTTONS -->
-    <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 14px;">
-      <button id="aff-tab-btn-referrals" type="button" class="active" onclick="switchAffiliateTabDesktop('referrals')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: rgba(99, 102, 241, 0.2); color: var(--accent);">
-        👥 Thành Viên Đã Giới Thiệu
+    <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+      <button id="aff-tab-btn-referrals" type="button" class="active" onclick="switchAffiliateTabDesktop('referrals')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: rgba(99, 102, 241, 0.2); color: var(--accent); display: inline-flex; align-items: center; gap: 6px;">
+        <span data-icon="users"></span> Thành Viên Đã Giới Thiệu
       </button>
-      <button id="aff-tab-btn-commissions" type="button" onclick="switchAffiliateTabDesktop('commissions')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--text-muted);">
-        📈 Lịch Sử Hoa Hồng
+      <button id="aff-tab-btn-commissions" type="button" onclick="switchAffiliateTabDesktop('commissions')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px;">
+        <span data-icon="trendingUp"></span> Lịch Sử Hoa Hồng
       </button>
-      <button id="aff-tab-btn-payouts" type="button" onclick="switchAffiliateTabDesktop('payouts')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--text-muted);">
-        💳 Lịch Sử Rút Tiền
+      <button id="aff-tab-btn-payouts" type="button" onclick="switchAffiliateTabDesktop('payouts')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px;">
+        <span data-icon="creditCard"></span> Lịch Sử Rút Tiền
+      </button>
+      <button id="aff-tab-btn-bank" type="button" onclick="switchAffiliateTabDesktop('bank')" style="padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px;">
+        <span data-icon="building"></span> Cài Đặt Ngân Hàng
       </button>
     </div>
 
     <!-- TAB 1: REFERRALS TABLE -->
-    <div id="aff-tab-content-referrals">
+    <div id="aff-tab-content-referrals" class="aff-tab-panel">
       <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Tài Khoản</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Ngày Đăng Ký</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Trạng Thái</th>
-              <th style="padding: 8px 10px; color: var(--text-muted); text-align: right;">Hoa Hồng Tạo Ra</th>
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <th style="padding: 10px 12px; color: var(--text-muted);">Thành Viên</th>
+              <th style="padding: 10px 12px; color: var(--text-muted);">Ngày Đăng Ký</th>
+              <th style="padding: 10px 12px; color: var(--text-muted); text-align: center;">Trạng Thái</th>
             </tr>
           </thead>
           <tbody id="aff-referrals-tbody">
-            <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải dữ liệu...</td></tr>
+            <tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải danh sách giới thiệu...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <!-- TAB 2: COMMISSIONS TABLE -->
-    <div id="aff-tab-content-commissions" style="display: none;">
+    <div id="aff-tab-content-commissions" class="aff-tab-panel" style="display: none;">
       <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Mã Đơn</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Thành Viên</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Loại Đơn</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Giá Trị Đơn</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Tỉ Lệ</th>
-              <th style="padding: 8px 10px; color: var(--text-muted); text-align: right;">Hoa Hồng Nhận</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Thời Gian</th>
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <th style="padding: 10px 12px; color: var(--text-muted);">Thành Viên</th>
+              <th style="padding: 10px 12px; color: var(--text-muted); text-align: right;">Giá Trị Giao Dịch</th>
+              <th style="padding: 10px 12px; color: var(--text-muted); text-align: center;">% Tỷ Lệ</th>
+              <th style="padding: 10px 12px; color: var(--text-muted); text-align: right;">Hoa Hồng Nhận</th>
+              <th style="padding: 10px 12px; color: var(--text-muted);">Thời Gian</th>
             </tr>
           </thead>
           <tbody id="aff-commissions-tbody">
-            <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải dữ liệu...</td></tr>
+            <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải lịch sử hoa hồng...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <!-- TAB 3: PAYOUTS TABLE -->
-    <div id="aff-tab-content-payouts" style="display: none;">
+    <div id="aff-tab-content-payouts" class="aff-tab-panel" style="display: none;">
       <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Mã Đơn Rút</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Số Tiền</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Ngân Hàng & STK</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Trạng Thái</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Ghi Chú</th>
-              <th style="padding: 8px 10px; color: var(--text-muted);">Thời Gian</th>
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <th style="padding: 10px 12px; color: var(--text-muted);">Mã Đơn</th>
+              <th style="padding: 10px 12px; color: var(--text-muted); text-align: right;">Số Tiền Rút</th>
+              <th style="padding: 10px 12px; color: var(--text-muted);">Ngân Hàng & STK</th>
+              <th style="padding: 10px 12px; color: var(--text-muted);">Chủ Tài Khoản</th>
+              <th style="padding: 10px 12px; color: var(--text-muted);">Trạng Thái</th>
+              <th style="padding: 10px 12px; color: var(--text-muted);">Ghi Chú</th>
+              <th style="padding: 10px 12px; color: var(--text-muted);">Thời Gian</th>
             </tr>
           </thead>
           <tbody id="aff-payouts-tbody">
-            <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải dữ liệu...</td></tr>
+            <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải lịch sử rút tiền...</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: BANK SETTINGS -->
+    <div id="aff-tab-content-bank" class="aff-tab-panel" style="display: none;">
+      <div style="max-width: 480px; margin: 10px auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99, 102, 241, 0.15); color: var(--accent); display: flex; align-items: center; justify-content: center;">
+            <span data-icon="building"></span>
+          </div>
+          <div>
+            <h4 style="margin: 0; font-size: 14px; font-weight: 800; color: var(--text-primary);">Cài Đặt Tài Khoản Ngân Hàng</h4>
+            <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-muted);">Lưu sẵn thông tin ngân hàng để tự động điền khi rút tiền.</p>
+          </div>
+        </div>
+
+        <form onsubmit="saveUserBankSettingsDesktop(event)">
+          <div style="margin-bottom: 12px;">
+            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Ngân hàng nhận tiền:</label>
+            <button id="user-bank-picker-trigger" type="button" onclick="openBankPickerModalDesktop('settings')" style="width: 100%; box-sizing: border-box; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: var(--text-primary); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <div id="user-bank-selected-display" style="display: flex; align-items: center; gap: 8px;">
+                <span data-icon="building" style="color: var(--accent);"></span>
+                <span id="user-bank-selected-name" style="font-weight: 700;">MBBank</span>
+              </div>
+              <span data-icon="chevronDown" style="color: var(--text-muted);"></span>
+            </button>
+            <input type="hidden" id="user-bank-name-input" value="MBBank" />
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Số tài khoản ngân hàng:</label>
+            <input id="user-bank-accno-input" type="text" placeholder="Nhập số tài khoản ngân hàng..." style="width: 100%; box-sizing: border-box; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 12px; font-weight: 600;" />
+          </div>
+
+          <div style="margin-bottom: 18px;">
+            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Tên chủ tài khoản (Viết hoa không dấu):</label>
+            <input id="user-bank-holder-input" type="text" placeholder="VD: NGUYEN VAN A" style="width: 100%; box-sizing: border-box; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 12px; font-weight: 600; text-transform: uppercase;" />
+          </div>
+
+          <button type="submit" class="btn-primary" style="width: 100%; padding: 10px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+            <span data-icon="check"></span> Lưu Cài Đặt Ngân Hàng
+          </button>
+        </form>
       </div>
     </div>
   </div>
 
   <!-- PAYOUT MODAL DESKTOP -->
-  <div id="affiliate-payout-modal-desktop" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 16px;">
-    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 18px; max-width: 440px; width: 100%; padding: 20px;">
+  <div id="affiliate-payout-modal-desktop" style="display: none; position: fixed; inset: 0; z-index: 999999; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 18px; max-width: 440px; width: 100%; padding: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.7);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary);">Rút Tiền Hoa Hồng Affiliate</h3>
-        <button type="button" onclick="closeAffiliatePayoutModalDesktop()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px;">✕</button>
+        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+          <span data-icon="wallet"></span> Rút Tiền Hoa Hồng Affiliate
+        </h3>
+        <button type="button" onclick="closeAffiliatePayoutModalDesktop()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px;">
+          <span data-icon="x"></span>
+        </button>
       </div>
 
       <form onsubmit="submitAffiliatePayoutDesktop(event)">
         <div style="margin-bottom: 12px;">
           <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Số tiền rút (VNĐ):</label>
-          <input id="aff-payout-amount-input" type="number" step="10000" min="200000" value="200000" style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 14px; font-weight: 800;" />
-          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">* Tối thiểu 200.000 VNĐ</div>
+          <input id="aff-payout-amount-input" type="number" step="10000" min="50000" value="200000" style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 14px; font-weight: 800;" />
+          <div id="aff-min-payout-hint" style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">* Tối thiểu 200.000 VNĐ</div>
         </div>
 
         <div style="margin-bottom: 12px;">
           <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Ngân hàng:</label>
-          <select id="aff-payout-bank-select" style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 12px; font-weight: 600;">
-            <option value="MBBank">MBBank</option>
-            <option value="Vietcombank">Vietcombank</option>
-            <option value="Techcombank">Techcombank</option>
-            <option value="VPBank">VPBank</option>
-            <option value="ACB">ACB</option>
-            <option value="BIDV">BIDV</option>
-            <option value="VietinBank">VietinBank</option>
-            <option value="TPBank">TPBank</option>
-            <option value="MoMo / ViettelMoney">MoMo / ViettelMoney</option>
-          </select>
+          <button id="aff-payout-bank-trigger" type="button" onclick="openBankPickerModalDesktop('withdraw')" style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: var(--text-primary); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div id="aff-payout-bank-display" style="display: flex; align-items: center; gap: 8px;">
+              <span data-icon="building" style="color: var(--accent);"></span>
+              <span id="aff-payout-bank-name" style="font-weight: 700;">MBBank</span>
+            </div>
+            <span data-icon="chevronDown" style="color: var(--text-muted);"></span>
+          </button>
+          <input type="hidden" id="aff-payout-bank-select" value="MBBank" />
         </div>
 
         <div style="margin-bottom: 12px;">
@@ -1052,9 +1102,16 @@ const ViewsComponent = `
           <input id="aff-payout-accno-input" type="text" placeholder="Nhập STK ngân hàng..." style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 12px; font-weight: 600;" />
         </div>
 
-        <div style="margin-bottom: 16px;">
+        <div style="margin-bottom: 14px;">
           <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Tên chủ tài khoản (Viết hoa không dấu):</label>
           <input id="aff-payout-holder-input" type="text" placeholder="VD: NGUYEN VAN A" style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 12px; font-weight: 600; text-transform: uppercase;" />
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-secondary); cursor: pointer;">
+            <input type="checkbox" id="aff-payout-save-default" checked />
+            Lưu làm tài khoản ngân hàng mặc định cho các lần sau
+          </label>
         </div>
 
         <div style="display: flex; gap: 8px;">
@@ -1063,6 +1120,200 @@ const ViewsComponent = `
           </button>
           <button type="submit" style="flex: 1; padding: 8px; border-radius: 8px; border: none; background: #22c55e; color: #fff; font-size: 12px; font-weight: 800; cursor: pointer;">
             Gửi Yêu Cầu Rút
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DESKTOP VIETQR BANK PICKER MODAL -->
+  <div id="desktop-bank-picker-modal" style="display: none; position: fixed; inset: 0; z-index: 999999; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 16px;" onclick="closeBankPickerModalDesktop()">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 18px; max-width: 500px; width: 100%; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 25px 60px rgba(0,0,0,0.7); overflow: hidden;" onclick="event.stopPropagation()">
+      <!-- Header -->
+      <div style="padding: 16px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            <span data-icon="building" style="color: var(--accent);"></span> Chọn Ngân Hàng Nhận Tiền
+          </h3>
+          <p style="margin: 3px 0 0 0; font-size: 11px; color: var(--text-muted);">Hỗ trợ 65+ ngân hàng & ví điện tử tại Việt Nam (VietQR)</p>
+        </div>
+        <button type="button" onclick="closeBankPickerModalDesktop()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px;">
+          <span data-icon="x"></span>
+        </button>
+      </div>
+
+      <!-- Search Input -->
+      <div style="padding: 12px 18px; border-bottom: 1px solid var(--border-color); background: var(--bg-primary);">
+        <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px;">
+          <span data-icon="search" style="color: var(--text-muted);"></span>
+          <input id="desktop-bank-search-input" type="text" placeholder="Tìm theo tên hoặc mã (MB, VCB, Quân Đội, ACB)..." oninput="filterBanksDesktop()" style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-size: 12px; font-weight: 600;" />
+        </div>
+      </div>
+
+      <!-- Scrollable List -->
+      <div id="desktop-bank-list-container" style="flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; scrollbar-width: thin;">
+        <!-- Filled by JS -->
+      </div>
+
+      <!-- Footer -->
+      <div style="padding: 10px 18px; border-top: 1px solid var(--border-color); background: var(--bg-primary); text-align: right;">
+        <button type="button" onclick="closeBankPickerModalDesktop()" style="padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border-color); background: transparent; color: var(--text-secondary); font-size: 11px; font-weight: 600; cursor: pointer;">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- VIEW: QUẢN LÝ ĐƠN RÚT TIỀN AFFILIATE (ADMIN ONLY)        -->
+<!-- ======================================================== -->
+<div id="view-admin-payouts" class="view" style="padding: 16px; width: 100%; box-sizing: border-box;">
+  <!-- BANNER HEADER -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; background: linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(99, 102, 241, 0.1) 100%); border: 1px solid rgba(234, 179, 8, 0.25); padding: 16px 20px; border-radius: 16px;">
+    <div>
+      <div style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 12px; background: rgba(234, 179, 8, 0.2); color: #eab308; font-size: 11px; font-weight: 800; margin-bottom: 6px;">
+        <span data-icon="lock" style="vertical-align: middle;"></span> Admin Only • Financial Console
+      </div>
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">Quản Lý Đơn Rút Tiền Tiếp Thị Liên Kết</h2>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Kiểm tra thông tin tài khoản ngân hàng, duyệt chuyển khoản hoa hồng hoặc từ chối hoàn tiền cho thành viên.</p>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button type="button" class="btn-primary" onclick="loadAdminPayoutsDesktop()" style="padding: 8px 14px; font-size: 12px; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px;">
+        <span data-icon="refreshCw" style="vertical-align: middle;"></span> Làm mới
+      </button>
+    </div>
+  </div>
+
+  <!-- 4 STATS CARDS -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px;">
+      <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Lượt Click Toàn Sàn</div>
+      <div id="admin-aff-stat-clicks" style="font-size: 22px; font-weight: 900; color: var(--text-primary); margin-top: 4px;">0</div>
+    </div>
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px;">
+      <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Thành Viên Qua Ref</div>
+      <div id="admin-aff-stat-refs" style="font-size: 22px; font-weight: 900; color: var(--text-primary); margin-top: 4px;">0</div>
+    </div>
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px;">
+      <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Tổng Đã Chi Trả (Duyệt)</div>
+      <div id="admin-aff-stat-paid" style="font-size: 20px; font-weight: 900; color: #22c55e; margin-top: 4px;">0đ</div>
+    </div>
+    <div style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(239, 68, 68, 0.05) 100%); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 14px; padding: 14px;">
+      <div style="font-size: 11px; color: #eab308; font-weight: 700;">Đang Chờ Duyệt (<span id="admin-aff-stat-pending-count">0</span> đơn)</div>
+      <div id="admin-aff-stat-pending-amount" style="font-size: 20px; font-weight: 900; color: #eab308; margin-top: 4px;">0đ</div>
+    </div>
+  </div>
+
+  <!-- ADMIN CONFIG BOX (% HOA HỒNG & HẠN MỨC RÚT) -->
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px;">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+      <div>
+        <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+          <span data-icon="settings"></span> Cấu Hình Tỷ Lệ Hoa Hồng & Hạn Mức Rút Tiền Hệ Thống
+        </h4>
+        <p style="margin: 0; font-size: 11px; color: var(--text-muted);">Thay đổi sẽ áp dụng ngay lập tức cho các giao dịch nạp tiền và đơn rút mới.</p>
+      </div>
+
+      <form onsubmit="saveAdminAffiliateConfigDesktop(event)" style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted);">% Hoa hồng:</label>
+          <input id="admin-aff-rate-input" type="number" min="1" max="90" value="15" style="width: 70px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 8px; color: var(--text-primary); font-size: 13px; font-weight: 800; text-align: center;" />
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-primary);">%</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted);">Rút tối thiểu:</label>
+          <input id="admin-aff-minpayout-input" type="number" step="10000" min="50000" value="200000" style="width: 110px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 8px; color: var(--text-primary); font-size: 13px; font-weight: 800; text-align: right;" />
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-primary);">VNĐ</span>
+        </div>
+
+        <button type="submit" class="btn-primary" style="padding: 7px 14px; font-size: 12px; font-weight: 700; border-radius: 8px;">
+          Lưu Cấu Hình
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PAYOUT LIST TABLE -->
+  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px;">
+    <!-- FILTER BAR -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button id="admin-payout-filter-pending" type="button" class="active" onclick="filterAdminPayoutsDesktop('PENDING')" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; background: rgba(234, 179, 8, 0.2); color: #eab308;">
+          Chờ Duyệt (PENDING)
+        </button>
+        <button id="admin-payout-filter-approved" type="button" onclick="filterAdminPayoutsDesktop('APPROVED')" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--text-muted);">
+          Đã Duyệt (APPROVED)
+        </button>
+        <button id="admin-payout-filter-rejected" type="button" onclick="filterAdminPayoutsDesktop('REJECTED')" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--text-muted);">
+          Đã Từ Chối (REJECTED)
+        </button>
+        <button id="admin-payout-filter-all" type="button" onclick="filterAdminPayoutsDesktop('all')" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--text-muted);">
+          Tất Cả
+        </button>
+      </div>
+    </div>
+
+    <!-- TABLE (DESKTOP VIEW) -->
+    <div class="responsive-table-wrapper" style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <th style="padding: 10px 12px; color: var(--text-muted);">Mã Đơn</th>
+            <th style="padding: 10px 12px; color: var(--text-muted);">Thành Viên</th>
+            <th style="padding: 10px 12px; color: var(--text-muted); text-align: right;">Số Tiền Rút</th>
+            <th style="padding: 10px 12px; color: var(--text-muted);">Ngân Hàng & STK</th>
+            <th style="padding: 10px 12px; color: var(--text-muted);">Chủ Tài Khoản</th>
+            <th style="padding: 10px 12px; color: var(--text-muted);">Trạng Thái</th>
+            <th style="padding: 10px 12px; color: var(--text-muted);">Ghi Chú</th>
+            <th style="padding: 10px 12px; color: var(--text-muted);">Thời Gian</th>
+            <th style="padding: 10px 12px; color: var(--text-muted); text-align: center;">Thao Tác</th>
+          </tr>
+        </thead>
+        <tbody id="admin-payouts-tbody">
+          <tr><td colspan="9" style="text-align:center;padding:28px;color:var(--text-muted);">Đang tải danh sách đơn rút tiền...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CARDS (RESPONSIVE NARROW / SMALL WINDOW VIEW) -->
+    <div id="admin-payouts-cards" class="responsive-card-grid">
+      <!-- Generated by affiliate.ui.js -->
+    </div>
+  </div>
+
+  <!-- ADMIN PAYOUT ACTION MODAL -->
+  <div id="admin-payout-action-modal-desktop" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 18px; max-width: 480px; width: 100%; padding: 22px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 id="admin-payout-action-title" style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary);">
+          Xử Lý Đơn Rút Tiền
+        </h3>
+        <button type="button" onclick="closeAdminPayoutActionModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px;">
+          <span data-icon="x"></span>
+        </button>
+      </div>
+
+      <div id="admin-payout-action-info" style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-bottom: 14px; font-size: 12px; line-height: 1.6;">
+        <!-- Filled by JS -->
+      </div>
+
+      <form onsubmit="submitAdminPayoutActionDesktop(event)">
+        <input type="hidden" id="admin-payout-action-id" />
+        <input type="hidden" id="admin-payout-action-type" />
+
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Ghi chú Admin (Gửi cho người dùng):</label>
+          <textarea id="admin-payout-action-note" rows="3" placeholder="Nhập ghi chú hoặc mã giao dịch ngân hàng..." style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; color: var(--text-primary); font-size: 12px; resize: vertical;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="button" onclick="closeAdminPayoutActionModal()" style="flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--text-primary); font-size: 12px; font-weight: 700; cursor: pointer;">
+            Đóng
+          </button>
+          <button id="admin-payout-action-confirm-btn" type="submit" style="flex: 1; padding: 9px; border-radius: 8px; border: none; background: #22c55e; color: #fff; font-size: 12px; font-weight: 800; cursor: pointer;">
+            Xác Nhận
           </button>
         </div>
       </form>
@@ -1080,12 +1331,11 @@ const ViewsComponent = `
   </div>
 </div>
 
-<!-- Guide View -->
 <div id="view-guide" class="view" style="width: 100%; box-sizing: border-box;">
   <div class="guide-container">
     <div class="guide-section">
       <div class="guide-heading">
-        <span data-i18n="guide_section_1_heading_dashboard">📊 1. Dashboard</span>
+        <span data-i18n="guide_section_1_heading_dashboard">1. Dashboard</span>
         <span class="guide-badge" data-i18n="guide_badge_dashboard">Tổng quan</span>
       </div>
       <p data-i18n="guide_overview_desc">Trang tổng quan hiển thị số liệu video đã xử lý, đã upload TikTok, đang chờ và số tài khoản TikTok đang quản lý. Theo dõi hoạt động hệ thống thời gian thực.</p>
@@ -1093,7 +1343,7 @@ const ViewsComponent = `
     
     <div class="guide-section">
       <div class="guide-heading">
-        <span data-i18n="guide_video_title">🎬 2. Tự động hóa Video</span>
+        <span data-i18n="guide_video_title">2. Tự động hóa Video</span>
         <span class="guide-badge" data-i18n="guide_badge_ai">Cắt ghép AI</span>
       </div>
       <p data-i18n="guide_video_desc_input"><strong>Đầu vào:</strong> Kéo thả file .mp4 hoặc dán link YouTube để tải video tự động.</p>
@@ -1104,7 +1354,7 @@ const ViewsComponent = `
     
     <div class="guide-section">
       <div class="guide-heading">
-        <span data-i18n="guide_workflow_title">🔄 3. Visual Workflow Builder</span>
+        <span data-i18n="guide_workflow_title">3. Visual Workflow Builder</span>
         <span class="guide-badge" data-i18n="guide_badge_auto">Luồng tự động</span>
       </div>
       <p data-i18n="guide_workflow_desc">Thiết kế luồng xử lý tự động bằng cách kéo thả các Node: Lấy URL ➔ Tải xuống ➔ AI Xử lý (ASR + LLM) ➔ FFmpeg ➔ Nạp Hồ sơ Browser ➔ Tải lên TikTok.</p>
@@ -1112,7 +1362,7 @@ const ViewsComponent = `
     
     <div class="guide-section">
       <div class="guide-heading">
-        <span data-i18n="guide_proxy_title">🌐 4. Quản lý Hồ sơ & Proxy</span>
+        <span data-i18n="guide_proxy_title">4. Quản lý Hồ sơ & Proxy</span>
         <span class="guide-badge" data-i18n="guide_badge_antidetect">Anti-Detect</span>
       </div>
       <p data-i18n="guide_proxy_desc">Mỗi tài khoản là một Browser Profile riêng biệt với Cookies, Proxy SOCKS5/Residential riêng. Khóa WebRTC ngăn rò rỉ địa chỉ IP thật qua UDP/STUN.</p>
@@ -1120,7 +1370,7 @@ const ViewsComponent = `
     
     <div class="guide-section">
       <div class="guide-heading">
-        <span data-i18n="guide_rbac_title">👥 5. Phân Quyền & Đội Nhóm</span>
+        <span data-i18n="guide_rbac_title">5. Phân Quyền & Đội Nhóm</span>
         <span class="guide-badge" data-i18n="guide_badge_rbac">RBAC System</span>
       </div>
       <p data-i18n="guide_rbac_desc">Hệ thống phân quyền 3 cấp độ (Admin, Staff, User). Admin có quyền bật/tắt hiển thị từng Tab chức năng riêng biệt cho từng tài khoản nhân viên.</p>
@@ -1128,7 +1378,7 @@ const ViewsComponent = `
     
     <div class="guide-section">
       <div class="guide-heading">
-        <span data-i18n="guide_telemetry_title">🛠️ 6. Cấu Hình & Giám Sát Lỗi</span>
+        <span data-i18n="guide_telemetry_title">6. Cấu Hình & Giám Sát Lỗi</span>
         <span class="guide-badge" data-i18n="guide_badge_telemetry">Telemetry</span>
       </div>
       <p data-i18n="guide_telemetry_desc">Tự động ghi nhận 100% Stack Trace, Mã lỗi HTTP, Session Replay Action Trail giúp đội ngũ phát triển phát hiện và xử lý sự cố tức thì.</p>
@@ -1163,7 +1413,7 @@ const ViewsComponent = `
 
   <!-- Cấu hình Tiền tố API Server & Obfuscation Code (Admin Obfuscation Key Management) -->
   <div id="admin-api-prefix-settings-section" class="settings-card-section" style="margin-top:20px; display: none;">
-    <h3 style="margin-bottom:8px;" data-i18n="admin_obf_title">🔒 Cấu Hình Mã Tiền Tố Động (Admin Custom Obfuscation Prefix)</h3>
+    <h3 style="margin-bottom:8px;" data-i18n="admin_obf_title"><span data-icon="lock" style="vertical-align: middle; margin-right: 4px;"></span> Cấu Hình Mã Tiền Tố Động (Admin Custom Obfuscation Prefix)</h3>
     <p class="settings-hint" data-i18n="admin_obf_hint">Điều chỉnh chuỗi mã hóa bảo mật (<code>obf_code</code> / <code>API_PREFIX</code>) để bảo vệ các endpoints hệ thống khỏi các công cụ tự động quét route (Scan Bot / Hacker).</p>
     
     <div style="display:flex; gap:12px; margin-top: 14px; align-items: center; flex-wrap: wrap;">
@@ -1581,7 +1831,7 @@ const ViewsComponent = `
 <!-- Temporary Ban Modal -->
 <div id="ban-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center;">
   <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 460px; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-    <h3 style="margin-bottom: 6px; font-size:16px; color:#ef4444; display:flex; align-items:center; gap:8px;">🛑 Khóa / Block Tài khoản (Ban Tạm Thời)</h3>
+    <h3 style="margin-bottom: 6px; font-size:16px; color:#ef4444; display:flex; align-items:center; gap:8px;"><span data-icon="shieldAlert"></span> Khóa / Block Tài khoản (Ban Tạm Thời)</h3>
     <p style="font-size:13px; color:var(--text-secondary); margin-bottom: 16px;">Tài khoản: <strong id="ban-target-user" style="color:var(--text-primary);">—</strong></p>
 
     <div style="background: var(--bg-primary); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;">

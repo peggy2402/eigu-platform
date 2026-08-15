@@ -233,11 +233,9 @@ app.whenReady().then(() => {
       prefix = rawPrefix.startsWith('api/') ? rawPrefix : `api/${rawPrefix}`;
     }
 
-    const defaultHost = (app.isPackaged || process.env.NODE_ENV === 'production')
-      ? 'https://api.eigu.site'
-      : `http://localhost:${port}`;
-
-    let rawUrl = process.env.NEXT_PUBLIC_API_URL || process.env.EIGU_API_URL || defaultHost;
+    const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
+    const defaultHost = isDev ? `http://localhost:${port}` : 'https://api.eigu.site';
+    let rawUrl = isDev ? `http://localhost:${port}` : (process.env.NEXT_PUBLIC_API_URL || process.env.EIGU_API_URL || defaultHost);
     rawUrl = rawUrl.replace(/\/$/, '');
 
     let baseHost = rawUrl.replace(/\/api\/.*$/, '').replace(/\/api$/, '');
@@ -250,10 +248,9 @@ app.whenReady().then(() => {
     const port = process.env.PORT || 3001;
     const apiPrefix = process.env.API_PREFIX || 'api';
     const apiUrl = resolveApiUrl();
-    const defaultWs = (app.isPackaged || process.env.NODE_ENV === 'production')
-      ? 'https://api.eigu.site'
-      : `http://localhost:${port}`;
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.EIGU_WS_URL || defaultWs;
+    const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
+    const defaultWs = isDev ? `http://localhost:${port}` : 'https://api.eigu.site';
+    const wsUrl = isDev ? `http://localhost:${port}` : (process.env.NEXT_PUBLIC_WS_URL || process.env.EIGU_WS_URL || defaultWs);
 
     event.returnValue = { apiUrl, wsUrl, apiPrefix, port };
   });
@@ -262,10 +259,9 @@ app.whenReady().then(() => {
     const port = process.env.PORT || 3001;
     const apiPrefix = process.env.API_PREFIX || 'api';
     const apiUrl = resolveApiUrl();
-    const defaultWs = (app.isPackaged || process.env.NODE_ENV === 'production')
-      ? 'https://api.eigu.site'
-      : `http://localhost:${port}`;
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.EIGU_WS_URL || defaultWs;
+    const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
+    const defaultWs = isDev ? `http://localhost:${port}` : 'https://api.eigu.site';
+    const wsUrl = isDev ? `http://localhost:${port}` : (process.env.NEXT_PUBLIC_WS_URL || process.env.EIGU_WS_URL || defaultWs);
     return { apiUrl, wsUrl, apiPrefix, port };
   });
 

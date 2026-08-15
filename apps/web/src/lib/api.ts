@@ -242,4 +242,28 @@ export const paymentApi = {
   cancelDeposit: (code: string) => request(`/payment/cancel/${code}`, { method: 'PATCH' }),
 };
 
+export const affiliateApi = {
+  getStats: () => request(API_ENDPOINTS.AFFILIATE.STATS),
+  getReferrals: (page = 1, limit = 10) => request(`${API_ENDPOINTS.AFFILIATE.REFERRALS}?page=${page}&limit=${limit}`),
+  getCommissions: (page = 1, limit = 10) => request(`${API_ENDPOINTS.AFFILIATE.COMMISSIONS}?page=${page}&limit=${limit}`),
+  getPayouts: (page = 1, limit = 10) => request(`${API_ENDPOINTS.AFFILIATE.PAYOUTS}?page=${page}&limit=${limit}`),
+  saveBankSettings: (data: { bankName: string; bankAccountNumber: string; bankAccountHolder: string }) =>
+    request(API_ENDPOINTS.AFFILIATE.BANK_SETTINGS, { method: 'PATCH', body: JSON.stringify(data) }),
+  requestPayout: (data: { amount: number; bankName: string; accountNumber: string; accountHolder: string; saveAsDefault?: boolean }) =>
+    request(API_ENDPOINTS.AFFILIATE.PAYOUT_REQUEST, { method: 'POST', body: JSON.stringify(data) }),
+
+  // Admin endpoints
+  getAdminStats: () => request(API_ENDPOINTS.AFFILIATE.ADMIN_STATS),
+  getAdminPayouts: (page = 1, limit = 10, status?: string) => {
+    const statusQuery = status && status !== 'ALL' ? `&status=${status}` : '';
+    return request(`${API_ENDPOINTS.AFFILIATE.ADMIN_PAYOUTS}?page=${page}&limit=${limit}${statusQuery}`);
+  },
+  getAdminConfig: () => request(API_ENDPOINTS.AFFILIATE.ADMIN_CONFIG),
+  saveAdminConfig: (data: { commissionRate: number; minPayoutThreshold: number }) =>
+    request(API_ENDPOINTS.AFFILIATE.ADMIN_CONFIG, { method: 'PATCH', body: JSON.stringify(data) }),
+  updateAdminPayoutStatus: (id: string, status: string, adminNote?: string) =>
+    request(API_ENDPOINTS.AFFILIATE.ADMIN_PAYOUT_STATUS(id), { method: 'PATCH', body: JSON.stringify({ status, adminNote }) }),
+};
+
+
 

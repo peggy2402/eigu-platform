@@ -9,10 +9,8 @@
     localStorage.removeItem('eigu_ws_url');
   } catch (e) { }
 
-  // let activeApiUrl = 'http://localhost:3001/api';
-  // let activeWsUrl = 'http://localhost:3001';
-  let activeApiUrl = 'https://api.eigu.site/api';
-  let activeWsUrl = 'https://api.eigu.site';
+  let activeApiUrl = 'http://localhost:3001/api';
+  let activeWsUrl = 'http://localhost:3001';
   // Yêu cầu Electron Main Process trả về URL chính thức từ process.env / API_PREFIX đồng bộ ngay khi load
   if (typeof require !== 'undefined') {
     try {

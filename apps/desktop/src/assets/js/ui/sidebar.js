@@ -56,6 +56,7 @@ function switchView(view, navEl, sub, e) {
     'pricing-management': lang === 'en' ? ['Pricing Management', 'Dynamic pricing engine console'] : ['Quản lý Bảng giá', 'Cấu hình mô-đun công cụ, giá bán và discount thời gian thực'],
     'theme-event-management': lang === 'en' ? ['Theme & Event Management', 'Seasonal themes & event popup dialog settings'] : ['Giao diện & Sự kiện', 'Cấu hình chủ đề giao diện bốn mùa và Popup thông báo sự kiện'],
     'transaction-management': lang === 'en' ? ['Transaction Management', 'Manage deposit transactions, manual approval & revenue stats'] : ['Quản lý Giao dịch', 'Quản lý lịch sử nạp tiền, phê duyệt thủ công & doanh thu hệ thống'],
+    'admin-payouts': lang === 'en' ? ['Payout Management', 'Review & approve affiliate commission payouts (Admin Only)'] : ['Quản lý Rút tiền', 'Phê duyệt & chuyển khoản hoa hồng tiếp thị liên kết (Dành riêng cho Admin)'],
     'transaction-history': lang === 'en' ? ['Transaction History', 'VietQR automatic deposit history & balance tracking'] : ['Lịch sử giao dịch', 'Lịch sử nạp tiền tự động VietQR & đối soát số dư'],
     'user-activity-logs': lang === 'en' ? ['Activity Logs', 'System user access & action trail'] : ['Nhật ký hoạt động', 'Theo dõi lịch sử thao tác của các tài khoản hệ thống'],
     'news-management': lang === 'en' ? ['News Management', 'Manage articles, categories, tags & comments'] : ['Quản lý Tin tức', 'Quản lý bài viết, danh mục, tags và bình luận tin tức'],
@@ -71,6 +72,14 @@ function switchView(view, navEl, sub, e) {
   if (sub) {
     const subEl = document.querySelector('.nav-sub-item[data-sub="' + sub + '"]');
     if (subEl) subEl.classList.add('active');
+  }
+
+  // Load Admin Payouts if entering admin-payouts view
+  if (view === 'admin-payouts' && typeof loadAdminPayoutsDesktop === 'function') {
+    loadAdminPayoutsDesktop();
+    if (typeof loadAdminAffiliateConfigDesktop === 'function') {
+      loadAdminAffiliateConfigDesktop();
+    }
   }
 
   // Load News Data if entering News Management view

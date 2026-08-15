@@ -22,11 +22,16 @@ export function getApiBaseUrl(): string {
     if ((window as any).EIGU_API_URL) {
       return (window as any).EIGU_API_URL;
     }
+    const origin = window.location.origin;
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      const port = (window as any).EIGU_API_PORT || DEFAULT_API_PORT;
+      return `http://localhost:${port}/api/eigu-sec-999`;
+    }
   }
   if (typeof process !== 'undefined' && process && process.env) {
     const env = process.env;
     const rawPrefix = (env['API_PREFIX'] || '').trim().replace(/^\//, '').replace(/\/$/, '');
-    let prefix = 'api';
+    let prefix = 'api/eigu-sec-999';
     if (rawPrefix && rawPrefix !== 'api') {
       prefix = rawPrefix.startsWith('api/') ? rawPrefix : `api/${rawPrefix}`;
     }
@@ -40,7 +45,7 @@ export function getApiBaseUrl(): string {
 
     return `${baseHost}/${prefix}`;
   }
-  return DEFAULT_API_BASE_URL;
+  return 'http://localhost:3001/api/eigu-sec-999';
 }
 
 /**
@@ -120,10 +125,12 @@ export const API_ENDPOINTS = {
     COMMISSIONS: '/affiliate/commissions',
     PAYOUT_REQUEST: '/affiliate/payout-request',
     PAYOUTS: '/affiliate/payouts',
+    BANK_SETTINGS: '/affiliate/bank-settings',
     CLICK: (code: string) => `/affiliate/click/${code}`,
     ADMIN_PAYOUTS: '/affiliate/admin/payouts',
     ADMIN_PAYOUT_STATUS: (id: string) => `/affiliate/admin/payouts/${id}`,
     ADMIN_STATS: '/affiliate/admin/stats',
+    ADMIN_CONFIG: '/affiliate/admin/config',
   },
 } as const;
 

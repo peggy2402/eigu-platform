@@ -25,6 +25,7 @@ import DepositModal from '../components/payment/DepositModal';
 import TransactionHistoryView from '../components/payment/TransactionHistoryView';
 import CheckoutView from '../components/pricing/CheckoutView';
 import { pricingApi, themeEventApi, contactApi } from '../lib/api';
+import { getApiBaseUrl, API_ENDPOINTS } from '@eigu-platform/shared';
 import type { PricingModuleDto, PricingTierDto } from '@eigu-platform/shared';
 import TypewriterText from '../components/TypewriterText';
 import FeatureModulesSection from '../components/modules/FeatureModulesSection';
@@ -291,8 +292,19 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
       if (!accepted) {
         setShowDisclaimerModal(true);
       }
+
+      // Check & capture referral code (?ref=... or ?refCode=...)
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryRef = urlParams.get('ref') || urlParams.get('refCode') || urlParams.get('r');
+      if (queryRef) {
+        const cleanRef = queryRef.trim().toUpperCase();
+        localStorage.setItem('eigu_ref_code', cleanRef);
+        // Record Click API
+        fetch(`${getApiBaseUrl()}${API_ENDPOINTS.AFFILIATE.CLICK(cleanRef)}`, { method: 'POST' }).catch(() => {});
+      }
     }
   }, [user, token]);
+
 
   // Sync browser back/forward buttons and initial URL path for /news/[slug]
   useEffect(() => {
@@ -1165,7 +1177,7 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
         {/* ==================== 3. AFFILIATE PAGE (/affiliate) ==================== */}
         {activePath === '/affiliate' && (
           <section style={{ padding: '0 24px 80px' }}>
-            <AffiliateView token={token || undefined} language={language} />
+            <AffiliateView token={token || undefined} userRole={user?.role} language={language} />
           </section>
         )}
 
