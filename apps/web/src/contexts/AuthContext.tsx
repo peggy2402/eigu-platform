@@ -58,12 +58,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const t = localStorage.getItem('accessToken');
     if (t) {
       setToken(t);
+      // Fast 2.5s safety timer so loading spinner never blocks the user
+      const safetyTimer = setTimeout(() => {
+        setLoading(false);
+      }, 2500);
+
       authApi.getMe()
-        .then(d => setUser(d))
+        .then(d => {
+          if (d) setUser(d);
+        })
         .catch((err) => {
           console.warn('[AuthContext] getMe fetch error:', err);
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          clearTimeout(safetyTimer);
+          setLoading(false);
+        });
     } else {
       setLoading(false);
     }

@@ -286,6 +286,13 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
   // Disclaimer Gating Modal State
   const [showDisclaimerModal, setShowDisclaimerModal] = useState<boolean>(false);
 
+  // Emergency fallback timer to unblock full-screen spinner (max 1.8s)
+  const [forceShowPage, setForceShowPage] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setForceShowPage(true), 1800);
+    return () => clearTimeout(t);
+  }, []);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const accepted = localStorage.getItem('eigu_disclaimer_accepted');
@@ -515,7 +522,7 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
 
   const activeModuleData = pricingModules.find(m => m.slug === activeModuleSlug) || null;
 
-  if (authLoading) {
+  if (authLoading && !forceShowPage) {
     return (
       <div style={{
         position: 'fixed', inset: 0, zIndex: 99999,

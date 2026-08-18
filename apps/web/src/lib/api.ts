@@ -32,18 +32,27 @@ export async function syncApiPrefixFromBootstrap(): Promise<string> {
 
       if (!backendHost) backendHost = 'http://localhost:3001';
 
-      const res = await fetch(`${backendHost}/api/bootstrap`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.apiPrefix) {
-          const cleanPrefix = data.apiPrefix.replace(/^\//, '').replace(/\/$/, '');
-          const fullUrl = `${backendHost}/${cleanPrefix}`;
-          (window as any).__EIGU_ACTIVE_API_URL__ = fullUrl;
-          return fullUrl;
+      const bootstrapController = new AbortController();
+      const bootstrapTimeout = setTimeout(() => bootstrapController.abort(), 2500);
+
+      try {
+        const res = await fetch(`${backendHost}/api/bootstrap`, { signal: bootstrapController.signal });
+        clearTimeout(bootstrapTimeout);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.apiPrefix) {
+            const cleanPrefix = data.apiPrefix.replace(/^\//, '').replace(/\/$/, '');
+            const fullUrl = `${backendHost}/${cleanPrefix}`;
+            (window as any).__EIGU_ACTIVE_API_URL__ = fullUrl;
+            return fullUrl;
+          }
         }
+      } catch (e) {
+        clearTimeout(bootstrapTimeout);
+        console.warn('[Web API] Bootstrap fetch failed, using fallback URL:', e);
       }
     } catch (e) {
-      console.warn('[Web API] Bootstrap fetch failed, using fallback URL:', e);
+      console.warn('[Web API] Bootstrap setup failed, using fallback URL:', e);
     } finally {
       syncPromise = null;
     }
@@ -77,7 +86,7 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
   const fullUrl = `${baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout for Render cold start
+  const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s max timeout for fast user experience
 
   try {
     const res = await fetch(fullUrl, {
@@ -130,6 +139,9 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
               });
             });
           }
+          // Clear stale tokens if refresh failed or no refresh token exists
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
         }
       }
 
@@ -151,6 +163,8 @@ async function request(path: string, options: RequestInit = {}, isRetry = false)
       }
 
       const error = new Error(msg) as any;
+      error.status = res.status;
+      error.statusCode = res.status;
       // Attach any extra fields from the response body (e.g. email, isBanned, bannedUntil, banReason)
       if (data.email) error.email = data.email;
       if (data.isBanned !== undefined) error.isBanned = data.isBanned;

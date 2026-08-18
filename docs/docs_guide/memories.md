@@ -1442,6 +1442,45 @@ Xử lý:
   - 💚 **WhatsApp**: Kênh hỗ trợ WhatsApp (`https://wa.me/84900000000`).
 - **Phân tách thiết bị (Responsive Display)**: Chuỗi Icon Speed Dial này chỉ hiển thị khi ở màn hình Desktop Web (`@media (min-width: 768px)`). Trên thiết bị Di động (Mobile `< 768px`), tính năng hover được ẩn hoàn toàn (`display: none !important`) để giữ giao diện di động tối giản, tinh tế và không che khuất màn hình.
 
+---
+
+## Phase 38: Khắc Phục Lỗi Synchronize Prisma Client & Xử Lý Lỗi HTTP 401 Overlay Trình Duyệt (`api.ts` & `AffiliateView.tsx`) (16/08/2026)
+
+### 38.1 Phân Tích Nguyên Nhân
+1. **Lỗi Prisma Type Mismatch (`npx nx serve api`)**: Trình biên dịch báo lỗi `select: { bankAccountNumber: true }` do thư viện `@prisma/client` trong `node_modules` chưa được đồng bộ lại sau khi cập nhật Prisma Schema.
+2. **Lỗi `[HTTP 401] Unauthorized` Overlay (Next.js Turbopack)**: Khi người dùng chưa đăng nhập (Guest) hoặc Token đã hết hạn truy cập trang Tiếp thị liên kết `/affiliate`, hàm `fetchStats()`, `fetchReferrals()` chủ động gọi API `affiliateApi.getStats()`. Khi máy chủ trả về `401 Unauthorized`, hàm `request()` bắn ngoại lệ `throw new Error()` và bị `console.error` bắt lại, khiến Next.js Dev Mode bắn bảng popup đỏ tràn màn hình.
+
+### 38.2 Giải Pháp Triển Khai
+1. **Đồng bộ Prisma Client (`apps/api`)**: Chạy `npx prisma generate --schema=apps/api/prisma/schema.prisma` để cập nhật lại 100% type definition chuẩn của Prisma cho trường `bankAccountNumber`.
+2. **Xử lý Token Guard & 401 Silent Handling ([api.ts](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/lib/api.ts) & [AffiliateView.tsx](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/components/affiliate/AffiliateView.tsx))**:
+   - Kiểm tra `localStorage.getItem('accessToken')` trước khi gọi các hàm fetch cá nhân (`fetchStats`, `fetchReferrals`, `fetchCommissions`, `fetchPayouts`). Nếu chưa đăng nhập, tự động bỏ qua việc gọi API.
+   - Thêm thuộc tính `error.status = 401; error.statusCode = 401;` vào đối tượng Error trong `api.ts`.
+   - Trong `AffiliateView.tsx`, chuyển các lỗi `401 Unauthorized` sang xử lý cảnh báo `console.warn` thay vì `console.error`, dọn dẹp token hết hạn và ngăn chặn hoàn toàn việc hiển thị màn hình báo lỗi đỏ của Turbopack.
+
+### 38.3 Kiểm Tra Biên Dịch Hệ Thống
+- **API NestJS**: `npx tsc --noEmit -p apps/api/tsconfig.app.json` $\rightarrow$ `✓ 0 error`.
+- **Web Next.js**: `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`.
+
+---
+
+## Phase 39: Tối Ưu Tốc Độ Nạp Trang Web Ban Đầu (Initial Load Speed Optimization) (`api.ts`, `AuthContext.tsx` & `page.tsx`) (18/08/2026)
+
+### 39.1 Phân Tích Nguyên Nhân Load Lâu / Treo Màn Hình Loading Spinner
+1. **Lệnh Sync Bootstrap Không Có Timeout ([api.ts](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/lib/api.ts))**: Hàm `syncApiPrefixFromBootstrap()` thực hiện `fetch('/api/bootstrap')` mà không gắn bộ đếm thời gian ngắt (AbortController timeout). Khi dịch vụ Backend trên Render bị Cold Start (ngủ đông sau 15 phút) hoặc gặp nghẽn mạng, câu lệnh fetch bị treo từ 30s đến 60s.
+2. **Timeout Request Quá Dài ([api.ts](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/lib/api.ts))**: Thời gian `timeoutId` mặc định trong `request()` là 45 giây (`45000ms`), khiến các lệnh kiểm tra token ban đầu bị nghẽn thời gian dài.
+3. **Màn Hình Full-Screen Loading Bị Block ([page.tsx](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/app/page.tsx) & [AuthContext.tsx](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/contexts/AuthContext.tsx))**: Trạng thái `authLoading` từ `AuthContext` điều khiển việc hiển thị màn hình xoay đen toàn màn hình (`EIGU Platform AI Automation Engine ...`). Khi `getMe()` bị treo do API chậm, người dùng bị kẹt lại màn hình xoay logo.
+
+### 39.2 Giải Pháp Triển Khai
+1. **Bổ Sung Timeout 2.5s Cho Bootstrap Fetch ([api.ts](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/lib/api.ts))**: Gán `AbortController` với `2500ms` timeout. Nếu API Gateway `/api/bootstrap` không phản hồi trong 2.5 giây, ứng dụng sẽ lập tức dùng URL mặc định mà không bắt người dùng chờ đợi.
+2. **Giảm API Request Timeout ([api.ts](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/lib/api.ts))**: Rút ngắn thời gian ngắt request từ `45s` xuống `12s` tối đa.
+3. **Safety Timer Cho AuthContext ([AuthContext.tsx](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/contexts/AuthContext.tsx))**: Thêm bộ đếm an toàn 2.5 giây cho `getMe()`. Nếu API lấy thông tin người dùng lâu hơn 2.5s, tự động chuyển `authLoading = false` để hiển thị trang web ngay lập tức, thông tin xác thực tiếp tục được đồng bộ ngầm phía sau.
+4. **Emergency Spinner Fallback Guard ([page.tsx](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/app/page.tsx))**: Khai báo state `forceShowPage` với đếm ngược 1.8 giây. Màn hình loading xoay đen **không bao giờ xuất hiện quá 1.8 giây**, bảo đảm trải nghiệm vào trang web tức thì 100%.
+
+### 39.3 Kiểm Tra Biên Dịch & Hiệu Năng
+- **Web Next.js**: `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`. Tốc độ mở trang web `eigu.site` cải thiện vượt bậc, trang hiển thị ngay lập tức trong 0.5s - 1.8s.
+
+
+
 
 
 

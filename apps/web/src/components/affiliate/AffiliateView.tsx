@@ -135,6 +135,11 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
 
   // Fetch stats
   const fetchStats = useCallback(async () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const data: AffiliateStatsDto = await affiliateApi.getStats();
@@ -156,7 +161,11 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
         setWithdrawAmount((prev) => (Number(prev) < data.minPayoutThreshold ? String(data.minPayoutThreshold) : prev));
       }
     } catch (err: any) {
-      console.error('[AffiliateView] Error fetching stats:', err);
+      if (err?.status === 401 || err?.statusCode === 401 || err?.message?.includes('401')) {
+        console.warn('[AffiliateView] Unauthorized stats fetch');
+      } else {
+        console.error('[AffiliateView] Error fetching stats:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -165,6 +174,11 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
   // Fetch referred users
   const fetchReferrals = useCallback(
     async (page = 1) => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      if (!token) {
+        setLoadingRef(false);
+        return;
+      }
       try {
         setLoadingRef(true);
         const data = await affiliateApi.getReferrals(page, 10);
@@ -172,7 +186,11 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
         setRefPage(data.page || 1);
         setRefTotalPages(data.totalPages || 1);
       } catch (err: any) {
-        console.error('[AffiliateView] Error fetching referrals:', err);
+        if (err?.status === 401 || err?.statusCode === 401 || err?.message?.includes('401')) {
+          console.warn('[AffiliateView] Unauthorized referrals fetch');
+        } else {
+          console.error('[AffiliateView] Error fetching referrals:', err);
+        }
       } finally {
         setLoadingRef(false);
       }
@@ -183,6 +201,11 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
   // Fetch commissions history
   const fetchCommissions = useCallback(
     async (page = 1) => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      if (!token) {
+        setLoadingComm(false);
+        return;
+      }
       try {
         setLoadingComm(true);
         const data = await affiliateApi.getCommissions(page, 10);
@@ -190,7 +213,11 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
         setCommPage(data.page || 1);
         setCommTotalPages(data.totalPages || 1);
       } catch (err: any) {
-        console.error('[AffiliateView] Error fetching commissions:', err);
+        if (err?.status === 401 || err?.statusCode === 401 || err?.message?.includes('401')) {
+          console.warn('[AffiliateView] Unauthorized commissions fetch');
+        } else {
+          console.error('[AffiliateView] Error fetching commissions:', err);
+        }
       } finally {
         setLoadingComm(false);
       }
@@ -201,6 +228,11 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
   // Fetch payouts history
   const fetchPayouts = useCallback(
     async (page = 1) => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      if (!token) {
+        setLoadingPayout(false);
+        return;
+      }
       try {
         setLoadingPayout(true);
         const data = await affiliateApi.getPayouts(page, 10);
@@ -208,7 +240,11 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
         setPayoutPage(data.page || 1);
         setPayoutTotalPages(data.totalPages || 1);
       } catch (err: any) {
-        console.error('[AffiliateView] Error fetching payouts:', err);
+        if (err?.status === 401 || err?.statusCode === 401 || err?.message?.includes('401')) {
+          console.warn('[AffiliateView] Unauthorized payouts fetch');
+        } else {
+          console.error('[AffiliateView] Error fetching payouts:', err);
+        }
       } finally {
         setLoadingPayout(false);
       }
