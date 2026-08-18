@@ -1479,6 +1479,78 @@ Xử lý:
 ### 39.3 Kiểm Tra Biên Dịch & Hiệu Năng
 - **Web Next.js**: `npx tsc --noEmit -p apps/web/tsconfig.json` $\rightarrow$ `✓ 0 error`. Tốc độ mở trang web `eigu.site` cải thiện vượt bậc, trang hiển thị ngay lập tức trong 0.5s - 1.8s.
 
+---
+
+## Phase 40: Hoàn Thiện Toàn Diện Hệ Thống Tiếp Thị Liên Kết (Affiliate Engine) — Tra Cứu Dòng Tiền F1 (Audit Trail), Cấu Hình Phí Rút Tiền Linh Hoạt, Chuẩn Hóa Vector SVG UI & Tối Ưu Quy Tắc Mua Gói (18/08/2026)
+
+### 40.1 Ghi Nhận Ref Code Linh Hoạt & Bỏ Route Bypass Obfuscation
+1. **Xử lý lưu trữ Ref Code khi duyệt trang**:
+   - Khi người dùng truy cập link giới thiệu `https://eigu.site?ref=EIGUDFU9`, hệ thống tự động bóc tách và lưu trữ mã `ref` vào `localStorage` và cookie.
+   - Kể cả khi người dùng chuyển qua lại giữa các tab (Trang chủ, Bảng giá, Hướng dẫn), mã giới thiệu vẫn được bảo toàn nguyên vẹn.
+   - Khi người dùng bấm Mua gói/Nâng cấp gói, hệ thống tự động liên kết tài khoản với người giới thiệu (`referredById`) nếu trước đó chưa có người bảo trợ.
+2. **Khắc phục lỗi 404 Route Obfuscation Middleware**:
+   - Bổ sung `affiliate` vào danh sách `systemBypassRoutes` trong `obfuscation-prefix.middleware.ts` để bảo đảm các endpoint API `/api/affiliate/*` (đặc biệt là `/api/affiliate/admin/stats` và `/api/affiliate/admin/config`) hoạt động ổn định và chính xác trên cả Web và Desktop.
+
+---
+
+### 40.2 Hệ Thống Tra Cứu Dòng Tiền & Bằng Chứng Hóa Đơn F1 (Audit Trail)
+Nhằm trả lời câu hỏi cốt lõi của Admin: *"Lí do tôi phê duyệt đơn rút tiền này là gì? Tiền hoa hồng này từ đâu ra, có phải tiền thật từ khách hàng nạp không hay bị lỗi/hack số dư?"*:
+1. **API Đối Soát Doanh Thu F1 (`GET /affiliate/admin/payouts/:id/audit`)**:
+   - Truy vấn toàn bộ lịch sử hóa đơn mua gói/nạp tiền của các thành viên tuyến dưới trực tiếp (**F1**) của người yêu cầu rút.
+   - Tính toán tổng doanh thu thực tế mà các F1 đã thanh toán vào hệ thống EIGU (`totalOrderAmountByDownlines`) so với tổng hoa hồng sinh ra (`totalCommissionEarned`) và số tiền đang yêu cầu rút (`amount`).
+2. **Huy Hiệu Xác Minh Dòng Tiền (Security Verdict Badge)**:
+   - Nếu tổng hoa hồng tích lũy hoàn toàn khớp với tỷ lệ chiết khấu từ doanh thu mua gói thực tế của F1 $\rightarrow$ Hiển thị huy hiệu xanh: `✓ XÁC MINH DÒNG TIỀN: HỢP LỆ (TIỀN THẬT 100%)`.
+   - Nếu có bất kỳ sự chênh lệch bất thường nào $\rightarrow$ Bật cảnh báo đỏ: `⚠ CẢNH BÁO: CÓ DẤU HIỆU BẤT THƯỜNG`.
+3. **Bảng Chi Tiết Hóa Đơn F1**:
+   - Hiển thị danh sách hóa đơn F1 với đầy đủ: Mã HH, Email F1 đã mua (được mask bảo mật), Nguồn đơn hàng, Số tiền F1 đã trả, % Chiết khấu, Số tiền hoa hồng tạo ra và Thời gian giao dịch.
+
+---
+
+### 40.3 Bổ Sung Tính Năng Cấu Hình Phí Rút Tiền (Withdrawal Fee Configuration)
+1. **Cơ Sở Dữ Liệu (`schema.prisma`)**:
+   - Bổ sung 2 trường `fee Decimal @default(0.00)` và `netAmount Decimal @default(0.00)` vào model `AffiliatePayout`.
+   - Đã đồng bộ cơ sở dữ liệu Supabase PostgreSQL qua `npx prisma db push`.
+2. **Cấu Hình Linh Hoạt Đa Tầng (Dynamic System Config)**:
+   - Thêm 2 cấu hình hệ thống: `% Phí rút tiền` (`AFFILIATE_PAYOUT_FEE_PERCENT`) và `Phí rút cố định VNĐ` (`AFFILIATE_PAYOUT_FEE_FIXED`).
+   - Công thức tính phí chuẩn:
+     $$\text{Fee} = \text{round}\left(\text{Amount} \times \frac{\text{PayoutFeePercent}}{100}\right) + \text{PayoutFeeFixed}$$
+     $$\text{NetAmount} = \max(0, \text{Amount} - \text{Fee})$$
+3. **Giao Diện Quản Trị Admin (`AdminAffiliatePayoutsView.tsx` & Desktop UI)**:
+   - Thêm ô cấu hình `% Phí rút` và `Phí cố định` ngay trong khối cài đặt tỷ lệ hoa hồng & hạn mức rút.
+   - Bảng quản lý đơn rút và Card Grid hiển thị minh bạch 3 cột: **Số Tiền Rút**, **Phí Xử Lý** (màu đỏ nếu có phí / `0đ` nếu miễn phí) và **Thực Nhận Chuyển Khoản** (màu xanh lá to rõ).
+   - Hộp thoại Xác nhận Duyệt/Từ chối và Modal Audit Trail thể hiện chi tiết số tiền thực nhận cần chuyển khoản về STK ngân hàng của người dùng.
+4. **Giao Diện Người Dùng (`AffiliateView.tsx`)**:
+   - Bổ sung bảng tính toán trực tiếp (Real-time Live Calculation Box) ngay trong modal tạo đơn rút tiền: khi người dùng gõ số tiền muốn rút, hệ thống hiển thị tức thì Số tiền yêu cầu, Phí giao dịch và Thực nhận về tài khoản ngân hàng.
+
+---
+
+### 40.4 Chuẩn Hóa Giao Diện Vector SVG UI & Sửa Lỗi Modal Desktop
+1. **Loại bỏ hoàn toàn Raw Emoji theo chuẩn AI Context & Monorepo Rules**:
+   - Thay thế toàn bộ các ký tự unicode emoji (`🔍`, `✓`, `✕`, `⚠`) trong [affiliate.ui.js](file:///Users/peggy2402/Projects/eigu-platform/apps/desktop/src/assets/js/ui/affiliate.ui.js) bằng **Inline Vector SVG Icons** chuẩn chỉnh (Search, Check, X, Shield, Alert Triangle).
+   - Thay thế icon chọn ngân hàng (`✓`) trong Bank Picker bằng SVG Checkmark.
+2. **Khắc phục lỗi Modal "Tra cứu dòng tiền" trên Desktop không phản hồi**:
+   - Sửa sai lệch ID phần tử DOM từ `#admin-payout-audit-container` thành `#admin-payout-audit-content` khớp với [views.component.js](file:///Users/peggy2402/Projects/eigu-platform/apps/desktop/src/assets/js/components/views.component.js).
+   - Đăng ký đầy đủ các hàm điều khiển modal vào Global Scope `window` (`window.openAdminPayoutAuditModalDesktop`, `window.closeAdminPayoutAuditModalDesktop`, `window.searchAdminPayoutsDesktop`).
+3. **Responsive Card Grid Layout**:
+   - Khi thu nhỏ cửa sổ Desktop hoặc truy cập trên Mobile (`< 768px`), bảng quản lý đơn rút tự động chuyển đổi thành dạng danh sách thẻ (Card List) thanh lịch với bố cục nút bấm dọc chuẩn UX, không bị tràn màn hình.
+
+---
+
+### 40.5 Chuẩn Hóa Quy Tắc Kinh Doanh: Bắt Buộc Mua Gói Dịch Vụ Mới Được Hoa Hồng
+1. **Phân tích rủi ro kinh doanh**:
+   - Trước đây hệ thống kích hoạt hoa hồng ở cả 2 khâu: khi nạp tiền (`DEPOSIT`) và khi mua gói (`SUBSCRIPTION`). Điều này dẫn đến nguy cơ nhận hoa hồng 2 lần (Double Commission) trên cùng 1 nguồn tiền.
+2. **Quy tắc chuẩn xác được áp dụng**:
+   - **Khâu Nạp tiền (VietQR/Ngân hàng)**: Bỏ hoàn toàn việc tính hoa hồng trong [payment.service.ts](file:///Users/peggy2402/Projects/eigu-platform/apps/api/src/payment/payment.service.ts). Người dùng nạp tiền vào ví chỉ là nạp số dư trung gian, **không sinh ra hoa hồng**.
+   - **Khâu Mua Gói / Nâng Cấp Gói Dịch Vụ**: Chỉ khi người dùng F1 thực sự dùng số dư trong ví bấm **"Mua gói / Nâng cấp gói"** trong [pricing.service.ts](file:///Users/peggy2402/Projects/eigu-platform/apps/api/src/pricing/pricing.service.ts), hệ thống mới ghi nhận doanh thu dịch vụ và tự động cộng % hoa hồng cho người giới thiệu.
+
+---
+
+### 40.6 Kiểm Tra Biên Dịch Hệ Thống & Đồng Bộ Nhánh Git
+- **Shared Library Build**: `npx nx run shared:build` $\rightarrow$ `✓ 100% Success`.
+- **Typecheck Toàn Bộ Monorepo**: `npx tsc --noEmit -p apps/api/tsconfig.app.json && npx tsc --noEmit -p apps/web/tsconfig.json && npx tsc --noEmit -p apps/desktop/tsconfig.app.json` $\rightarrow$ `✓ 0 error`.
+- **Git Branch Management**: Đã merge toàn bộ thay đổi từ nhánh `developer` vào nhánh `main` và push lên GitHub repository (`https://github.com/peggy2402/eigu-platform.git`).
+
+
 
 
 
