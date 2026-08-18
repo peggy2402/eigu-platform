@@ -107,8 +107,24 @@ export class AffiliateController {
     @Headers('user-agent') userAgent?: string,
   ) {
     const ipAddress = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.ip;
-    return this.affiliateService.recordClick(code, Array.isArray(ipAddress) ? ipAddress[0] : ipAddress, userAgent);
+    let currentUserId: string | undefined = undefined;
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const payloadJson = Buffer.from(token.split('.')[1], 'base64').toString('utf8');
+        const payload = JSON.parse(payloadJson);
+        currentUserId = payload?.id || payload?.userId || payload?.sub;
+      } catch (e) {}
+    }
+    return this.affiliateService.recordClick(
+      code,
+      Array.isArray(ipAddress) ? ipAddress[0] : ipAddress,
+      userAgent,
+      currentUserId,
+    );
   }
+
 
   // ==========================================
   // ADMIN API ENDPOINTS (STRICT ADMIN ONLY)
@@ -123,12 +139,28 @@ export class AffiliateController {
     @Query('status') status?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('search') search?: string,
   ) {
     const role = (req.user?.role || '').toLowerCase();
     if (role !== 'admin') {
       throw new ForbiddenException('Chỉ tài khoản Admin tối cao mới có quyền truy cập duyệt đơn rút tiền');
     }
-    return this.affiliateService.getAdminPayouts(status, Number(page) || 1, Number(limit) || 20);
+    return this.affiliateService.getAdminPayouts(status, Number(page) || 1, Number(limit) || 20, search);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/payouts/:id/audit')
+  @ApiOperation({ summary: '[ADMIN ONLY] Tra cứu bằng chứng và dòng tiền hoa hồng của đơn rút tiền' })
+  async getAdminPayoutAudit(
+    @Req() req: any,
+    @Param('id') id: string,
+  ) {
+    const role = (req.user?.role || '').toLowerCase();
+    if (role !== 'admin') {
+      throw new ForbiddenException('Chỉ tài khoản Admin tối cao mới có quyền tra cứu dòng tiền');
+    }
+    return this.affiliateService.getAdminPayoutAudit(id);
   }
 
   @ApiBearerAuth()
@@ -147,6 +179,7 @@ export class AffiliateController {
     const adminId = req.user.id || req.user.userId || req.user.sub;
     return this.affiliateService.updatePayoutStatus(id, dto, adminId);
   }
+
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)

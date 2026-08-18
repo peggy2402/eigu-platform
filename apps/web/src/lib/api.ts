@@ -225,12 +225,13 @@ export const pricingApi = {
     return request(`${API_ENDPOINTS.PRICING.BASE}${query}`);
   },
   getMySubscriptions: () => request('/pricing/my-subscriptions'),
-  subscribe: (moduleId: string, tierId: string) =>
+  subscribe: (moduleId: string, tierId: string, refCode?: string) =>
     request('/pricing/subscribe', {
       method: 'POST',
-      body: JSON.stringify({ moduleId, tierId }),
+      body: JSON.stringify({ moduleId, tierId, refCode }),
     }),
 };
+
 
 export const themeEventApi = {
   getConfig: () => request('/theme-event'),
@@ -268,16 +269,20 @@ export const affiliateApi = {
 
   // Admin endpoints
   getAdminStats: () => request(API_ENDPOINTS.AFFILIATE.ADMIN_STATS),
-  getAdminPayouts: (page = 1, limit = 10, status?: string) => {
-    const statusQuery = status && status !== 'ALL' ? `&status=${status}` : '';
-    return request(`${API_ENDPOINTS.AFFILIATE.ADMIN_PAYOUTS}?page=${page}&limit=${limit}${statusQuery}`);
+  getAdminPayouts: (page = 1, limit = 10, status?: string, search?: string) => {
+    let query = `${API_ENDPOINTS.AFFILIATE.ADMIN_PAYOUTS}?page=${page}&limit=${limit}`;
+    if (status && status !== 'ALL' && status !== 'all') query += `&status=${status}`;
+    if (search && search.trim()) query += `&search=${encodeURIComponent(search.trim())}`;
+    return request(query);
   },
+  getAdminPayoutAudit: (id: string) => request(`${API_ENDPOINTS.AFFILIATE.ADMIN_PAYOUTS}/${id}/audit`),
   getAdminConfig: () => request(API_ENDPOINTS.AFFILIATE.ADMIN_CONFIG),
-  saveAdminConfig: (data: { commissionRate: number; minPayoutThreshold: number }) =>
+  saveAdminConfig: (data: { commissionRate?: number; minPayoutThreshold?: number; payoutFeePercent?: number; payoutFeeFixed?: number }) =>
     request(API_ENDPOINTS.AFFILIATE.ADMIN_CONFIG, { method: 'PATCH', body: JSON.stringify(data) }),
   updateAdminPayoutStatus: (id: string, status: string, adminNote?: string) =>
     request(API_ENDPOINTS.AFFILIATE.ADMIN_PAYOUT_STATUS(id), { method: 'PATCH', body: JSON.stringify({ status, adminNote }) }),
 };
+
 
 
 

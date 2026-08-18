@@ -262,7 +262,7 @@ function renderBankListDesktop(banks, query = '') {
             <div style="font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px;">${b.name}</div>
           </div>
         </div>
-        ${isSelected ? `<span style="color: var(--accent); font-weight: 900; font-size: 14px;">✓</span>` : ''}
+        ${isSelected ? `<span style="color: var(--accent); display: flex; align-items: center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>` : ''}
       </div>
     `;
   }).join('');
@@ -370,100 +370,186 @@ async function saveUserBankSettingsDesktop(event) {
 
 async function loadAffiliateReferralsDesktop(page = 1) {
   const tbody = document.getElementById('aff-referrals-tbody');
-  if (!tbody) return;
+  const cards = document.getElementById('aff-referrals-cards');
+  if (!tbody && !cards) return;
 
-  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải danh sách thành viên...</td></tr>`;
+  if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải danh sách thành viên...</td></tr>`;
+  if (cards) cards.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:24px;color:var(--text-muted);">Đang tải danh sách...</div>`;
 
   try {
     const data = await apiFetch(`/affiliate/referrals?page=${page}&limit=10`);
     const items = data.items || [];
 
     if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted);">Chưa có thành viên nào đăng ký qua link của bạn.</td></tr>`;
+      if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted);">Chưa có thành viên nào đăng ký qua link của bạn.</td></tr>`;
+      if (cards) cards.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:32px;color:var(--text-muted);">Chưa có thành viên nào đăng ký qua link của bạn.</div>`;
       return;
     }
 
-    tbody.innerHTML = items.map(item => `
-      <tr style="border-bottom: 1px solid var(--border-color);">
-        <td style="padding: 10px 12px; font-weight: 700; color: var(--text-primary);">${item.maskedEmail}</td>
-        <td style="padding: 10px 12px; color: var(--text-muted);">${new Date(item.createdAt).toLocaleDateString('vi-VN')}</td>
-        <td style="padding: 10px 12px;">
-          <span style="padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: ${item.isVerified ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)'}; color: ${item.isVerified ? '#22c55e' : '#eab308'};">
-            ${item.isVerified ? 'Đã xác thực' : 'Chưa xác thực'}
-          </span>
-        </td>
-        <td style="padding: 10px 12px; text-align: right; font-weight: 800; color: #eab308;">
-          ${(item.totalCommissionGenerated || 0).toLocaleString('vi-VN')}đ
-        </td>
-      </tr>
-    `).join('');
+    if (tbody) {
+      tbody.innerHTML = items.map(item => `
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 10px 12px; font-weight: 700; color: var(--text-primary);">${item.maskedEmail}</td>
+          <td style="padding: 10px 12px; color: var(--text-muted);">${new Date(item.createdAt).toLocaleDateString('vi-VN')}</td>
+          <td style="padding: 10px 12px; text-align: center;">
+            <span style="padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: ${item.isVerified ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)'}; color: ${item.isVerified ? '#22c55e' : '#eab308'};">
+              ${item.isVerified ? 'Đã xác thực' : 'Chưa xác thực'}
+            </span>
+          </td>
+          <td style="padding: 10px 12px; text-align: right; font-weight: 800; color: #eab308;">
+            ${(item.totalCommissionGenerated || 0).toLocaleString('vi-VN')}đ
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    if (cards) {
+      cards.innerHTML = items.map(item => `
+        <div class="payout-item-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span style="font-weight: 700; color: var(--text-primary); font-size: 13px;">${item.maskedEmail}</span>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${new Date(item.createdAt).toLocaleDateString('vi-VN')}</div>
+            </div>
+            <span style="padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; background: ${item.isVerified ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)'}; color: ${item.isVerified ? '#22c55e' : '#eab308'};">
+              ${item.isVerified ? 'Đã xác thực' : 'Chưa xác thực'}
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 8px;">
+            <span style="font-size: 11px; color: var(--text-muted);">Hoa hồng tạo ra:</span>
+            <span style="font-weight: 800; color: #eab308; font-size: 13px;">${(item.totalCommissionGenerated || 0).toLocaleString('vi-VN')}đ</span>
+          </div>
+        </div>
+      `).join('');
+    }
   } catch (err) {
     console.error('[Affiliate Desktop] Error loading referrals:', err);
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">Không thể tải danh sách. Vui lòng đăng nhập lại.</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">Không thể tải danh sách.</td></tr>`;
   }
 }
 
 async function loadAffiliateCommissionsDesktop(page = 1) {
   const tbody = document.getElementById('aff-commissions-tbody');
-  if (!tbody) return;
+  const cards = document.getElementById('aff-commissions-cards');
+  if (!tbody && !cards) return;
 
-  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải lịch sử hoa hồng...</td></tr>`;
+  if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải lịch sử hoa hồng...</td></tr>`;
+  if (cards) cards.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:24px;color:var(--text-muted);">Đang tải lịch sử...</div>`;
 
   try {
     const data = await apiFetch(`/affiliate/commissions?page=${page}&limit=10`);
     const items = data.items || [];
 
     if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);">Chưa có hoa hồng phát sinh.</td></tr>`;
+      if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);">Chưa có hoa hồng phát sinh.</td></tr>`;
+      if (cards) cards.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:32px;color:var(--text-muted);">Chưa có hoa hồng phát sinh.</div>`;
       return;
     }
 
-    tbody.innerHTML = items.map(comm => `
-      <tr style="border-bottom: 1px solid var(--border-color);">
-        <td style="padding: 10px 12px; font-weight: 800; color: var(--accent);">#${comm.code}</td>
-        <td style="padding: 10px 12px; font-weight: 600;">${comm.referredUserEmail}</td>
-        <td style="padding: 10px 12px;"><span style="padding: 2px 6px; border-radius: 6px; background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 11px; font-weight: 700;">${comm.sourceType === 'DEPOSIT' ? 'Nạp tiền' : 'Mua gói'}</span></td>
-        <td style="padding: 10px 12px; color: var(--text-muted);">${(comm.orderAmount || 0).toLocaleString('vi-VN')}đ</td>
-        <td style="padding: 10px 12px; font-weight: 700; color: #3b82f6;">${comm.rate}%</td>
-        <td style="padding: 10px 12px; text-align: right; font-weight: 900; color: #22c55e;">+${(comm.commissionAmount || 0).toLocaleString('vi-VN')}đ</td>
-        <td style="padding: 10px 12px; color: var(--text-muted); font-size: 11px;">${new Date(comm.createdAt).toLocaleString('vi-VN')}</td>
-      </tr>
-    `).join('');
+    if (tbody) {
+      tbody.innerHTML = items.map(comm => `
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 10px 12px; font-weight: 800; color: var(--accent);">#${comm.code}</td>
+          <td style="padding: 10px 12px; font-weight: 600;">${comm.referredUserEmail}</td>
+          <td style="padding: 10px 12px;"><span style="padding: 2px 6px; border-radius: 6px; background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 11px; font-weight: 700;">${comm.sourceType === 'DEPOSIT' ? 'Nạp tiền' : 'Mua gói'}</span></td>
+          <td style="padding: 10px 12px; color: var(--text-muted); text-align: right;">${(comm.orderAmount || 0).toLocaleString('vi-VN')}đ</td>
+          <td style="padding: 10px 12px; font-weight: 700; color: #3b82f6; text-align: center;">${comm.rate}%</td>
+          <td style="padding: 10px 12px; text-align: right; font-weight: 900; color: #22c55e;">+${(comm.commissionAmount || 0).toLocaleString('vi-VN')}đ</td>
+          <td style="padding: 10px 12px; color: var(--text-muted); font-size: 11px;">${new Date(comm.createdAt).toLocaleString('vi-VN')}</td>
+        </tr>
+      `).join('');
+    }
+
+    if (cards) {
+      cards.innerHTML = items.map(comm => `
+        <div class="payout-item-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span style="font-weight: 800; color: var(--accent); font-size: 12px;">#${comm.code}</span>
+              <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${comm.referredUserEmail}</div>
+            </div>
+            <span style="padding: 2px 6px; border-radius: 6px; background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 10px; font-weight: 700;">
+              ${comm.sourceType === 'DEPOSIT' ? 'Nạp tiền' : 'Mua gói'}
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 8px;">
+            <div style="font-size: 11px; color: var(--text-muted);">${(comm.orderAmount || 0).toLocaleString('vi-VN')}đ (${comm.rate}%)</div>
+            <div style="font-weight: 900; color: #22c55e; font-size: 14px;">+${(comm.commissionAmount || 0).toLocaleString('vi-VN')}đ</div>
+          </div>
+        </div>
+      `).join('');
+    }
   } catch (err) {
     console.error('[Affiliate Desktop] Error loading commissions:', err);
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Không thể tải lịch sử hoa hồng.</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Không thể tải lịch sử hoa hồng.</td></tr>`;
   }
 }
 
 async function loadAffiliatePayoutsDesktop(page = 1) {
   const tbody = document.getElementById('aff-payouts-tbody');
-  if (!tbody) return;
+  const cards = document.getElementById('aff-payouts-cards');
+  if (!tbody && !cards) return;
 
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải lịch sử rút tiền...</td></tr>`;
+  if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Đang tải lịch sử rút tiền...</td></tr>`;
+  if (cards) cards.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:24px;color:var(--text-muted);">Đang tải lịch sử...</div>`;
 
   try {
     const data = await apiFetch(`/affiliate/payouts?page=${page}&limit=10`);
     const items = data.items || [];
 
     if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);">Chưa có yêu cầu rút tiền nào.</td></tr>`;
+      if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);">Chưa có yêu cầu rút tiền nào.</td></tr>`;
+      if (cards) cards.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:32px;color:var(--text-muted);">Chưa có yêu cầu rút tiền nào.</div>`;
       return;
     }
 
-    tbody.innerHTML = items.map(p => `
-      <tr style="border-bottom: 1px solid var(--border-color);">
-        <td style="padding: 10px 12px; font-weight: 800; color: var(--accent);">#${p.code}</td>
-        <td style="padding: 10px 12px; font-weight: 900; color: #22c55e;">${(p.amount || 0).toLocaleString('vi-VN')}đ</td>
-        <td style="padding: 10px 12px;">${p.bankName} - ${p.accountNumber} (${p.accountHolder})</td>
-        <td style="padding: 10px 12px;">
-          <span style="padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: ${p.status === 'APPROVED' ? 'rgba(34, 197, 94, 0.15)' : p.status === 'REJECTED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(234, 179, 8, 0.15)'}; color: ${p.status === 'APPROVED' ? '#22c55e' : p.status === 'REJECTED' ? '#ef4444' : '#eab308'};">
-            ${p.status === 'APPROVED' ? 'Đã duyệt' : p.status === 'REJECTED' ? 'Từ chối' : 'Chờ duyệt'}
-          </span>
-        </td>
-        <td style="padding: 10px 12px; color: var(--text-muted); font-size: 12px;">${p.adminNote || '-'}</td>
-        <td style="padding: 10px 12px; color: var(--text-muted); font-size: 11px;">${new Date(p.createdAt).toLocaleString('vi-VN')}</td>
-      </tr>
-    `).join('');
+    if (tbody) {
+      tbody.innerHTML = items.map(p => {
+        const statusBadge = p.status === 'APPROVED'
+          ? `<span style="padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(34, 197, 94, 0.15); color: #22c55e;">Đã duyệt</span>`
+          : p.status === 'REJECTED'
+          ? `<span style="padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(239, 68, 68, 0.15); color: #ef4444;">Từ chối</span>`
+          : `<span style="padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(234, 179, 8, 0.15); color: #eab308;">Chờ duyệt</span>`;
+
+        return `
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 10px 12px; font-weight: 800; color: var(--accent);">#${p.code}</td>
+            <td style="padding: 10px 12px; font-weight: 900; color: #22c55e; text-align: right;">${(p.amount || 0).toLocaleString('vi-VN')}đ</td>
+            <td style="padding: 10px 12px;">${p.bankName} - ${p.accountNumber}</td>
+            <td style="padding: 10px 12px; font-weight: 600; text-transform: uppercase;">${p.accountHolder}</td>
+            <td style="padding: 10px 12px;">${statusBadge}</td>
+            <td style="padding: 10px 12px; color: var(--text-muted); font-size: 11px;">${p.adminNote || '-'}</td>
+            <td style="padding: 10px 12px; color: var(--text-muted); font-size: 11px;">${new Date(p.createdAt).toLocaleString('vi-VN')}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    if (cards) {
+      cards.innerHTML = items.map(p => {
+        const statusBadge = p.status === 'APPROVED'
+          ? `<span style="padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; background: rgba(34, 197, 94, 0.15); color: #22c55e;">Đã duyệt</span>`
+          : p.status === 'REJECTED'
+          ? `<span style="padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; background: rgba(239, 68, 68, 0.15); color: #ef4444;">Từ chối</span>`
+          : `<span style="padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; background: rgba(234, 179, 8, 0.15); color: #eab308;">Chờ duyệt</span>`;
+
+        return `
+          <div class="payout-item-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <span style="font-weight: 800; color: var(--accent); font-size: 12px;">#${p.code}</span>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${new Date(p.createdAt).toLocaleDateString('vi-VN')}</div>
+              </div>
+              <div>${statusBadge}</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 8px;">
+              <div style="font-size: 11px; color: var(--text-secondary);">${p.bankName} - ${p.accountNumber}</div>
+              <div style="font-weight: 900; color: #22c55e; font-size: 14px;">${(p.amount || 0).toLocaleString('vi-VN')}đ</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
   } catch (err) {
     console.error('[Affiliate Desktop] Error loading payouts:', err);
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Không thể tải lịch sử rút tiền.</td></tr>`;
@@ -552,13 +638,27 @@ async function refreshAffiliateAllDesktop() {
 // ADMIN PAYOUTS MANAGEMENT DESKTOP LOGIC (ADMIN-ONLY)
 // =================================================================
 
+let adminPayoutSearchTimeout = null;
+let currentAdminPayoutSearch = '';
+
+function searchAdminPayoutsDesktop() {
+  const input = document.getElementById('admin-payout-search-input');
+  const val = (input?.value || '').trim();
+  currentAdminPayoutSearch = val;
+
+  if (adminPayoutSearchTimeout) clearTimeout(adminPayoutSearchTimeout);
+  adminPayoutSearchTimeout = setTimeout(() => {
+    loadAdminPayoutsDesktop(1);
+  }, 300);
+}
+
 async function loadAdminPayoutsDesktop(page = 1) {
   currentAdminPayoutPage = page;
   const tbody = document.getElementById('admin-payouts-tbody');
   const cardsContainer = document.getElementById('admin-payouts-cards');
   if (!tbody && !cardsContainer) return;
 
-  if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--text-muted);">Đang tải danh sách đơn rút tiền...</td></tr>`;
+  if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text-muted);">Đang tải danh sách đơn rút tiền...</td></tr>`;
   if (cardsContainer) cardsContainer.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:28px;color:var(--text-muted);">Đang tải danh sách đơn rút tiền...</div>`;
 
   try {
@@ -584,13 +684,16 @@ async function loadAdminPayoutsDesktop(page = 1) {
     if (currentAdminPayoutFilter && currentAdminPayoutFilter !== 'all') {
       payoutsUrl += `&status=${currentAdminPayoutFilter}`;
     }
+    if (currentAdminPayoutSearch) {
+      payoutsUrl += `&search=${encodeURIComponent(currentAdminPayoutSearch)}`;
+    }
 
     const data = await apiFetch(payoutsUrl);
     const items = data.items || [];
 
     if (items.length === 0) {
-      if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--text-muted);">Không có đơn rút tiền nào phù hợp với bộ lọc.</td></tr>`;
-      if (cardsContainer) cardsContainer.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:36px;color:var(--text-muted);">Không có đơn rút tiền nào phù hợp với bộ lọc.</div>`;
+      if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--text-muted);">Không có đơn rút tiền nào phù hợp với từ khóa tra cứu.</td></tr>`;
+      if (cardsContainer) cardsContainer.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:36px;color:var(--text-muted);">Không có đơn rút tiền nào phù hợp với từ khóa tra cứu.</div>`;
       return;
     }
 
@@ -603,16 +706,27 @@ async function loadAdminPayoutsDesktop(page = 1) {
           ? `<span style="padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(239, 68, 68, 0.15); color: #ef4444;">Từ chối</span>`
           : `<span style="padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(234, 179, 8, 0.15); color: #eab308;">Chờ duyệt</span>`;
 
-        const actionButtons = p.status === 'PENDING' ? `
-          <div style="display: flex; gap: 6px; justify-content: center;">
-            <button type="button" onclick="openAdminPayoutActionModal('${p.id}', '${p.code}', ${p.amount}, '${p.userEmail || ''}', 'APPROVED', '${p.bankName}', '${p.accountNumber}', '${p.accountHolder}')" style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); color: #22c55e; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
-              ✓ Duyệt
+        const actionButtons = `
+          <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+            <button type="button" onclick="openAdminPayoutAuditModalDesktop('${p.id}')" title="Tra cứu dòng tiền" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: var(--accent); border-radius: 6px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              Tra cứu
             </button>
-            <button type="button" onclick="openAdminPayoutActionModal('${p.id}', '${p.code}', ${p.amount}, '${p.userEmail || ''}', 'REJECTED', '${p.bankName}', '${p.accountNumber}', '${p.accountHolder}')" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
-              ✕ Từ chối
-            </button>
+            ${p.status === 'PENDING' ? `
+              <button type="button" onclick="openAdminPayoutActionModal('${p.id}', '${p.code}', ${p.amount}, '${p.userEmail || ''}', 'APPROVED', '${p.bankName}', '${p.accountNumber}', '${p.accountHolder}', ${p.fee || 0}, ${p.netAmount || (p.amount - (p.fee || 0))})" style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); color: #22c55e; border-radius: 6px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Duyệt
+              </button>
+              <button type="button" onclick="openAdminPayoutActionModal('${p.id}', '${p.code}', ${p.amount}, '${p.userEmail || ''}', 'REJECTED', '${p.bankName}', '${p.accountNumber}', '${p.accountHolder}', ${p.fee || 0}, ${p.netAmount || (p.amount - (p.fee || 0))})" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; border-radius: 6px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                Từ chối
+              </button>
+            ` : ''}
           </div>
-        ` : `<span style="color: var(--text-muted); font-size: 11px;">Đã đóng</span>`;
+        `;
+
+        const fee = p.fee || 0;
+        const netAmount = p.netAmount || ((p.amount || 0) - fee);
 
         return `
           <tr style="border-bottom: 1px solid var(--border-color);">
@@ -621,8 +735,14 @@ async function loadAdminPayoutsDesktop(page = 1) {
               <div style="font-weight: 700; color: var(--text-primary);">${p.userEmail || 'N/A'}</div>
               <div style="font-size: 10px; color: var(--text-muted);">${p.username ? '@' + p.username : ''}</div>
             </td>
-            <td style="padding: 10px 12px; text-align: right; font-weight: 900; color: #22c55e;">
+            <td style="padding: 10px 12px; text-align: right; font-weight: 700; color: var(--text-secondary);">
               ${(p.amount || 0).toLocaleString('vi-VN')}đ
+            </td>
+            <td style="padding: 10px 12px; text-align: right; font-size: 11px; color: ${fee > 0 ? '#ef4444' : 'var(--text-muted)'};">
+              ${fee > 0 ? `-${fee.toLocaleString('vi-VN')}đ` : '0đ (Miễn phí)'}
+            </td>
+            <td style="padding: 10px 12px; text-align: right; font-weight: 900; color: #22c55e;">
+              ${netAmount.toLocaleString('vi-VN')}đ
             </td>
             <td style="padding: 10px 12px; font-weight: 600;">
               <div>${p.bankName}</div>
@@ -630,7 +750,6 @@ async function loadAdminPayoutsDesktop(page = 1) {
             </td>
             <td style="padding: 10px 12px; font-weight: 700; text-transform: uppercase;">${p.accountHolder}</td>
             <td style="padding: 10px 12px;">${statusBadge}</td>
-            <td style="padding: 10px 12px; color: var(--text-muted); font-size: 11px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.adminNote || '-'}</td>
             <td style="padding: 10px 12px; color: var(--text-muted); font-size: 11px;">${new Date(p.createdAt).toLocaleString('vi-VN')}</td>
             <td style="padding: 10px 12px; text-align: center;">${actionButtons}</td>
           </tr>
@@ -647,16 +766,29 @@ async function loadAdminPayoutsDesktop(page = 1) {
           ? `<span style="padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(239, 68, 68, 0.15); color: #ef4444;">Từ chối</span>`
           : `<span style="padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(234, 179, 8, 0.15); color: #eab308;">Chờ duyệt</span>`;
 
-        const actionButtons = p.status === 'PENDING' ? `
-          <div style="display: flex; gap: 8px; margin-top: 8px;">
-            <button type="button" onclick="openAdminPayoutActionModal('${p.id}', '${p.code}', ${p.amount}, '${p.userEmail || ''}', 'APPROVED', '${p.bankName}', '${p.accountNumber}', '${p.accountHolder}')" style="flex: 1; background: #22c55e; color: #fff; border: none; border-radius: 8px; padding: 7px; font-size: 12px; font-weight: 700; cursor: pointer;">
-              ✓ Duyệt
+        const fee = p.fee || 0;
+        const netAmount = p.netAmount || ((p.amount || 0) - fee);
+
+        const actionButtons = `
+          <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+            <button type="button" onclick="openAdminPayoutAuditModalDesktop('${p.id}')" style="width: 100%; box-sizing: border-box; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: var(--accent); border-radius: 8px; padding: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              Tra cứu dòng tiền (Audit Trail)
             </button>
-            <button type="button" onclick="openAdminPayoutActionModal('${p.id}', '${p.code}', ${p.amount}, '${p.userEmail || ''}', 'REJECTED', '${p.bankName}', '${p.accountNumber}', '${p.accountHolder}')" style="flex: 1; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; border-radius: 8px; padding: 7px; font-size: 12px; font-weight: 700; cursor: pointer;">
-              ✕ Từ chối
-            </button>
+            ${p.status === 'PENDING' ? `
+              <div style="display: flex; gap: 6px; width: 100%;">
+                <button type="button" onclick="openAdminPayoutActionModal('${p.id}', '${p.code}', ${p.amount}, '${p.userEmail || ''}', 'APPROVED', '${p.bankName}', '${p.accountNumber}', '${p.accountHolder}', ${fee}, ${netAmount})" style="flex: 1; background: #22c55e; color: #fff; border: none; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  Duyệt
+                </button>
+                <button type="button" onclick="openAdminPayoutActionModal('${p.id}', '${p.code}', ${p.amount}, '${p.userEmail || ''}', 'REJECTED', '${p.bankName}', '${p.accountNumber}', '${p.accountHolder}', ${fee}, ${netAmount})" style="flex: 1; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  Từ chối
+                </button>
+              </div>
+            ` : ''}
           </div>
-        ` : `<div style="text-align: right; color: var(--text-muted); font-size: 11px; margin-top: 4px;">Đã hoàn tất</div>`;
+        `;
 
         return `
           <div class="payout-admin-card">
@@ -668,18 +800,26 @@ async function loadAdminPayoutsDesktop(page = 1) {
               <div>${statusBadge}</div>
             </div>
 
-            <div style="margin: 8px 0; padding: 8px 10px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="margin: 8px 0; padding: 8px 10px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 11px; color: var(--text-muted);">Số tiền rút:</span>
-                <span style="font-weight: 900; color: #22c55e; font-size: 15px;">${(p.amount || 0).toLocaleString('vi-VN')}đ</span>
+                <span style="font-weight: 700; color: var(--text-primary); font-size: 13px;">${(p.amount || 0).toLocaleString('vi-VN')}đ</span>
               </div>
-              <div style="font-size: 11px; color: var(--text-primary); font-weight: 700;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; color: var(--text-muted);">Phí xử lý:</span>
+                <span style="font-size: 11px; color: ${fee > 0 ? '#ef4444' : 'var(--text-muted)'};">${fee > 0 ? `-${fee.toLocaleString('vi-VN')}đ` : 'Miễn phí'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-color); paddingTop: 4px;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-primary);">Thực nhận:</span>
+                <span style="font-weight: 900; color: #22c55e; font-size: 15px;">${netAmount.toLocaleString('vi-VN')}đ</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-primary); font-weight: 700; margin-top: 4px;">
                 ${p.userEmail || 'N/A'} ${p.username ? '<span style="color:var(--text-muted);font-weight:normal;">(@' + p.username + ')</span>' : ''}
               </div>
-              <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+              <div style="font-size: 11px; color: var(--text-secondary);">
                 <strong>${p.bankName}</strong>: ${p.accountNumber}
               </div>
-              <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-primary); margin-top: 2px;">
+              <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-primary);">
                 CTK: ${p.accountHolder}
               </div>
             </div>
@@ -692,10 +832,139 @@ async function loadAdminPayoutsDesktop(page = 1) {
       }).join('');
     }
   } catch (err) {
-    console.error('[Admin Payouts Desktop] Error loading payouts:', err);
-    if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:28px;color:#ef4444;">Không thể tải danh sách đơn rút tiền (Yêu cầu tài khoản Admin).</td></tr>`;
-    if (cardsContainer) cardsContainer.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:28px;color:#ef4444;">Không thể tải danh sách đơn rút tiền (Yêu cầu tài khoản Admin).</div>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:36px;color:#ef4444;">Lỗi tải dữ liệu: ${err.message || 'Lỗi hệ thống'}</td></tr>`;
+    if (cardsContainer) cardsContainer.innerHTML = `<div style="grid-column: 1/-1; text-align:center;padding:36px;color:#ef4444;">Lỗi tải dữ liệu: ${err.message || 'Lỗi hệ thống'}</div>`;
   }
+}
+
+async function openAdminPayoutAuditModalDesktop(payoutId) {
+  const modal = document.getElementById('admin-payout-audit-modal-desktop');
+  const container = document.getElementById('admin-payout-audit-content');
+  if (!modal || !container) return;
+
+  container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:12px;">Đang tra cứu dữ liệu giao dịch F1 và xác minh nguồn tiền...</div>`;
+  modal.style.display = 'flex';
+
+  try {
+    const data = await apiFetch(`/affiliate/admin/payouts/${payoutId}/audit`);
+    if (!data) throw new Error('Không có dữ liệu');
+
+    const formatVnd = (n) => (n || 0).toLocaleString('vi-VN') + 'đ';
+    const fee = data.payout.fee || 0;
+    const netAmount = data.payout.netAmount || (data.payout.amount - fee);
+
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Metrics -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+          <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;">
+            <div style="font-size: 10px; color: var(--text-muted);">Người yêu cầu rút:</div>
+            <div style="font-weight: 800; color: var(--text-primary); font-size: 12px; margin-top: 2px;">${data.user.email}</div>
+            <div style="font-size: 10px; color: var(--accent); margin-top: 2px;">Mã ref: <strong>${data.user.referralCode}</strong></div>
+          </div>
+
+          <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;">
+            <div style="font-size: 10px; color: var(--text-muted);">Số tiền yêu cầu rút:</div>
+            <div style="font-weight: 900; color: #22c55e; font-size: 16px; margin-top: 2px;">${formatVnd(data.payout.amount)}</div>
+            <div style="font-size: 10px; color: var(--text-secondary); margin-top: 2px;">
+              Phí: ${fee > 0 ? formatVnd(fee) : 'Miễn phí'} | Thực nhận: <strong>${formatVnd(netAmount)}</strong>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;">
+            <div style="font-size: 10px; color: var(--text-muted);">Tổng tiền F1 nạp thực tế:</div>
+            <div style="font-weight: 900; color: #3b82f6; font-size: 16px; margin-top: 2px;">${formatVnd(data.summary.totalOrderAmountByDownlines)}</div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Từ ${data.summary.totalDownlineOrdersCount} hóa đơn của F1</div>
+          </div>
+        </div>
+
+        <!-- Security Badge -->
+        <div style="background: ${data.summary.isLegitBalance ? 'rgba(34, 197, 94, 0.08)' : 'rgba(239, 68, 68, 0.08)'}; border: 1px solid ${data.summary.isLegitBalance ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}; border-radius: 10px; padding: 12px; font-size: 11px; line-height: 1.5;">
+          <div style="font-weight: 800; color: ${data.summary.isLegitBalance ? '#22c55e' : '#ef4444'}; margin-bottom: 2px; display: flex; align-items: center; gap: 5px;">
+            ${data.summary.isLegitBalance ? `
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+              XÁC MINH DÒNG TIỀN: HỢP LỆ (TIỀN THẬT 100%)
+            ` : `
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              CẢNH BÁO: CÓ DẤU HIỆU BẤT THƯỜNG
+            `}
+          </div>
+          <div style="color: var(--text-secondary); margin-top: 4px;">
+            Tổng hoa hồng tích lũy là <strong>${formatVnd(data.user.totalCommissionEarned)}</strong>, sinh ra từ doanh thu nạp thực tế <strong>${formatVnd(data.summary.totalOrderAmountByDownlines)}</strong> của F1. Số tiền rút <strong>${formatVnd(data.payout.amount)}</strong> nằm hoàn toàn trong hạn mức chi trả.
+          </div>
+        </div>
+
+        <!-- Invoices List -->
+        <div>
+          <div style="font-size: 12px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">
+            Chi Tiết Hóa Đơn Nạp/Mua Gói Của F1 Tạo Ra Hoa Hồng:
+          </div>
+          ${data.commissions.length === 0 ? `
+            <div style="text-align: center; padding: 16px; background: var(--bg-primary); border-radius: 8px; color: var(--text-muted); font-size: 11px;">Chưa có lịch sử hoa hồng.</div>
+          ` : `
+            <div style="overflow-x: auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                    <th style="padding: 7px 9px;">Mã HH</th>
+                    <th style="padding: 7px 9px;">F1 Mua/Nạp</th>
+                    <th style="padding: 7px 9px;">Nguồn</th>
+                    <th style="padding: 7px 9px; text-align: right;">F1 Đã Trả</th>
+                    <th style="padding: 7px 9px; text-align: center;">%</th>
+                    <th style="padding: 7px 9px; text-align: right;">Hoa Hồng</th>
+                    <th style="padding: 7px 9px;">Thời Gian</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.commissions.map(c => `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                      <td style="padding: 7px 9px; font-weight: 800; color: var(--accent);">#${c.code}</td>
+                      <td style="padding: 7px 9px; font-weight: 700; color: var(--text-primary);">${c.buyerEmail}</td>
+                      <td style="padding: 7px 9px;">
+                        <span style="padding: 2px 5px; border-radius: 4px; background: ${c.sourceType === 'DEPOSIT' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(168, 85, 247, 0.15)'}; color: ${c.sourceType === 'DEPOSIT' ? '#818cf8' : '#c084fc'}; font-size: 9px; font-weight: 700;">
+                          ${c.sourceType === 'DEPOSIT' ? 'Nạp tiền' : 'Mua gói'}
+                        </span>
+                      </td>
+                      <td style="padding: 7px 9px; text-align: right; font-weight: 700; color: var(--text-secondary);">${formatVnd(c.orderAmount)}</td>
+                      <td style="padding: 7px 9px; text-align: center; font-weight: 700; color: #3b82f6;">${c.rate}%</td>
+                      <td style="padding: 7px 9px; text-align: right; font-weight: 900; color: #22c55e;">+${formatVnd(c.commissionAmount)}</td>
+                      <td style="padding: 7px 9px; color: var(--text-muted); font-size: 10px;">${new Date(c.createdAt).toLocaleString('vi-VN')}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 2px;">
+          <button type="button" onclick="closeAdminPayoutAuditModalDesktop()" style="padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--text-primary); font-size: 11px; font-weight: 700; cursor: pointer;">
+            Đóng
+          </button>
+          ${data.payout.status === 'PENDING' ? `
+            <div style="display: flex; gap: 6px;">
+              <button type="button" onclick="closeAdminPayoutAuditModalDesktop(); openAdminPayoutActionModal('${data.payout.id}', '${data.payout.code}', ${data.payout.amount}, '${data.user.email}', 'REJECTED', '${data.payout.bankName}', '${data.payout.accountNumber}', '${data.payout.accountHolder}', ${fee}, ${netAmount})" style="padding: 7px 12px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.15); color: #ef4444; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                Từ Chối Đơn
+              </button>
+              <button type="button" onclick="closeAdminPayoutAuditModalDesktop(); openAdminPayoutActionModal('${data.payout.id}', '${data.payout.code}', ${data.payout.amount}, '${data.user.email}', 'APPROVED', '${data.payout.bankName}', '${data.payout.accountNumber}', '${data.payout.accountHolder}', ${fee}, ${netAmount})" style="padding: 7px 14px; border-radius: 8px; border: none; background: #22c55e; color: #fff; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Duyệt Chi Ngay
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = `<div style="text-align:center;padding:30px;color:#ef4444;font-size:12px;">Không thể tra cứu thông tin dòng tiền: ${err.message || 'Lỗi hệ thống'}</div>`;
+  }
+}
+
+function closeAdminPayoutAuditModalDesktop() {
+  const modal = document.getElementById('admin-payout-audit-modal-desktop');
+  if (modal) modal.style.display = 'none';
 }
 
 function filterAdminPayoutsDesktop(status) {
@@ -724,11 +993,20 @@ async function loadAdminAffiliateConfigDesktop() {
     if (config) {
       const rateInput = document.getElementById('admin-aff-rate-input');
       const minPayoutInput = document.getElementById('admin-aff-minpayout-input');
+      const feePercentInput = document.getElementById('admin-aff-fee-percent-input');
+      const feeFixedInput = document.getElementById('admin-aff-fee-fixed-input');
+
       if (rateInput && config.commissionRate !== undefined) {
         rateInput.value = String(config.commissionRate);
       }
       if (minPayoutInput && config.minPayoutThreshold !== undefined) {
         minPayoutInput.value = String(config.minPayoutThreshold);
+      }
+      if (feePercentInput && config.payoutFeePercent !== undefined) {
+        feePercentInput.value = String(config.payoutFeePercent);
+      }
+      if (feeFixedInput && config.payoutFeeFixed !== undefined) {
+        feeFixedInput.value = String(config.payoutFeeFixed);
       }
     }
   } catch (err) {
@@ -741,9 +1019,13 @@ async function saveAdminAffiliateConfigDesktop(event) {
 
   const rateInput = document.getElementById('admin-aff-rate-input');
   const minPayoutInput = document.getElementById('admin-aff-minpayout-input');
+  const feePercentInput = document.getElementById('admin-aff-fee-percent-input');
+  const feeFixedInput = document.getElementById('admin-aff-fee-fixed-input');
 
   const commissionRate = Number(rateInput?.value || 15);
   const minPayoutThreshold = Number(minPayoutInput?.value || 200000);
+  const payoutFeePercent = Number(feePercentInput?.value || 0);
+  const payoutFeeFixed = Number(feeFixedInput?.value || 0);
 
   if (commissionRate < 1 || commissionRate > 90) {
     if (typeof showToast === 'function') showToast('Tỷ lệ hoa hồng phải từ 1% đến 90%', 'warning');
@@ -753,15 +1035,23 @@ async function saveAdminAffiliateConfigDesktop(event) {
     if (typeof showToast === 'function') showToast('Hạn mức rút tối thiểu không được dưới 50.000 VNĐ', 'warning');
     return;
   }
+  if (payoutFeePercent < 0 || payoutFeePercent > 50) {
+    if (typeof showToast === 'function') showToast('% Phí rút phải từ 0% đến 50%', 'warning');
+    return;
+  }
+  if (payoutFeeFixed < 0) {
+    if (typeof showToast === 'function') showToast('Phí cố định không được âm', 'warning');
+    return;
+  }
 
   try {
     await apiFetch('/affiliate/admin/config', {
       method: 'PATCH',
-      body: { commissionRate, minPayoutThreshold }
+      body: { commissionRate, minPayoutThreshold, payoutFeePercent, payoutFeeFixed }
     });
 
     if (typeof showToast === 'function') {
-      showToast('Cập nhật thành công!', `Hoa hồng: ${commissionRate}% | Rút tối thiểu: ${minPayoutThreshold.toLocaleString('vi-VN')} VNĐ`, 'success');
+      showToast('Cập nhật thành công!', `Hoa hồng: ${commissionRate}% | Rút tối thiểu: ${minPayoutThreshold.toLocaleString('vi-VN')}đ | Phí: ${payoutFeePercent}% + ${payoutFeeFixed.toLocaleString('vi-VN')}đ`, 'success');
     }
   } catch (err) {
     if (typeof showToast === 'function') {
@@ -770,7 +1060,8 @@ async function saveAdminAffiliateConfigDesktop(event) {
   }
 }
 
-function openAdminPayoutActionModal(payoutId, code, amount, userEmail, actionType, bankName, accountNumber, accountHolder) {
+
+function openAdminPayoutActionModal(payoutId, code, amount, userEmail, actionType, bankName, accountNumber, accountHolder, fee = 0, netAmount = null) {
   const modal = document.getElementById('admin-payout-action-modal-desktop');
   const titleEl = document.getElementById('admin-payout-action-title');
   const infoEl = document.getElementById('admin-payout-action-info');
@@ -778,6 +1069,8 @@ function openAdminPayoutActionModal(payoutId, code, amount, userEmail, actionTyp
   const typeInput = document.getElementById('admin-payout-action-type');
   const noteInput = document.getElementById('admin-payout-action-note');
   const confirmBtn = document.getElementById('admin-payout-action-confirm-btn');
+
+  const actualNet = netAmount !== null ? netAmount : (amount - fee);
 
   if (idInput) idInput.value = payoutId;
   if (typeInput) typeInput.value = actionType;
@@ -803,8 +1096,12 @@ function openAdminPayoutActionModal(payoutId, code, amount, userEmail, actionTyp
     infoEl.innerHTML = `
       <div><strong>Mã đơn:</strong> #${code}</div>
       <div><strong>Người rút:</strong> ${userEmail}</div>
-      <div><strong>Số tiền:</strong> <span style="color: #22c55e; font-weight: 800;">${amount.toLocaleString('vi-VN')} VNĐ</span></div>
-      <div><strong>Ngân hàng:</strong> ${bankName || 'N/A'} - <strong>STK:</strong> ${accountNumber || 'N/A'}</div>
+      <div><strong>Số tiền rút:</strong> <span style="color: var(--text-secondary); font-weight: 700;">${amount.toLocaleString('vi-VN')} VNĐ</span></div>
+      <div><strong>Phí rút tiền:</strong> <span style="color: #ef4444; font-weight: 700;">${fee > 0 ? fee.toLocaleString('vi-VN') + ' VNĐ' : '0đ (Miễn phí)'}</span></div>
+      <div><strong>Thực nhận chuyển khoản:</strong> <span style="color: #22c55e; font-weight: 900; font-size: 14px;">${actualNet.toLocaleString('vi-VN')} VNĐ</span></div>
+      <div style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-color);">
+        <strong>Ngân hàng:</strong> ${bankName || 'N/A'} - <strong>STK:</strong> ${accountNumber || 'N/A'}
+      </div>
       <div><strong>Chủ tài khoản:</strong> <span style="text-transform: uppercase; font-weight: 700;">${accountHolder || 'N/A'}</span></div>
     `;
   }
@@ -867,10 +1164,14 @@ window.saveAdminAffiliateConfigDesktop = saveAdminAffiliateConfigDesktop;
 window.openAdminPayoutActionModal = openAdminPayoutActionModal;
 window.closeAdminPayoutActionModal = closeAdminPayoutActionModal;
 window.submitAdminPayoutActionDesktop = submitAdminPayoutActionDesktop;
+window.openAdminPayoutAuditModalDesktop = openAdminPayoutAuditModalDesktop;
+window.closeAdminPayoutAuditModalDesktop = closeAdminPayoutAuditModalDesktop;
+window.searchAdminPayoutsDesktop = searchAdminPayoutsDesktop;
 
 window.openBankPickerModalDesktop = openBankPickerModalDesktop;
 window.closeBankPickerModalDesktop = closeBankPickerModalDesktop;
 window.filterBanksDesktop = filterBanksDesktop;
 window.selectBankDesktop = selectBankDesktop;
+
 
 

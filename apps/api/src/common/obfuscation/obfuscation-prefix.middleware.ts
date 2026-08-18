@@ -52,10 +52,30 @@ export class ObfuscationPrefixMiddleware implements NestMiddleware {
     const candidateCode = parts[2];
 
     // If candidateCode is a known controller path, bypass
-    const systemBypassRoutes = ['auth', 'users', 'pricing', 'GetInfoPrice', 'payment', 'notifications', 'chat', 'feedback', 'voice', 'system-config', 'security', 'docs', 'bootstrap', 'public'];
+    const systemBypassRoutes = [
+      'auth',
+      'users',
+      'pricing',
+      'GetInfoPrice',
+      'payment',
+      'notifications',
+      'chat',
+      'feedback',
+      'voice',
+      'system-config',
+      'security',
+      'docs',
+      'bootstrap',
+      'public',
+      'affiliate',
+      'news',
+      'theme-event',
+      'audit-logs',
+    ];
     if (systemBypassRoutes.includes(candidateCode)) {
       return next();
     }
+
 
     // 4. Validate Token against ObfuscationConfigService (Active + Grace Period L1 Cache)
     const isValidFormat = this.obfConfigService.isValidCodeFormat(candidateCode);

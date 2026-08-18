@@ -475,10 +475,12 @@ async function verifyCheckoutPaymentDesktop() {
   }
 
   try {
+    const refCode = localStorage.getItem('eigu_ref_code') || undefined;
     const res = await apiFetch('/pricing/subscribe', {
       method: 'POST',
-      body: JSON.stringify({ moduleId: state.moduleId, tierId: state.tierId }),
+      body: JSON.stringify({ moduleId: state.moduleId, tierId: state.tierId, refCode }),
     });
+
 
     if (res && res.success) {
       if (state.pollTimer) {

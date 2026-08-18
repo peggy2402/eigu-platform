@@ -21,10 +21,14 @@ export class AffiliateService implements OnModuleInit {
   private readonly logger = new Logger(AffiliateService.name);
   private readonly DEFAULT_COMMISSION_RATE = 15; // 15%
   private readonly DEFAULT_MIN_PAYOUT = 200000; // 200,000 VNĐ
+  private readonly DEFAULT_PAYOUT_FEE_PERCENT = 0; // 0%
+  private readonly DEFAULT_PAYOUT_FEE_FIXED = 0; // 0 VNĐ
 
   // In-memory cache for system config
   private cachedCommissionRate: number | null = null;
   private cachedMinPayoutThreshold: number | null = null;
+  private cachedPayoutFeePercent: number | null = null;
+  private cachedPayoutFeeFixed: number | null = null;
   private configCacheExpiry = 0;
 
   constructor(
@@ -39,35 +43,56 @@ export class AffiliateService implements OnModuleInit {
   }
 
   /**
-   * Đọc cấu hình % hoa hồng và hạn mức rút tiền từ bảng SystemConfig
+   * Đọc cấu hình % hoa hồng, hạn mức rút tiền và phí rút từ bảng SystemConfig
    */
-  private async loadSystemConfig(): Promise<{ commissionRate: number; minPayoutThreshold: number }> {
+  private async loadSystemConfig(): Promise<{
+    commissionRate: number;
+    minPayoutThreshold: number;
+    payoutFeePercent: number;
+    payoutFeeFixed: number;
+  }> {
     const now = Date.now();
-    if (this.cachedCommissionRate !== null && this.cachedMinPayoutThreshold !== null && now < this.configCacheExpiry) {
+    if (
+      this.cachedCommissionRate !== null &&
+      this.cachedMinPayoutThreshold !== null &&
+      this.cachedPayoutFeePercent !== null &&
+      this.cachedPayoutFeeFixed !== null &&
+      now < this.configCacheExpiry
+    ) {
       return {
         commissionRate: this.cachedCommissionRate,
         minPayoutThreshold: this.cachedMinPayoutThreshold,
+        payoutFeePercent: this.cachedPayoutFeePercent,
+        payoutFeeFixed: this.cachedPayoutFeeFixed,
       };
     }
 
     try {
-      const [rateCfg, minPayoutCfg] = await Promise.all([
+      const [rateCfg, minPayoutCfg, feePercentCfg, feeFixedCfg] = await Promise.all([
         this.prisma.systemConfig.findUnique({ where: { key: 'AFFILIATE_COMMISSION_RATE' } }),
         this.prisma.systemConfig.findUnique({ where: { key: 'AFFILIATE_MIN_PAYOUT_THRESHOLD' } }),
+        this.prisma.systemConfig.findUnique({ where: { key: 'AFFILIATE_PAYOUT_FEE_PERCENT' } }),
+        this.prisma.systemConfig.findUnique({ where: { key: 'AFFILIATE_PAYOUT_FEE_FIXED' } }),
       ]);
 
       this.cachedCommissionRate = rateCfg ? Number(rateCfg.value) : this.DEFAULT_COMMISSION_RATE;
       this.cachedMinPayoutThreshold = minPayoutCfg ? Number(minPayoutCfg.value) : this.DEFAULT_MIN_PAYOUT;
+      this.cachedPayoutFeePercent = feePercentCfg ? Number(feePercentCfg.value) : this.DEFAULT_PAYOUT_FEE_PERCENT;
+      this.cachedPayoutFeeFixed = feeFixedCfg ? Number(feeFixedCfg.value) : this.DEFAULT_PAYOUT_FEE_FIXED;
       this.configCacheExpiry = now + 60000; // Cache 60s
     } catch (err: any) {
       this.logger.warn(`[AffiliateConfig] Error loading system configs, using defaults: ${err.message}`);
       this.cachedCommissionRate = this.DEFAULT_COMMISSION_RATE;
       this.cachedMinPayoutThreshold = this.DEFAULT_MIN_PAYOUT;
+      this.cachedPayoutFeePercent = this.DEFAULT_PAYOUT_FEE_PERCENT;
+      this.cachedPayoutFeeFixed = this.DEFAULT_PAYOUT_FEE_FIXED;
     }
 
     return {
       commissionRate: this.cachedCommissionRate,
       minPayoutThreshold: this.cachedMinPayoutThreshold,
+      payoutFeePercent: this.cachedPayoutFeePercent,
+      payoutFeeFixed: this.cachedPayoutFeeFixed,
     };
   }
 
@@ -184,6 +209,8 @@ export class AffiliateService implements OnModuleInit {
       affiliateWithdrawn: Number(user.affiliateWithdrawn),
       commissionRate,
       minPayoutThreshold,
+      payoutFeePercent: this.cachedPayoutFeePercent ?? this.DEFAULT_PAYOUT_FEE_PERCENT,
+      payoutFeeFixed: this.cachedPayoutFeeFixed ?? this.DEFAULT_PAYOUT_FEE_FIXED,
       bankName: user.bankName,
       bankAccountNumber: user.bankAccountNumber,
       bankAccountHolder: user.bankAccountHolder,
@@ -235,7 +262,7 @@ export class AffiliateService implements OnModuleInit {
   /**
    * Ghi nhận lượt nhấp đường dẫn tiếp thị công khai
    */
-  async recordClick(referralCode: string, ipAddress?: string, userAgent?: string) {
+  async recordClick(referralCode: string, ipAddress?: string, userAgent?: string, currentUserId?: string) {
     if (!referralCode) return { success: false };
     const cleanCode = referralCode.trim().toUpperCase();
 
@@ -257,8 +284,28 @@ export class AffiliateService implements OnModuleInit {
       },
     });
 
+    // Nếu người dùng hiện tại đã đăng nhập nhưng chưa có người giới thiệu, tự động liên kết với Referrer
+    if (currentUserId && currentUserId !== referrer.id) {
+      try {
+        const currentUser = await this.prisma.user.findUnique({
+          where: { id: currentUserId },
+          select: { id: true, referredById: true },
+        });
+        if (currentUser && !currentUser.referredById) {
+          await this.prisma.user.update({
+            where: { id: currentUserId },
+            data: { referredById: referrer.id },
+          });
+          this.logger.log(`[Affiliate Click] Auto-linked logged-in user ${currentUserId} to Referrer ${referrer.id} via click ${cleanCode}`);
+        }
+      } catch (err: any) {
+        this.logger.error(`[Affiliate Click] Error linking current user to referrer: ${err?.message}`);
+      }
+    }
+
     return { success: true };
   }
+
 
   /**
    * Danh sách người dùng được cấp dưới giới thiệu
@@ -392,6 +439,10 @@ export class AffiliateService implements OnModuleInit {
     // Sinh mã đơn rút tiền PAYOUT-xxxxx
     const payoutCode = `PAYOUT-${Math.floor(100000 + Math.random() * 900000)}`;
 
+    const cfg = await this.loadSystemConfig();
+    const fee = Math.round(dto.amount * (cfg.payoutFeePercent / 100)) + cfg.payoutFeeFixed;
+    const netAmount = Math.max(0, dto.amount - fee);
+
     const payout = await this.prisma.$transaction(async (tx) => {
       // Trừ số dư affiliateBalance
       const userUpdateData: any = {
@@ -415,6 +466,8 @@ export class AffiliateService implements OnModuleInit {
           code: payoutCode,
           userId,
           amount: dto.amount,
+          fee,
+          netAmount,
           bankName: dto.bankName.trim(),
           accountNumber: dto.accountNumber.trim(),
           accountHolder: dto.accountHolder.trim().toUpperCase(),
@@ -423,12 +476,14 @@ export class AffiliateService implements OnModuleInit {
       });
     });
 
-    this.logger.log(`[Affiliate] User ${user.email} gửi yêu cầu rút tiền #${payout.code} (${dto.amount.toLocaleString('vi-VN')}đ)`);
+    this.logger.log(
+      `[Affiliate] User ${user.email} gửi yêu cầu rút tiền #${payout.code} (Rút: ${dto.amount.toLocaleString('vi-VN')}đ | Phí: ${fee.toLocaleString('vi-VN')}đ | Thực nhận: ${netAmount.toLocaleString('vi-VN')}đ)`,
+    );
 
     // Gửi thông báo đến người dùng
     await this.notificationsService.create(
       `Yêu cầu rút tiền #${payout.code}`,
-      `Yêu cầu rút ${dto.amount.toLocaleString('vi-VN')} VNĐ về ngân hàng ${dto.bankName} (${dto.accountNumber}) đã được ghi nhận và đang chờ Admin xét duyệt.`,
+      `Yêu cầu rút ${dto.amount.toLocaleString('vi-VN')} VNĐ (Thực nhận: ${netAmount.toLocaleString('vi-VN')} VNĐ) về ngân hàng ${dto.bankName} (${dto.accountNumber}) đã được ghi nhận và đang chờ Admin xét duyệt.`,
       `user:${userId}`,
     );
 
@@ -439,6 +494,8 @@ export class AffiliateService implements OnModuleInit {
         id: payout.id,
         code: payout.code,
         amount: Number(payout.amount),
+        fee: Number(payout.fee),
+        netAmount: Number(payout.netAmount),
         bankName: payout.bankName,
         accountNumber: payout.accountNumber,
         accountHolder: payout.accountHolder,
@@ -464,19 +521,26 @@ export class AffiliateService implements OnModuleInit {
       }),
     ]);
 
-    const items: AffiliatePayoutDto[] = payouts.map((p) => ({
-      id: p.id,
-      code: p.code,
-      userId: p.userId,
-      amount: Number(p.amount),
-      bankName: p.bankName,
-      accountNumber: p.accountNumber,
-      accountHolder: p.accountHolder,
-      status: p.status as any,
-      adminNote: p.adminNote,
-      processedAt: p.processedAt ? p.processedAt.toISOString() : null,
-      createdAt: p.createdAt.toISOString(),
-    }));
+    const items: AffiliatePayoutDto[] = payouts.map((p) => {
+      const amount = Number(p.amount);
+      const fee = Number(p.fee || 0);
+      const netAmount = Number(p.netAmount || (amount - fee));
+      return {
+        id: p.id,
+        code: p.code,
+        userId: p.userId,
+        amount,
+        fee,
+        netAmount,
+        bankName: p.bankName,
+        accountNumber: p.accountNumber,
+        accountHolder: p.accountHolder,
+        status: p.status as any,
+        adminNote: p.adminNote,
+        processedAt: p.processedAt ? p.processedAt.toISOString() : null,
+        createdAt: p.createdAt.toISOString(),
+      };
+    });
 
     return {
       total,
@@ -498,36 +562,31 @@ export class AffiliateService implements OnModuleInit {
       select: { id: true, email: true, username: true, referredById: true },
     });
 
-    if (!user || !user.referredById) {
-      return; // Không có người giới thiệu
-    }
+    if (!user || !user.referredById) return;
 
     const referrerId = user.referredById;
     const { commissionRate } = await this.loadSystemConfig();
-    const rate = commissionRate;
-    const commissionAmount = Math.round((orderAmount * rate) / 100);
 
+    const commissionAmount = Math.round((orderAmount * commissionRate) / 100);
     if (commissionAmount <= 0) return;
 
-    const commCode = `COMM-${Math.floor(100000 + Math.random() * 900000)}`;
+    const commissionCode = `COMM-${Math.floor(100000 + Math.random() * 900000)}`;
 
     await this.prisma.$transaction(async (tx) => {
-      // 1. Tạo ghi nhận AffiliateCommission
       await tx.affiliateCommission.create({
         data: {
-          code: commCode,
+          code: commissionCode,
           referrerId,
           referredUserId,
           sourceType,
           sourceId,
           orderAmount,
-          rate,
+          rate: commissionRate,
           commissionAmount,
           status: 'COMPLETED',
         },
       });
 
-      // 2. Cộng số dư hoa hồng cho Referrer
       await tx.user.update({
         where: { id: referrerId },
         data: {
@@ -537,7 +596,7 @@ export class AffiliateService implements OnModuleInit {
     });
 
     this.logger.log(
-      `[Affiliate Commission] Cộng +${commissionAmount.toLocaleString('vi-VN')}đ (${rate}%) cho Referrer ${referrerId} từ đơn của ${user.email}`,
+      `[Affiliate] Đã cộng +${commissionAmount.toLocaleString('vi-VN')} VNĐ (${commissionRate}%) hoa hồng cho user ${referrerId} từ đơn #${sourceId} (${orderAmount.toLocaleString('vi-VN')} VNĐ) của ${user.email}`,
     );
 
     // Thông báo cho Referrer
@@ -553,13 +612,25 @@ export class AffiliateService implements OnModuleInit {
   // ==========================================
 
   /**
-   * Admin: Xem toàn bộ danh sách đơn rút tiền
+   * Admin: Xem toàn bộ danh sách đơn rút tiền (Có hỗ trợ tìm kiếm theo Mã/Email/STK/Tên)
    */
-  async getAdminPayouts(status?: string, page = 1, limit = 20) {
+  async getAdminPayouts(status?: string, page = 1, limit = 20, search?: string) {
     const skip = (Math.max(1, page) - 1) * limit;
     const where: any = {};
     if (status && status !== 'all') {
       where.status = status.toUpperCase();
+    }
+
+    if (search && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { code: { contains: q, mode: 'insensitive' } },
+        { accountNumber: { contains: q, mode: 'insensitive' } },
+        { accountHolder: { contains: q, mode: 'insensitive' } },
+        { bankName: { contains: q, mode: 'insensitive' } },
+        { user: { email: { contains: q, mode: 'insensitive' } } },
+        { user: { username: { contains: q, mode: 'insensitive' } } },
+      ];
     }
 
     const [total, payouts] = await Promise.all([
@@ -577,21 +648,28 @@ export class AffiliateService implements OnModuleInit {
       }),
     ]);
 
-    const items: AffiliatePayoutDto[] = payouts.map((p) => ({
-      id: p.id,
-      code: p.code,
-      userId: p.userId,
-      userEmail: p.user.email,
-      username: p.user.username,
-      amount: Number(p.amount),
-      bankName: p.bankName,
-      accountNumber: p.accountNumber,
-      accountHolder: p.accountHolder,
-      status: p.status as any,
-      adminNote: p.adminNote,
-      processedAt: p.processedAt ? p.processedAt.toISOString() : null,
-      createdAt: p.createdAt.toISOString(),
-    }));
+    const items: AffiliatePayoutDto[] = payouts.map((p) => {
+      const amount = Number(p.amount);
+      const fee = Number(p.fee || 0);
+      const netAmount = Number(p.netAmount || (amount - fee));
+      return {
+        id: p.id,
+        code: p.code,
+        userId: p.userId,
+        userEmail: p.user.email,
+        username: p.user.username,
+        amount,
+        fee,
+        netAmount,
+        bankName: p.bankName,
+        accountNumber: p.accountNumber,
+        accountHolder: p.accountHolder,
+        status: p.status as any,
+        adminNote: p.adminNote,
+        processedAt: p.processedAt ? p.processedAt.toISOString() : null,
+        createdAt: p.createdAt.toISOString(),
+      };
+    });
 
     return {
       total,
@@ -601,6 +679,115 @@ export class AffiliateService implements OnModuleInit {
       items,
     };
   }
+
+  /**
+   * Admin: Tra cứu nguồn gốc dòng tiền & Bằng chứng hoa hồng (Audit Trail)
+   */
+  async getAdminPayoutAudit(payoutId: string) {
+    const payout = await this.prisma.affiliatePayout.findUnique({
+      where: { id: payoutId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            referralCode: true,
+            affiliateBalance: true,
+            affiliateWithdrawn: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    if (!payout) {
+      throw new NotFoundException('Không tìm thấy đơn rút tiền');
+    }
+
+    // 1. Tổng hợp toàn bộ dòng tiền hoa hồng và doanh thu từ F1
+    const [commissionAgg, commissions, previousPayouts] = await Promise.all([
+      this.prisma.affiliateCommission.aggregate({
+        where: { referrerId: payout.userId },
+        _sum: { commissionAmount: true, orderAmount: true },
+        _count: { id: true },
+      }),
+      this.prisma.affiliateCommission.findMany({
+        where: { referrerId: payout.userId },
+        include: {
+          referredUser: {
+            select: { id: true, email: true, username: true, createdAt: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+      this.prisma.affiliatePayout.findMany({
+        where: {
+          userId: payout.userId,
+          status: 'APPROVED',
+          id: { not: payout.id },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const totalOrderAmountByDownlines = Number(commissionAgg._sum.orderAmount || 0);
+    const totalCommissionEarned = Number(commissionAgg._sum.commissionAmount || 0);
+    const totalDownlineOrdersCount = commissionAgg._count.id;
+    const totalPreviousWithdrawn = previousPayouts.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+    const payoutAmount = Number(payout.amount);
+    const fee = Number(payout.fee || 0);
+    const netAmount = Number(payout.netAmount || (payoutAmount - fee));
+    const isLegitBalance = totalCommissionEarned >= (totalPreviousWithdrawn + payoutAmount);
+
+    return {
+      payout: {
+        id: payout.id,
+        code: payout.code,
+        amount: payoutAmount,
+        fee,
+        netAmount,
+        bankName: payout.bankName,
+        accountNumber: payout.accountNumber,
+        accountHolder: payout.accountHolder,
+        status: payout.status,
+        adminNote: payout.adminNote,
+        createdAt: payout.createdAt.toISOString(),
+      },
+      user: {
+        id: payout.user.id,
+        email: payout.user.email,
+        username: payout.user.username,
+        referralCode: payout.user.referralCode,
+        currentAffiliateBalance: Number(payout.user.affiliateBalance || 0),
+        affiliateWithdrawn: Number(payout.user.affiliateWithdrawn || 0),
+        totalCommissionEarned,
+        createdAt: payout.user.createdAt.toISOString(),
+      },
+      summary: {
+        totalDownlineOrdersCount,
+        totalOrderAmountByDownlines,
+        totalCommissionGenerated: totalCommissionEarned,
+        totalPreviousWithdrawn,
+        isLegitBalance,
+      },
+      commissions: commissions.map((c) => ({
+        id: c.id,
+        code: c.code,
+        sourceType: c.sourceType,
+        sourceId: c.sourceId,
+        orderAmount: Number(c.orderAmount),
+        rate: Number(c.rate),
+        commissionAmount: Number(c.commissionAmount),
+        buyerEmail: this.maskEmail(c.referredUser?.email || ''),
+        buyerUsername: c.referredUser?.username,
+        createdAt: c.createdAt.toISOString(),
+      })),
+    };
+  }
+
 
   /**
    * Admin: Duyệt (Approve) hoặc Từ chối (Reject) đơn rút tiền
@@ -619,86 +806,71 @@ export class AffiliateService implements OnModuleInit {
       throw new BadRequestException(`Đơn rút tiền #${payout.code} đã xử lý trước đó (${payout.status})`);
     }
 
-    const amount = Number(payout.amount);
-
-    if (dto.status === PayoutStatusAction.APPROVED) {
-      await this.prisma.$transaction(async (tx) => {
-        await tx.affiliatePayout.update({
-          where: { id: payoutId },
-          data: {
-            status: 'APPROVED',
-            adminNote: dto.adminNote || 'Đã chuyển khoản thành công',
-            processedAt: new Date(),
-          },
-        });
-
+    const updatedPayout = await this.prisma.$transaction(async (tx) => {
+      if (dto.status === 'APPROVED') {
+        // Tăng affiliateWithdrawn
         await tx.user.update({
           where: { id: payout.userId },
           data: {
-            affiliateWithdrawn: { increment: amount },
+            affiliateWithdrawn: { increment: payout.amount },
           },
         });
-      });
-
-      this.logger.log(`[Affiliate Admin] Admin ${adminId} đã DUYỆT đơn rút tiền #${payout.code} (${amount}đ) của ${payout.user.email}`);
-
-      await this.notificationsService.create(
-        `Đã chuyển khoản rút tiền #${payout.code}`,
-        `Yêu cầu rút tiền ${amount.toLocaleString('vi-VN')} VNĐ của bạn đã được Admin duyệt và chuyển khoản thành công.`,
-        `user:${payout.userId}`,
-      );
-
-      await this.auditLogsService.createLog({
-        userId: adminId,
-        userEmail: payout.user.email,
-        username: payout.user.username || undefined,
-        userRole: payout.user.role,
-        action: 'APPROVE_AFFILIATE_PAYOUT',
-        module: 'AFFILIATE',
-        payload: JSON.stringify({ payoutId, amount, code: payout.code }),
-      });
-
-      return { success: true, message: `Đã duyệt đơn rút tiền #${payout.code}` };
-    } else {
-      // REJECTED: Hoàn lại tiền về số dư affiliateBalance
-      await this.prisma.$transaction(async (tx) => {
-        await tx.affiliatePayout.update({
-          where: { id: payoutId },
-          data: {
-            status: 'REJECTED',
-            adminNote: dto.adminNote || 'Từ chối rút tiền, hoàn lại số dư',
-            processedAt: new Date(),
-          },
-        });
-
+      } else if (dto.status === 'REJECTED') {
+        // Hoàn lại số dư affiliateBalance
         await tx.user.update({
           where: { id: payout.userId },
           data: {
-            affiliateBalance: { increment: amount },
+            affiliateBalance: { increment: payout.amount },
           },
         });
+      }
+
+      return tx.affiliatePayout.update({
+        where: { id: payoutId },
+        data: {
+          status: dto.status,
+          adminNote: dto.adminNote?.trim() || null,
+          processedAt: new Date(),
+        },
       });
+    });
 
-      this.logger.log(`[Affiliate Admin] Admin ${adminId} TỪ CHỐI đơn rút tiền #${payout.code} (${amount}đ) của ${payout.user.email}`);
+    this.logger.log(`[Affiliate] Admin ${adminId} đã cập nhật đơn #${payout.code} -> ${dto.status}`);
 
-      await this.notificationsService.create(
-        `Từ chối đơn rút tiền #${payout.code}`,
-        `Yêu cầu rút tiền ${amount.toLocaleString('vi-VN')} VNĐ của bạn bị từ chối. Lý do: ${dto.adminNote || 'Không hợp lệ'}. Số tiền đã được hoàn lại vào tài khoản.`,
-        `user:${payout.userId}`,
-      );
+    // Gửi thông báo đến User
+    const statusText = dto.status === 'APPROVED' ? 'được phê duyệt thành công' : 'bị từ chối';
+    const noteText = dto.adminNote ? ` (Ghi chú: ${dto.adminNote})` : '';
+    await this.notificationsService.create(
+      `Đơn rút tiền #${payout.code} ${statusText}`,
+      `Yêu cầu rút ${(Number(payout.amount)).toLocaleString('vi-VN')} VNĐ của bạn đã ${statusText}.${noteText}`,
+      `user:${payout.userId}`,
+    );
 
-      await this.auditLogsService.createLog({
-        userId: adminId,
-        userEmail: payout.user.email,
-        username: payout.user.username || undefined,
-        userRole: payout.user.role,
-        action: 'REJECT_AFFILIATE_PAYOUT',
-        module: 'AFFILIATE',
-        payload: JSON.stringify({ payoutId, amount, code: payout.code, note: dto.adminNote }),
-      });
+    // Ghi Audit Log
+    await this.auditLogsService.createLog({
+      userId: adminId,
+      action: `PAYOUT_${dto.status}`,
+      module: 'AFFILIATE',
+      payload: JSON.stringify({
+        payoutId,
+        code: payout.code,
+        amount: Number(payout.amount),
+        status: dto.status,
+        adminNote: dto.adminNote,
+      }),
+    });
 
-      return { success: true, message: `Đã từ chối đơn rút tiền #${payout.code} và hoàn tiền lại cho user` };
-    }
+    return {
+      success: true,
+      message: dto.status === 'APPROVED' ? 'Đã duyệt đơn rút tiền' : 'Đã từ chối đơn rút tiền',
+      payout: {
+        id: updatedPayout.id,
+        code: updatedPayout.code,
+        status: updatedPayout.status,
+        adminNote: updatedPayout.adminNote,
+        processedAt: updatedPayout.processedAt?.toISOString(),
+      },
+    };
   }
 
   /**
@@ -736,6 +908,8 @@ export class AffiliateService implements OnModuleInit {
     return {
       commissionRate: cfg.commissionRate,
       minPayoutThreshold: cfg.minPayoutThreshold,
+      payoutFeePercent: cfg.payoutFeePercent,
+      payoutFeeFixed: cfg.payoutFeeFixed,
     };
   }
 
@@ -769,6 +943,32 @@ export class AffiliateService implements OnModuleInit {
       this.cachedMinPayoutThreshold = dto.minPayoutThreshold;
     }
 
+    if (dto.payoutFeePercent !== undefined) {
+      await this.prisma.systemConfig.upsert({
+        where: { key: 'AFFILIATE_PAYOUT_FEE_PERCENT' },
+        update: { value: String(dto.payoutFeePercent) },
+        create: {
+          key: 'AFFILIATE_PAYOUT_FEE_PERCENT',
+          value: String(dto.payoutFeePercent),
+          description: '% Tỷ lệ phí rút tiền hoa hồng',
+        },
+      });
+      this.cachedPayoutFeePercent = dto.payoutFeePercent;
+    }
+
+    if (dto.payoutFeeFixed !== undefined) {
+      await this.prisma.systemConfig.upsert({
+        where: { key: 'AFFILIATE_PAYOUT_FEE_FIXED' },
+        update: { value: String(dto.payoutFeeFixed) },
+        create: {
+          key: 'AFFILIATE_PAYOUT_FEE_FIXED',
+          value: String(dto.payoutFeeFixed),
+          description: 'Phí rút tiền hoa hồng cố định (VNĐ)',
+        },
+      });
+      this.cachedPayoutFeeFixed = dto.payoutFeeFixed;
+    }
+
     this.configCacheExpiry = Date.now() + 60000;
 
     await this.auditLogsService.createLog({
@@ -784,6 +984,8 @@ export class AffiliateService implements OnModuleInit {
       config: {
         commissionRate: this.cachedCommissionRate,
         minPayoutThreshold: this.cachedMinPayoutThreshold,
+        payoutFeePercent: this.cachedPayoutFeePercent,
+        payoutFeeFixed: this.cachedPayoutFeeFixed,
       },
     };
   }

@@ -1,10 +1,10 @@
-import { IsNumber, IsString, Min, MinLength } from 'class-validator';
+import { IsNumber, IsString, Min, MinLength, IsOptional, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreatePayoutDto {
-  @ApiProperty({ example: 200000, description: 'Số tiền rút (Tối thiểu 200.000 VNĐ)' })
+  @ApiProperty({ example: 70000, description: 'Số tiền rút' })
   @IsNumber()
-  @Min(200000, { message: 'Số tiền rút tối thiểu là 200.000 VNĐ' })
+  @Min(1000, { message: 'Số tiền rút không hợp lệ (tối thiểu 1.000 VNĐ)' })
   amount: number;
 
   @ApiProperty({ example: 'MBBank' })
@@ -23,5 +23,8 @@ export class CreatePayoutDto {
   accountHolder: string;
 
   @ApiProperty({ example: true, required: false, description: 'Lưu thông tin ngân hàng này làm mặc định cho các lần sau' })
+  @IsOptional()
+  @IsBoolean()
   saveAsDefault?: boolean;
 }
+

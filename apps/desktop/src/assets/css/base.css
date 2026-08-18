@@ -241,7 +241,7 @@ input[type="number"] {
   width: 100%;
 }
 
-@media (max-width: 780px) {
+@media (max-width: 950px) {
   .responsive-table-wrapper {
     display: none !important;
   }
@@ -250,7 +250,8 @@ input[type="number"] {
   }
 }
 
-.payout-admin-card {
+.payout-admin-card,
+.payout-item-card {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -263,8 +264,10 @@ input[type="number"] {
   transition: all 0.2s ease;
 }
 
-.payout-admin-card:hover {
+.payout-admin-card:hover,
+.payout-item-card:hover {
   border-color: rgba(99, 102, 241, 0.4);
   transform: translateY(-1px);
 }
+
 

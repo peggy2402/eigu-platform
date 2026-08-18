@@ -144,8 +144,10 @@ export default function CheckoutView({ selectedCheckout, onBack, onSuccess }: Ch
 
     try {
       const targetModuleId = selectedCheckout.moduleId || (tier as any).moduleId || selectedCheckout.moduleSlug || tier.id;
-      const res = await pricingApi.subscribe(targetModuleId, tier.id);
+      const savedRef = typeof window !== 'undefined' ? (localStorage.getItem('eigu_ref_code') || undefined) : undefined;
+      const res = await pricingApi.subscribe(targetModuleId, tier.id, savedRef);
       if (res && (res.success || res.newBalance !== undefined)) {
+
         if (pollTimerRef.current) clearInterval(pollTimerRef.current);
         if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
 

@@ -964,7 +964,7 @@ const ViewsComponent = `
 
     <!-- TAB 1: REFERRALS TABLE -->
     <div id="aff-tab-content-referrals" class="aff-tab-panel">
-      <div style="overflow-x: auto;">
+      <div class="responsive-table-wrapper" style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
             <tr style="border-bottom: 1px solid var(--border-color);">
@@ -978,11 +978,12 @@ const ViewsComponent = `
           </tbody>
         </table>
       </div>
+      <div id="aff-referrals-cards" class="responsive-card-grid"></div>
     </div>
 
     <!-- TAB 2: COMMISSIONS TABLE -->
     <div id="aff-tab-content-commissions" class="aff-tab-panel" style="display: none;">
-      <div style="overflow-x: auto;">
+      <div class="responsive-table-wrapper" style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
             <tr style="border-bottom: 1px solid var(--border-color);">
@@ -998,11 +999,12 @@ const ViewsComponent = `
           </tbody>
         </table>
       </div>
+      <div id="aff-commissions-cards" class="responsive-card-grid"></div>
     </div>
 
     <!-- TAB 3: PAYOUTS TABLE -->
     <div id="aff-tab-content-payouts" class="aff-tab-panel" style="display: none;">
-      <div style="overflow-x: auto;">
+      <div class="responsive-table-wrapper" style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
             <tr style="border-bottom: 1px solid var(--border-color);">
@@ -1020,7 +1022,9 @@ const ViewsComponent = `
           </tbody>
         </table>
       </div>
+      <div id="aff-payouts-cards" class="responsive-card-grid"></div>
     </div>
+
 
     <!-- TAB 4: BANK SETTINGS -->
     <div id="aff-tab-content-bank" class="aff-tab-panel" style="display: none;">
@@ -1205,27 +1209,39 @@ const ViewsComponent = `
     </div>
   </div>
 
-  <!-- ADMIN CONFIG BOX (% HOA HỒNG & HẠN MỨC RÚT) -->
+  <!-- ADMIN CONFIG BOX (% HOA HỒNG, HẠN MỨC & PHÍ RÚT) -->
   <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px;">
     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
       <div>
         <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-          <span data-icon="settings"></span> Cấu Hình Tỷ Lệ Hoa Hồng & Hạn Mức Rút Tiền Hệ Thống
+          <span data-icon="settings"></span> Cấu Hình Tiếp Thị Liên Kết & Phí Rút Tiền Hệ Thống
         </h4>
-        <p style="margin: 0; font-size: 11px; color: var(--text-muted);">Thay đổi sẽ áp dụng ngay lập tức cho các giao dịch nạp tiền và đơn rút mới.</p>
+        <p style="margin: 0; font-size: 11px; color: var(--text-muted);">Tùy chỉnh tỷ lệ chiết khấu, hạn mức rút và phí xử lý giao dịch.</p>
       </div>
 
       <form onsubmit="saveAdminAffiliateConfigDesktop(event)" style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px;">
         <div style="display: flex; align-items: center; gap: 6px;">
           <label style="font-size: 11px; font-weight: 700; color: var(--text-muted);">% Hoa hồng:</label>
-          <input id="admin-aff-rate-input" type="number" min="1" max="90" value="15" style="width: 70px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 8px; color: var(--text-primary); font-size: 13px; font-weight: 800; text-align: center;" />
+          <input id="admin-aff-rate-input" type="number" min="1" max="90" value="15" style="width: 60px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 8px; color: var(--text-primary); font-size: 13px; font-weight: 800; text-align: center;" />
           <span style="font-size: 12px; font-weight: 700; color: var(--text-primary);">%</span>
         </div>
 
         <div style="display: flex; align-items: center; gap: 6px;">
           <label style="font-size: 11px; font-weight: 700; color: var(--text-muted);">Rút tối thiểu:</label>
-          <input id="admin-aff-minpayout-input" type="number" step="10000" min="50000" value="200000" style="width: 110px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 8px; color: var(--text-primary); font-size: 13px; font-weight: 800; text-align: right;" />
-          <span style="font-size: 12px; font-weight: 700; color: var(--text-primary);">VNĐ</span>
+          <input id="admin-aff-minpayout-input" type="number" step="10000" min="50000" value="200000" style="width: 100px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 8px; color: var(--text-primary); font-size: 13px; font-weight: 800; text-align: right;" />
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-primary);">đ</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted);">% Phí rút:</label>
+          <input id="admin-aff-fee-percent-input" type="number" min="0" max="50" value="0" style="width: 55px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 8px; color: var(--text-primary); font-size: 13px; font-weight: 800; text-align: center;" />
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-primary);">%</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted);">Phí cố định:</label>
+          <input id="admin-aff-fee-fixed-input" type="number" step="1000" min="0" value="0" style="width: 80px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 8px; color: var(--text-primary); font-size: 13px; font-weight: 800; text-align: right;" />
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-primary);">đ</span>
         </div>
 
         <button type="submit" class="btn-primary" style="padding: 7px 14px; font-size: 12px; font-weight: 700; border-radius: 8px;">
@@ -1253,6 +1269,10 @@ const ViewsComponent = `
           Tất Cả
         </button>
       </div>
+
+      <div style="position: relative; min-width: 220px;">
+        <input id="admin-payout-search-input" type="text" placeholder="Tra cứu mã đơn, email, STK..." oninput="searchAdminPayoutsDesktop()" style="width: 100%; box-sizing: border-box; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px; font-size: 11px; color: var(--text-primary);" />
+      </div>
     </div>
 
     <!-- TABLE (DESKTOP VIEW) -->
@@ -1263,16 +1283,17 @@ const ViewsComponent = `
             <th style="padding: 10px 12px; color: var(--text-muted);">Mã Đơn</th>
             <th style="padding: 10px 12px; color: var(--text-muted);">Thành Viên</th>
             <th style="padding: 10px 12px; color: var(--text-muted); text-align: right;">Số Tiền Rút</th>
+            <th style="padding: 10px 12px; color: var(--text-muted); text-align: right;">Phí Xử Lý</th>
+            <th style="padding: 10px 12px; color: var(--text-muted); text-align: right;">Thực Nhận</th>
             <th style="padding: 10px 12px; color: var(--text-muted);">Ngân Hàng & STK</th>
             <th style="padding: 10px 12px; color: var(--text-muted);">Chủ Tài Khoản</th>
             <th style="padding: 10px 12px; color: var(--text-muted);">Trạng Thái</th>
-            <th style="padding: 10px 12px; color: var(--text-muted);">Ghi Chú</th>
             <th style="padding: 10px 12px; color: var(--text-muted);">Thời Gian</th>
-            <th style="padding: 10px 12px; color: var(--text-muted); text-align: center;">Thao Tác</th>
+            <th style="padding: 10px 12px; color: var(--text-muted); text-align: center;">Thao Tác & Xác Minh</th>
           </tr>
         </thead>
         <tbody id="admin-payouts-tbody">
-          <tr><td colspan="9" style="text-align:center;padding:28px;color:var(--text-muted);">Đang tải danh sách đơn rút tiền...</td></tr>
+          <tr><td colspan="10" style="text-align:center;padding:28px;color:var(--text-muted);">Đang tải danh sách đơn rút tiền...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1280,6 +1301,27 @@ const ViewsComponent = `
     <!-- CARDS (RESPONSIVE NARROW / SMALL WINDOW VIEW) -->
     <div id="admin-payouts-cards" class="responsive-card-grid">
       <!-- Generated by affiliate.ui.js -->
+    </div>
+  </div>
+
+  <!-- AUDIT TRAIL MODAL DESKTOP (TRA CỨU DÒNG TIỀN) -->
+  <div id="admin-payout-audit-modal-desktop" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 18px; max-width: 680px; width: 100%; max-height: 88vh; overflow-y: auto; padding: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.7);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+        <div>
+          <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            <span data-icon="shield"></span> Bằng Chứng & Nguồn Gốc Dòng Tiền (Audit Trail)
+          </h3>
+          <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-muted);">Xác minh tiền nạp thực tế từ thành viên F1 trước khi duyệt</p>
+        </div>
+        <button type="button" onclick="closeAdminPayoutAuditModalDesktop()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px;">
+          <span data-icon="x"></span>
+        </button>
+      </div>
+
+      <div id="admin-payout-audit-content">
+        <!-- Filled by JS -->
+      </div>
     </div>
   </div>
 
@@ -1320,6 +1362,7 @@ const ViewsComponent = `
     </div>
   </div>
 </div>
+
 <div id="view-doi-nhom" class="view">
   <div style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div><span data-icon="users" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></span><h3 style="color:var(--text-primary);margin-bottom:8px;" data-i18n="team">Đội nhóm</h3><p style="color:var(--text-muted);" data-i18n="feature_developing">Tính năng đang phát triển</p></div>

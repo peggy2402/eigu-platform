@@ -328,10 +328,12 @@ async function handlePurchaseTierDesktop(moduleId, tierId, moduleName, tierLabel
   if (!confirm(confirmMsg)) return;
 
   try {
+    const refCode = localStorage.getItem('eigu_ref_code') || undefined;
     const res = await apiFetch('/pricing/subscribe', {
       method: 'POST',
-      body: JSON.stringify({ moduleId, tierId }),
+      body: JSON.stringify({ moduleId, tierId, refCode }),
     });
+
 
     if (res && res.success) {
       if (typeof showToast === 'function') {

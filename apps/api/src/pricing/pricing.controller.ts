@@ -48,11 +48,12 @@ export class PricingController {
   @ApiOperation({ summary: 'Nâng cấp / Mua gói dịch vụ mô-đun bằng số dư tài khoản' })
   async subscribeTier(
     @Req() req: any,
-    @Body() body: { moduleId: string; tierId: string },
+    @Body() body: { moduleId: string; tierId: string; refCode?: string },
   ) {
     const userId = req.user?.id || req.user?.userId;
-    return this.pricingService.subscribeModuleTier(userId, body.moduleId, body.tierId);
+    return this.pricingService.subscribeModuleTier(userId, body.moduleId, body.tierId, body.refCode);
   }
+
 
   /**
    * Admin GET /pricing/admin

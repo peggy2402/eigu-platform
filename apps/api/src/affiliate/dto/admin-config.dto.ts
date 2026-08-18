@@ -14,4 +14,18 @@ export class UpdateAffiliateConfigDto {
   @IsNumber()
   @Min(50000)
   minPayoutThreshold?: number;
+
+  @ApiPropertyOptional({ example: 0, description: '% Tỷ lệ phí rút tiền hoa hồng (0 - 50)' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(50)
+  payoutFeePercent?: number;
+
+  @ApiPropertyOptional({ example: 0, description: 'Phí rút tiền cố định (VNĐ)' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  payoutFeeFixed?: number;
 }
+

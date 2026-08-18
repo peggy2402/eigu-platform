@@ -723,18 +723,32 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
           boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
         }}
       >
-        {/* TAB BUTTONS */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))', paddingBottom: 14, marginBottom: 20, flexWrap: 'wrap' }}>
+        {/* TAB BUTTONS (RESPONSIVE HORIZONTAL SCROLL ON MOBILE) */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+            paddingBottom: 12,
+            marginBottom: 20,
+            overflowX: 'auto',
+            whiteSpace: 'nowrap',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+          }}
+        >
           <button
             onClick={() => setActiveTab('referrals')}
             style={{
+              flexShrink: 0,
               padding: '8px 14px',
               borderRadius: 10,
               fontSize: 13,
               fontWeight: 700,
               border: 'none',
               cursor: 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
               background: activeTab === 'referrals' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
@@ -742,19 +756,20 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
               transition: 'all 0.2s ease',
             }}
           >
-            <Users size={15} /> Người Dùng Đã Giới Thiệu ({stats?.referredCount || 0})
+            <Users size={15} /> Thành Viên ({stats?.referredCount || 0})
           </button>
 
           <button
             onClick={() => setActiveTab('commissions')}
             style={{
+              flexShrink: 0,
               padding: '8px 14px',
               borderRadius: 10,
               fontSize: 13,
               fontWeight: 700,
               border: 'none',
               cursor: 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
               background: activeTab === 'commissions' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
@@ -768,13 +783,14 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
           <button
             onClick={() => setActiveTab('payouts')}
             style={{
+              flexShrink: 0,
               padding: '8px 14px',
               borderRadius: 10,
               fontSize: 13,
               fontWeight: 700,
               border: 'none',
               cursor: 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
               background: activeTab === 'payouts' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
@@ -788,13 +804,14 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
           <button
             onClick={() => setActiveTab('bank')}
             style={{
+              flexShrink: 0,
               padding: '8px 14px',
               borderRadius: 10,
               fontSize: 13,
               fontWeight: 700,
               border: 'none',
               cursor: 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
               background: activeTab === 'bank' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
@@ -809,25 +826,26 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
             <button
               onClick={() => setActiveTab('admin-payouts')}
               style={{
-                marginLeft: 'auto',
+                flexShrink: 0,
                 padding: '8px 14px',
                 borderRadius: 10,
                 fontSize: 13,
                 fontWeight: 700,
-                border: '1px solid rgba(234, 179, 8, 0.3)',
+                border: '1px solid rgba(234, 179, 8, 0.35)',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
-                background: activeTab === 'admin-payouts' ? 'rgba(234, 179, 8, 0.2)' : 'rgba(234, 179, 8, 0.08)',
+                background: activeTab === 'admin-payouts' ? 'rgba(234, 179, 8, 0.22)' : 'rgba(234, 179, 8, 0.08)',
                 color: '#eab308',
                 transition: 'all 0.2s ease',
               }}
             >
-              <ShieldCheck size={15} /> Quản Lý Đơn Rút (Admin Only)
+              <ShieldCheck size={15} /> Quản Lý Đơn Rút <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 4, background: 'rgba(234, 179, 8, 0.25)', fontWeight: 800 }}>Admin</span>
             </button>
           )}
         </div>
+
 
         {/* TAB 1: REFERRED USERS TABLE */}
         {activeTab === 'referrals' && (
@@ -846,48 +864,72 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
                 </p>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))', color: 'var(--text-secondary)', fontSize: 12 }}>
-                      <th style={{ padding: '10px 12px' }}>Tài Khoản</th>
-                      <th style={{ padding: '10px 12px' }}>Ngày Đăng Ký</th>
-                      <th style={{ padding: '10px 12px' }}>Trạng Thái</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'right' }}>Hoa Hồng Đã Tạo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {referrals.map((user) => (
-                      <tr key={user.id} style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.05))' }}>
-                        <td style={{ padding: '12px' }}>
-                          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{user.maskedEmail}</div>
-                          {user.username && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>@{user.username}</div>}
-                        </td>
-                        <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>
-                          {new Date(user.createdAt).toLocaleDateString('vi-VN')}
-                        </td>
-                        <td style={{ padding: '12px' }}>
-                          <span
-                            style={{
-                              padding: '2px 8px',
-                              borderRadius: 10,
-                              fontSize: 11,
-                              fontWeight: 700,
-                              background: user.isVerified ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)',
-                              color: user.isVerified ? '#22c55e' : '#eab308',
-                            }}
-                          >
-                            {user.isVerified ? 'Đã xác thực email' : 'Chưa xác thực'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 800, color: '#eab308' }}>
-                          {formatVnd(user.totalCommissionGenerated)}
-                        </td>
+              <>
+                {/* DESKTOP TABLE VIEW */}
+                <div className="hidden md:block" style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))', color: 'var(--text-secondary)', fontSize: 12 }}>
+                        <th style={{ padding: '10px 12px' }}>Tài Khoản</th>
+                        <th style={{ padding: '10px 12px' }}>Ngày Đăng Ký</th>
+                        <th style={{ padding: '10px 12px' }}>Trạng Thái</th>
+                        <th style={{ padding: '10px 12px', textAlign: 'right' }}>Hoa Hồng Đã Tạo</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {referrals.map((user) => (
+                        <tr key={user.id} style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.05))' }}>
+                          <td style={{ padding: '12px' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{user.maskedEmail}</div>
+                            {user.username && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>@{user.username}</div>}
+                          </td>
+                          <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>
+                            {new Date(user.createdAt).toLocaleDateString('vi-VN')}
+                          </td>
+                          <td style={{ padding: '12px' }}>
+                            <span
+                              style={{
+                                padding: '2px 8px',
+                                borderRadius: 10,
+                                fontSize: 11,
+                                fontWeight: 700,
+                                background: user.isVerified ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                                color: user.isVerified ? '#22c55e' : '#eab308',
+                              }}
+                            >
+                              {user.isVerified ? 'Đã xác thực email' : 'Chưa xác thực'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'right', fontWeight: 800, color: '#eab308' }}>
+                            {formatVnd(user.totalCommissionGenerated)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* MOBILE / SMALL SCREEN CARD LIST */}
+                <div className="block md:hidden" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {referrals.map((user) => (
+                    <div key={user.id} style={{ background: 'var(--bg-primary, #0b0c10)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 13 }}>{user.maskedEmail}</div>
+                          {user.username && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>@{user.username}</div>}
+                        </div>
+                        <span style={{ padding: '2px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700, background: user.isVerified ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)', color: user.isVerified ? '#22c55e' : '#eab308' }}>
+                          {user.isVerified ? 'Đã xác thực' : 'Chưa xác thực'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: 8 }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{new Date(user.createdAt).toLocaleDateString('vi-VN')}</span>
+                        <span style={{ fontWeight: 800, color: '#eab308', fontSize: 13 }}>{formatVnd(user.totalCommissionGenerated)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -909,55 +951,79 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
                 </p>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))', color: 'var(--text-secondary)', fontSize: 12 }}>
-                      <th style={{ padding: '10px 12px' }}>Mã Giao Dịch</th>
-                      <th style={{ padding: '10px 12px' }}>Thành Viên</th>
-                      <th style={{ padding: '10px 12px' }}>Nguồn Giao Dịch</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'right' }}>Giá Trị Đơn</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'center' }}>Tỉ Lệ</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'right' }}>Hoa Hồng Nhận</th>
-                      <th style={{ padding: '10px 12px' }}>Thời Gian</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {commissions.map((comm) => (
-                      <tr key={comm.id} style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.05))' }}>
-                        <td style={{ padding: '12px', fontWeight: 800, color: 'var(--accent, #6366f1)' }}>#{comm.code}</td>
-                        <td style={{ padding: '12px', fontWeight: 600 }}>{comm.referredUserEmail}</td>
-                        <td style={{ padding: '12px' }}>
-                          <span
-                            style={{
-                              padding: '2px 8px',
-                              borderRadius: 6,
-                              fontSize: 11,
-                              fontWeight: 700,
-                              background: comm.sourceType === 'DEPOSIT' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(168, 85, 247, 0.15)',
-                              color: comm.sourceType === 'DEPOSIT' ? '#818cf8' : '#c084fc',
-                            }}
-                          >
-                            {comm.sourceType === 'DEPOSIT' ? 'Nạp tiền' : 'Mua gói'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'right', color: 'var(--text-secondary)' }}>
-                          {formatVnd(comm.orderAmount)}
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'center', fontWeight: 700, color: '#3b82f6' }}>
-                          {comm.rate}%
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 900, color: '#22c55e' }}>
-                          +{formatVnd(comm.commissionAmount)}
-                        </td>
-                        <td style={{ padding: '12px', color: 'var(--text-muted)', fontSize: 12 }}>
-                          {new Date(comm.createdAt).toLocaleString('vi-VN')}
-                        </td>
+              <>
+                {/* DESKTOP TABLE VIEW */}
+                <div className="hidden md:block" style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))', color: 'var(--text-secondary)', fontSize: 12 }}>
+                        <th style={{ padding: '10px 12px' }}>Mã Giao Dịch</th>
+                        <th style={{ padding: '10px 12px' }}>Thành Viên</th>
+                        <th style={{ padding: '10px 12px' }}>Nguồn Giao Dịch</th>
+                        <th style={{ padding: '10px 12px', textAlign: 'right' }}>Giá Trị Đơn</th>
+                        <th style={{ padding: '10px 12px', textAlign: 'center' }}>Tỉ Lệ</th>
+                        <th style={{ padding: '10px 12px', textAlign: 'right' }}>Hoa Hồng Nhận</th>
+                        <th style={{ padding: '10px 12px' }}>Thời Gian</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {commissions.map((comm) => (
+                        <tr key={comm.id} style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.05))' }}>
+                          <td style={{ padding: '12px', fontWeight: 800, color: 'var(--accent, #6366f1)' }}>#{comm.code}</td>
+                          <td style={{ padding: '12px', fontWeight: 600 }}>{comm.referredUserEmail}</td>
+                          <td style={{ padding: '12px' }}>
+                            <span
+                              style={{
+                                padding: '2px 8px',
+                                borderRadius: 6,
+                                fontSize: 11,
+                                fontWeight: 700,
+                                background: comm.sourceType === 'DEPOSIT' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(168, 85, 247, 0.15)',
+                                color: comm.sourceType === 'DEPOSIT' ? '#818cf8' : '#c084fc',
+                              }}
+                            >
+                              {comm.sourceType === 'DEPOSIT' ? 'Nạp tiền' : 'Mua gói'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'right', color: 'var(--text-secondary)' }}>
+                            {formatVnd(comm.orderAmount)}
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'center', fontWeight: 700, color: '#3b82f6' }}>
+                            {comm.rate}%
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'right', fontWeight: 900, color: '#22c55e' }}>
+                            +{formatVnd(comm.commissionAmount)}
+                          </td>
+                          <td style={{ padding: '12px', color: 'var(--text-muted)', fontSize: 12 }}>
+                            {new Date(comm.createdAt).toLocaleString('vi-VN')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* MOBILE / SMALL SCREEN CARD LIST */}
+                <div className="block md:hidden" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {commissions.map((comm) => (
+                    <div key={comm.id} style={{ background: 'var(--bg-primary, #0b0c10)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontWeight: 800, color: 'var(--accent, #6366f1)', fontSize: 12 }}>#{comm.code}</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{comm.referredUserEmail}</div>
+                        </div>
+                        <span style={{ padding: '2px 6px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: comm.sourceType === 'DEPOSIT' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(168, 85, 247, 0.15)', color: comm.sourceType === 'DEPOSIT' ? '#818cf8' : '#c084fc' }}>
+                          {comm.sourceType === 'DEPOSIT' ? 'Nạp tiền' : 'Mua gói'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: 8 }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatVnd(comm.orderAmount)} ({comm.rate}%)</div>
+                        <div style={{ fontWeight: 900, color: '#22c55e', fontSize: 14 }}>+{formatVnd(comm.commissionAmount)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -975,40 +1041,100 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
                 <Wallet size={40} style={{ opacity: 0.3, marginBottom: 12 }} />
                 <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Chưa có yêu cầu rút tiền</div>
                 <p style={{ fontSize: 13, maxWidth: 400, margin: '6px auto 0 auto' }}>
-                  Khi số dư hoa hồng khả dụng đạt từ 200.000 VNĐ, bạn có thể tạo yêu cầu rút tiền về tài khoản ngân hàng.
+                  Khi số dư hoa hồng khả dụng đạt từ mức tối thiểu, bạn có thể tạo yêu cầu rút tiền về tài khoản ngân hàng.
                 </p>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))', color: 'var(--text-secondary)', fontSize: 12 }}>
-                      <th style={{ padding: '10px 12px' }}>Mã Đơn Rút</th>
-                      <th style={{ padding: '10px 12px' }}>Số Tiền Rút</th>
-                      <th style={{ padding: '10px 12px' }}>Ngân Hàng & STK</th>
-                      <th style={{ padding: '10px 12px' }}>Trạng Thái</th>
-                      <th style={{ padding: '10px 12px' }}>Ghi Chú Admin</th>
-                      <th style={{ padding: '10px 12px' }}>Thời Gian</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {payouts.map((p) => (
-                      <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.05))' }}>
-                        <td style={{ padding: '12px', fontWeight: 800, color: 'var(--accent, #6366f1)' }}>#{p.code}</td>
-                        <td style={{ padding: '12px', fontWeight: 900, color: 'var(--text-primary)' }}>{formatVnd(p.amount)}</td>
-                        <td style={{ padding: '12px' }}>
-                          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{p.bankName} - {p.accountNumber}</div>
-                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>CTK: {p.accountHolder}</div>
-                        </td>
-                        <td style={{ padding: '12px' }}>
+              <>
+                {/* DESKTOP TABLE VIEW */}
+                <div className="hidden md:block" style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))', color: 'var(--text-secondary)', fontSize: 12 }}>
+                        <th style={{ padding: '10px 12px' }}>Mã Đơn Rút</th>
+                        <th style={{ padding: '10px 12px', textAlign: 'right' }}>Số Tiền Rút</th>
+                        <th style={{ padding: '10px 12px', textAlign: 'right' }}>Phí Xử Lý</th>
+                        <th style={{ padding: '10px 12px', textAlign: 'right' }}>Thực Nhận</th>
+                        <th style={{ padding: '10px 12px' }}>Ngân Hàng & STK</th>
+                        <th style={{ padding: '10px 12px' }}>Trạng Thái</th>
+                        <th style={{ padding: '10px 12px' }}>Ghi Chú Admin</th>
+                        <th style={{ padding: '10px 12px' }}>Thời Gian</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payouts.map((p) => {
+                        const fee = Number(p.fee || 0);
+                        const netAmount = Number(p.netAmount || (Number(p.amount) - fee));
+                        return (
+                          <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.05))' }}>
+                            <td style={{ padding: '12px', fontWeight: 800, color: 'var(--accent, #6366f1)' }}>#{p.code}</td>
+                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: 'var(--text-secondary)' }}>{formatVnd(p.amount)}</td>
+                            <td style={{ padding: '12px', textAlign: 'right', fontSize: 12, color: fee > 0 ? '#ef4444' : 'var(--text-muted)' }}>
+                              {fee > 0 ? `-${formatVnd(fee)}` : 'Miễn phí'}
+                            </td>
+                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 900, color: '#22c55e' }}>{formatVnd(netAmount)}</td>
+                            <td style={{ padding: '12px' }}>
+                              <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{p.bankName} - {p.accountNumber}</div>
+                              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>CTK: {p.accountHolder}</div>
+                            </td>
+                            <td style={{ padding: '12px' }}>
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  padding: '4px 10px',
+                                  borderRadius: 12,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  background:
+                                    p.status === 'APPROVED'
+                                      ? 'rgba(34, 197, 94, 0.15)'
+                                      : p.status === 'REJECTED'
+                                        ? 'rgba(239, 68, 68, 0.15)'
+                                        : 'rgba(234, 179, 8, 0.15)',
+                                  color: p.status === 'APPROVED' ? '#22c55e' : p.status === 'REJECTED' ? '#ef4444' : '#eab308',
+                                }}
+                              >
+                                {p.status === 'APPROVED' && <CheckCircle2 size={12} />}
+                                {p.status === 'REJECTED' && <XCircle size={12} />}
+                                {p.status === 'PENDING' && <Clock size={12} />}
+                                {p.status === 'APPROVED' ? 'Đã duyệt (Đã chuyển)' : p.status === 'REJECTED' ? 'Từ chối' : 'Chờ duyệt'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px', color: 'var(--text-secondary)', fontSize: 12 }}>
+                              {p.adminNote || '-'}
+                            </td>
+                            <td style={{ padding: '12px', color: 'var(--text-muted)', fontSize: 12 }}>
+                              {new Date(p.createdAt).toLocaleString('vi-VN')}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* MOBILE / SMALL SCREEN CARD LIST */}
+                <div className="block md:hidden" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {payouts.map((p) => {
+                    const fee = Number(p.fee || 0);
+                    const netAmount = Number(p.netAmount || (Number(p.amount) - fee));
+                    return (
+                      <div key={p.id} style={{ background: 'var(--bg-primary, #0b0c10)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div>
+                            <div style={{ fontWeight: 800, color: 'var(--accent, #6366f1)', fontSize: 12 }}>#{p.code}</div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0' }}>{new Date(p.createdAt).toLocaleString('vi-VN')}</div>
+                          </div>
                           <span
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: 4,
-                              padding: '4px 10px',
-                              borderRadius: 12,
-                              fontSize: 11,
+                              padding: '3px 8px',
+                              borderRadius: 8,
+                              fontSize: 10,
                               fontWeight: 700,
                               background:
                                 p.status === 'APPROVED'
@@ -1019,26 +1145,35 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
                               color: p.status === 'APPROVED' ? '#22c55e' : p.status === 'REJECTED' ? '#ef4444' : '#eab308',
                             }}
                           >
-                            {p.status === 'APPROVED' && <CheckCircle2 size={12} />}
-                            {p.status === 'REJECTED' && <XCircle size={12} />}
-                            {p.status === 'PENDING' && <Clock size={12} />}
-                            {p.status === 'APPROVED' ? 'Đã duyệt (Đã chuyển)' : p.status === 'REJECTED' ? 'Từ chối' : 'Chờ duyệt'}
+                            {p.status === 'APPROVED' ? 'Đã duyệt' : p.status === 'REJECTED' ? 'Từ chối' : 'Chờ duyệt'}
                           </span>
-                        </td>
-                        <td style={{ padding: '12px', color: 'var(--text-secondary)', fontSize: 12 }}>
-                          {p.adminNote || '-'}
-                        </td>
-                        <td style={{ padding: '12px', color: 'var(--text-muted)', fontSize: 12 }}>
-                          {new Date(p.createdAt).toLocaleString('vi-VN')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, background: 'var(--bg-card)', padding: '8px 10px', borderRadius: 8, fontSize: 11 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Số tiền rút:</span>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatVnd(p.amount)}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Phí xử lý:</span>
+                            <span style={{ color: fee > 0 ? '#ef4444' : 'var(--text-muted)' }}>{fee > 0 ? `-${formatVnd(fee)}` : 'Miễn phí'}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed var(--border-color)', paddingTop: 4 }}>
+                            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Thực nhận:</span>
+                            <span style={{ fontWeight: 900, color: '#22c55e', fontSize: 13 }}>{formatVnd(netAmount)}</span>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          {p.bankName} - {p.accountNumber} ({p.accountHolder})
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
         )}
+
 
         {/* TAB 4: BANK SETTINGS FORM */}
         {activeTab === 'bank' && (
@@ -1259,6 +1394,35 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
                   * Tối thiểu {(stats?.minPayoutThreshold || 200000).toLocaleString('vi-VN')} VNĐ (Số dư: {(stats?.affiliateBalance || 0).toLocaleString('vi-VN')}đ)
                 </div>
+
+                {/* Real-time Calculation Breakdown */}
+                {Number(withdrawAmount) > 0 && (
+                  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 10, padding: '10px 12px', marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+                      <span>Số tiền yêu cầu:</span>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{formatVnd(Number(withdrawAmount))}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+                      <span>Phí xử lý ({stats?.payoutFeePercent || 0}%{stats?.payoutFeeFixed ? ` + ${formatVnd(stats.payoutFeeFixed)}` : ''}):</span>
+                      <span style={{ color: (stats?.payoutFeePercent || stats?.payoutFeeFixed) ? '#ef4444' : 'var(--text-muted)', fontWeight: 600 }}>
+                        {(() => {
+                          const fee = Math.round(Number(withdrawAmount) * ((stats?.payoutFeePercent || 0) / 100)) + (stats?.payoutFeeFixed || 0);
+                          return fee > 0 ? `-${formatVnd(fee)}` : 'Miễn phí (0đ)';
+                        })()}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed var(--border-color)', paddingTop: 6 }}>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Thực nhận về tài khoản:</span>
+                      <span style={{ fontWeight: 900, color: '#22c55e', fontSize: 14 }}>
+                        {(() => {
+                          const fee = Math.round(Number(withdrawAmount) * ((stats?.payoutFeePercent || 0) / 100)) + (stats?.payoutFeeFixed || 0);
+                          const net = Math.max(0, Number(withdrawAmount) - fee);
+                          return formatVnd(net);
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div style={{ marginBottom: 14 }}>

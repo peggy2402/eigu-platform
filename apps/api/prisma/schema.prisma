@@ -481,6 +481,8 @@ model AffiliatePayout {
   userId        String
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount        Decimal   @db.Decimal(14, 2)
+  fee           Decimal   @default(0.00) @db.Decimal(14, 2)
+  netAmount     Decimal   @default(0.00) @db.Decimal(14, 2)
   bankName      String
   accountNumber String
   accountHolder String

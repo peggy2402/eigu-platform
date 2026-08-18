@@ -1968,18 +1968,7 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
           </div>
         )}
 
-        {activePath === '/affiliate' && (
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 24px 64px 24px', width: '100%' }}>
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: 32 }}>
-              <h3 style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, fontSize: 20 }}>
-                <LinkIcon size={24} style={{ color: 'var(--accent)' }} /> {language === 'en' ? 'Affiliate Partner Program' : 'Chương Trình Tiếp Thị Liên Kết (Affiliate)'}
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: 15, lineHeight: 1.6 }}>
-                {language === 'en' ? 'Refer new creators and earn 20% commission on every successful subscription.' : 'Giới thiệu người dùng mới và nhận 20% hoa hồng trên mỗi giao dịch nạp tiền thành công.'}
-              </p>
-            </div>
-          </div>
-        )}
+
 
         {activePath === '/guide' && (
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 24px 64px 24px', width: '100%' }}>

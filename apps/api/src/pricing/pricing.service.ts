@@ -196,9 +196,15 @@ const FALLBACK_MODULES: PricingModuleDto[] = [
   },
 ];
 
+import { AffiliateService } from '../affiliate/affiliate.service';
+
 @Injectable()
 export class PricingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private affiliateService: AffiliateService,
+  ) {}
+
 
   /**
    * Public GET: Lấy danh sách bảng giá các modules và tiers đã được normalize
@@ -558,9 +564,32 @@ export class PricingService {
   /**
    * Mua / Nâng cấp gói cước mô-đun bằng số dư tài khoản
    */
-  async subscribeModuleTier(userId: string, moduleId: string, tierId: string) {
+  async subscribeModuleTier(userId: string, moduleId: string, tierId: string, refCode?: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Không tìm thấy tài khoản người dùng');
+
+    // Tự động liên kết người giới thiệu nếu tài khoản hiện tại chưa có referrer và được truyền refCode
+    if (!user.referredById && refCode) {
+      try {
+        const cleanRef = refCode.trim().toUpperCase();
+        const referrer = await this.prisma.user.findFirst({
+          where: {
+            OR: [{ referralCode: cleanRef }, { id: refCode.trim() }],
+          },
+          select: { id: true },
+        });
+        if (referrer && referrer.id !== userId) {
+          await this.prisma.user.update({
+            where: { id: userId },
+            data: { referredById: referrer.id },
+          });
+          user.referredById = referrer.id;
+          console.log(`[PricingService] Auto-linked User ${userId} to Referrer ${referrer.id} via refCode "${cleanRef}"`);
+        }
+      } catch (e: any) {
+        console.error('[PricingService] Error linking referrer via refCode:', e?.message);
+      }
+    }
 
     // Tự động tìm Tier theo tierId & moduleId (hoặc module slug)
     let tier = await this.prisma.pricingTier.findFirst({
@@ -650,25 +679,25 @@ export class PricingService {
               moduleId: targetModuleId,
             },
           },
-        create: {
-          userId,
-          moduleId,
-          tierId,
-          status: 'ACTIVE',
-          expiresAt,
-          machines: tier.machines,
-          threads: tier.threads,
-          resolution: tier.resolution,
-        },
-        update: {
-          tierId,
-          status: 'ACTIVE',
-          expiresAt,
-          machines: tier.machines,
-          threads: tier.threads,
-          resolution: tier.resolution,
-        },
-      });
+          create: {
+            userId,
+            moduleId,
+            tierId,
+            status: 'ACTIVE',
+            expiresAt,
+            machines: tier.machines,
+            threads: tier.threads,
+            resolution: tier.resolution,
+          },
+          update: {
+            tierId,
+            status: 'ACTIVE',
+            expiresAt,
+            machines: tier.machines,
+            threads: tier.threads,
+            resolution: tier.resolution,
+          },
+        });
       }
 
       // 3. Ghi log
@@ -692,6 +721,20 @@ export class PricingService {
       });
     });
 
+    // 4. Tự động tính & cộng hoa hồng Tiếp thị liên kết (Affiliate Commission)
+    if (payableAmount > 0) {
+      try {
+        await this.affiliateService.processCommission(
+          userId,
+          'SUBSCRIPTION',
+          subscriptionRecord?.id || tier.id,
+          payableAmount,
+        );
+      } catch (commErr: any) {
+        console.error('[PricingService] Error processing affiliate commission for subscription:', commErr?.message);
+      }
+    }
+
     return {
       success: true,
       message: isUpgrade 
@@ -699,7 +742,7 @@ export class PricingService {
         : `Đã đăng ký thành công Gói ${tier.label} cho mô-đun "${tier.module.name}"!`,
       newBalance: updatedBalance,
       subscription: {
-        id: subscriptionRecord.id,
+        id: subscriptionRecord?.id || tier.id,
         moduleSlug: tier.module.slug,
         tierCode: tier.code,
         tierLabel: tier.label,
@@ -710,4 +753,5 @@ export class PricingService {
       },
     };
   }
+
 }
