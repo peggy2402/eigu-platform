@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Wallet,
   CheckCircle2,
@@ -18,6 +19,7 @@ import {
   ShieldCheck,
   User,
   ArrowRight,
+  ArrowLeft,
   Settings,
   Info,
 } from 'lucide-react';
@@ -59,6 +61,12 @@ export const AdminAffiliatePayoutsView: React.FC<AdminAffiliatePayoutsViewProps>
   const [auditData, setAuditData] = useState<any | null>(null);
   const [loadingAudit, setLoadingAudit] = useState<boolean>(false);
   const [showAuditModal, setShowAuditModal] = useState<boolean>(false);
+  const [auditTab, setAuditTab] = useState<'summary' | 'orders'>('summary');
+  const [mounted, setMounted] = useState<boolean>(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -695,15 +703,16 @@ export const AdminAffiliatePayoutsView: React.FC<AdminAffiliatePayoutsViewProps>
         )}
       </div>
 
-      {/* AUDIT TRAIL / TRA CỨU DÒNG TIỀN MODAL */}
-      {showAuditModal && (
+      {/* AUDIT TRAIL MODAL (BẰNG CHỨNG & NGUỒN GỐC DÒNG TIỀN) */}
+      {showAuditModal && mounted && createPortal(
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 99999,
-            background: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(8px)',
+            zIndex: 9999999,
+            background: 'rgba(0,0,0,0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -715,7 +724,7 @@ export const AdminAffiliatePayoutsView: React.FC<AdminAffiliatePayoutsViewProps>
               background: 'var(--bg-card)',
               border: '1px solid var(--border-color)',
               borderRadius: 20,
-              maxWidth: 720,
+              maxWidth: 760,
               width: '100%',
               maxHeight: '90vh',
               overflowY: 'auto',
@@ -724,8 +733,32 @@ export const AdminAffiliatePayoutsView: React.FC<AdminAffiliatePayoutsViewProps>
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, borderBottom: '1px solid var(--border-color)', paddingBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                {/* Quay Lại (Back) button on top left */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAuditModal(false);
+                    setAuditData(null);
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    background: 'var(--bg-primary)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  <ArrowLeft size={16} /> Quay lại
+                </button>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <ShieldCheck size={20} />
                 </div>
                 <div>
@@ -738,6 +771,7 @@ export const AdminAffiliatePayoutsView: React.FC<AdminAffiliatePayoutsViewProps>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   setShowAuditModal(false);
                   setAuditData(null);
@@ -755,98 +789,172 @@ export const AdminAffiliatePayoutsView: React.FC<AdminAffiliatePayoutsViewProps>
               </div>
             ) : auditData ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {/* User & Payout Summary Card */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-                  <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 14 }}>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Người yêu cầu rút:</div>
-                    <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: 14 }}>{auditData.user.email}</div>
-                    <div style={{ fontSize: 11, color: 'var(--accent)', marginTop: 2 }}>Mã ref: <strong>{auditData.user.referralCode}</strong></div>
-                  </div>
-
-                  <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 14 }}>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Số tiền yêu cầu rút:</div>
-                    <div style={{ fontWeight: 900, color: '#22c55e', fontSize: 18 }}>{formatVnd(auditData.payout.amount)}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
-                      Phí: {auditData.payout.fee > 0 ? formatVnd(auditData.payout.fee) : 'Miễn phí'} | Thực nhận: <strong>{formatVnd(auditData.payout.netAmount || (auditData.payout.amount - (auditData.payout.fee || 0)))}</strong>
-                    </div>
-                  </div>
-
-                  <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 14 }}>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Tổng tiền F1 nạp thực tế:</div>
-                    <div style={{ fontWeight: 900, color: '#3b82f6', fontSize: 18 }}>
-                      {formatVnd(auditData.summary.totalOrderAmountByDownlines)}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                      Từ {auditData.summary.totalDownlineOrdersCount} đơn hàng của F1
-                    </div>
-                  </div>
+                {/* 2-TAB NAVIGATION HEADER */}
+                <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border-color)', paddingBottom: 10, overflowX: 'auto', padding: '2px 2px 10px 2px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setAuditTab('summary')}
+                    className={`affiliate-tab-btn ${auditTab === 'summary' ? 'active' : ''}`}
+                    style={{ padding: '8px 14px', fontSize: 12, borderRadius: 10 }}
+                  >
+                    <Info size={14} /> 1. Thông Tin Chung
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuditTab('orders')}
+                    className={`affiliate-tab-btn ${auditTab === 'orders' ? 'active' : ''}`}
+                    style={{ padding: '8px 14px', fontSize: 12, borderRadius: 10 }}
+                  >
+                    <FileSearch size={14} /> 2. Chi Tiết Đơn Hàng F1 ({auditData.commissions.length})
+                  </button>
                 </div>
 
-                {/* Security Verification Verdict */}
-                <div style={{
-                  background: auditData.summary.isLegitBalance ? 'rgba(34, 197, 94, 0.08)' : 'rgba(239, 68, 68, 0.08)',
-                  border: `1px solid ${auditData.summary.isLegitBalance ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-                  borderRadius: 12,
-                  padding: 14,
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 10,
-                }}>
-                  <ShieldCheck size={20} style={{ color: auditData.summary.isLegitBalance ? '#22c55e' : '#ef4444', flexShrink: 0, marginTop: 2 }} />
+                {/* TAB 1: THÔNG TIN CHUNG */}
+                {auditTab === 'summary' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* User & Payout Summary Card */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                      <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 14 }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Người yêu cầu rút:</div>
+                        <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: 14, wordBreak: 'break-all' }}>{auditData.user.email}</div>
+                        <div style={{ fontSize: 11, color: 'var(--accent)', marginTop: 2 }}>Mã ref: <strong>{auditData.user.referralCode}</strong></div>
+                      </div>
+
+                      <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 14 }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Số tiền yêu cầu rút:</div>
+                        <div style={{ fontWeight: 900, color: '#22c55e', fontSize: 18 }}>{formatVnd(auditData.payout.amount)}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          Phí: {auditData.payout.fee > 0 ? formatVnd(auditData.payout.fee) : 'Miễn phí'} | Thực nhận: <strong>{formatVnd(auditData.payout.netAmount || (auditData.payout.amount - (auditData.payout.fee || 0)))}</strong>
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 14 }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Tổng tiền F1 nạp thực tế:</div>
+                        <div style={{ fontWeight: 900, color: '#3b82f6', fontSize: 18 }}>
+                          {formatVnd(auditData.summary.totalOrderAmountByDownlines)}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Từ {auditData.summary.totalDownlineOrdersCount} đơn hàng của F1
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Security Verification Verdict */}
+                    <div style={{
+                      background: auditData.summary.isLegitBalance ? 'rgba(34, 197, 94, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                      border: `1px solid ${auditData.summary.isLegitBalance ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                      borderRadius: 12,
+                      padding: 14,
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 10,
+                    }}>
+                      <ShieldCheck size={20} style={{ color: auditData.summary.isLegitBalance ? '#22c55e' : '#ef4444', flexShrink: 0, marginTop: 2 }} />
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: auditData.summary.isLegitBalance ? '#22c55e' : '#ef4444' }}>
+                          {auditData.summary.isLegitBalance ? 'Xác Minh Dòng Tiền: HỢP LỆ (TIỀN THẬT 100%)' : 'CẢNH BÁO: CÓ DẤU HIỆU BẤT THƯỜNG'}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.5 }}>
+                          Tổng hoa hồng tích lũy của tài khoản là <strong>{formatVnd(auditData.user.totalCommissionEarned)}</strong>, sinh ra từ doanh thu nạp thực tế <strong>{formatVnd(auditData.summary.totalOrderAmountByDownlines)}</strong> của tuyến dưới. Số tiền yêu cầu rút <strong>{formatVnd(auditData.payout.amount)}</strong> nằm hoàn toàn trong hạn mức được phép chi trả.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: CHI TIẾT ĐƠN HÀNG CỦA F1 */}
+                {auditTab === 'orders' && (
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: auditData.summary.isLegitBalance ? '#22c55e' : '#ef4444' }}>
-                      {auditData.summary.isLegitBalance ? 'Xác Minh Dòng Tiền: HỢP LỆ (TIỀN THẬT 100%)' : 'CẢNH BÁO: CÓ DẤU HIỆU BẤT THƯỜNG'}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.5 }}>
-                      Tổng hoa hồng tích lũy của tài khoản là <strong>{formatVnd(auditData.user.totalCommissionEarned)}</strong>, sinh ra từ doanh thu nạp thực tế <strong>{formatVnd(auditData.summary.totalOrderAmountByDownlines)}</strong> của tuyến dưới. Số tiền yêu cầu rút <strong>{formatVnd(auditData.payout.amount)}</strong> nằm hoàn toàn trong hạn mức được phép chi trả.
-                    </div>
-                  </div>
-                </div>
+                    <h4 style={{ margin: '0 0 10px 0', fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>
+                      Chi Tiết Các Đơn Hàng Của F1 Tạo Ra Hoa Hồng Này:
+                    </h4>
+                    {auditData.commissions.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '32px', background: 'var(--bg-primary)', borderRadius: 12, color: 'var(--text-muted)', fontSize: 13 }}>
+                        Không có lịch sử đơn hàng F1.
+                      </div>
+                    ) : (
+                      <>
+                        {/* DESKTOP TABLE VIEW */}
+                        <div className="hidden md:block" style={{ overflowX: 'auto', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 12 }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, textAlign: 'left' }}>
+                            <thead>
+                              <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                                <th style={{ padding: '8px 10px' }}>Mã HH</th>
+                                <th style={{ padding: '8px 10px' }}>Thành Viên F1 Mua/Nạp</th>
+                                <th style={{ padding: '8px 10px' }}>Nguồn</th>
+                                <th style={{ padding: '8px 10px', textAlign: 'right' }}>F1 Đã Trả</th>
+                                <th style={{ padding: '8px 10px', textAlign: 'center' }}>%</th>
+                                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Hoa Hồng</th>
+                                <th style={{ padding: '8px 10px' }}>Thời Gian</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {auditData.commissions.map((c: any) => (
+                                <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,250,0.05)' }}>
+                                  <td style={{ padding: '8px 10px', fontWeight: 800, color: 'var(--accent)' }}>#{c.code}</td>
+                                  <td style={{ padding: '8px 10px', fontWeight: 700, color: 'var(--text-primary)' }}>{c.buyerEmail}</td>
+                                  <td style={{ padding: '8px 10px' }}>
+                                    <span style={{ padding: '2px 6px', borderRadius: 4, background: c.sourceType === 'DEPOSIT' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(168, 85, 247, 0.15)', color: c.sourceType === 'DEPOSIT' ? '#818cf8' : '#c084fc', fontSize: 10, fontWeight: 700 }}>
+                                      {c.sourceType === 'DEPOSIT' ? 'Nạp tiền' : 'Mua gói'}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: 'var(--text-secondary)' }}>{formatVnd(c.orderAmount)}</td>
+                                  <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700, color: '#3b82f6' }}>{c.rate}%</td>
+                                  <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 900, color: '#22c55e' }}>+{formatVnd(c.commissionAmount)}</td>
+                                  <td style={{ padding: '8px 10px', color: 'var(--text-muted)', fontSize: 11 }}>{new Date(c.createdAt).toLocaleString('vi-VN')}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
 
-                {/* Downline Invoices Table (Nguồn gốc chi tiết) */}
-                <div>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>
-                    Chi Tiết Các Đơn Hàng Của F1 Tạo Ra Hoa Hồng Này:
-                  </h4>
-                  {auditData.commissions.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '24px', background: 'var(--bg-primary)', borderRadius: 10, color: 'var(--text-muted)', fontSize: 12 }}>
-                      Không có lịch sử hoa hồng.
-                    </div>
-                  ) : (
-                    <div style={{ overflowX: 'auto', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 12 }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, textAlign: 'left' }}>
-                        <thead>
-                          <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
-                            <th style={{ padding: '8px 10px' }}>Mã HH</th>
-                            <th style={{ padding: '8px 10px' }}>Thành Viên F1 Mua/Nạp</th>
-                            <th style={{ padding: '8px 10px' }}>Nguồn</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'right' }}>F1 Đã Trả</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'center' }}>%</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'right' }}>Hoa Hồng</th>
-                            <th style={{ padding: '8px 10px' }}>Thời Gian</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                        {/* MOBILE CARD LIST VIEW */}
+                        <div className="block md:hidden" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                           {auditData.commissions.map((c: any) => (
-                            <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,200,0.05)' }}>
-                              <td style={{ padding: '8px 10px', fontWeight: 800, color: 'var(--accent)' }}>#{c.code}</td>
-                              <td style={{ padding: '8px 10px', fontWeight: 700, color: 'var(--text-primary)' }}>{c.buyerEmail}</td>
-                              <td style={{ padding: '8px 10px' }}>
-                                <span style={{ padding: '2px 6px', borderRadius: 4, background: c.sourceType === 'DEPOSIT' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(168, 85, 247, 0.15)', color: c.sourceType === 'DEPOSIT' ? '#818cf8' : '#c084fc', fontSize: 10, fontWeight: 700 }}>
-                                  {c.sourceType === 'DEPOSIT' ? 'Nạp tiền' : 'Mua gói'}
-                                </span>
-                              </td>
-                              <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: 'var(--text-secondary)' }}>{formatVnd(c.orderAmount)}</td>
-                              <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700, color: '#3b82f6' }}>{c.rate}%</td>
-                              <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 900, color: '#22c55e' }}>+{formatVnd(c.commissionAmount)}</td>
-                              <td style={{ padding: '8px 10px', color: 'var(--text-muted)', fontSize: 11 }}>{new Date(c.createdAt).toLocaleString('vi-VN')}</td>
-                            </tr>
+                            <div
+                              key={c.id}
+                              style={{
+                                background: 'var(--bg-primary)',
+                                border: '1px solid var(--border-color)',
+                                borderRadius: 12,
+                                padding: 12,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 8,
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontWeight: 800, color: 'var(--accent)', fontSize: 13 }}>#{c.code}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span style={{ padding: '2px 6px', borderRadius: 4, background: c.sourceType === 'DEPOSIT' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(168, 85, 247, 0.15)', color: c.sourceType === 'DEPOSIT' ? '#818cf8' : '#c084fc', fontSize: 10, fontWeight: 700 }}>
+                                    {c.sourceType === 'DEPOSIT' ? 'Nạp tiền' : 'Mua gói'}
+                                  </span>
+                                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{new Date(c.createdAt).toLocaleDateString('vi-VN')}</span>
+                                </div>
+                              </div>
+
+                              <div style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, wordBreak: 'break-all' }}>
+                                <User size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                                <span>{c.buyerEmail}</span>
+                              </div>
+
+                              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                  <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>F1 nạp/mua ({c.rate}%):</div>
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>{formatVnd(c.orderAmount)}</div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                  <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Hoa hồng:</div>
+                                  <div style={{ fontSize: 14, fontWeight: 900, color: '#22c55e' }}>+{formatVnd(c.commissionAmount)}</div>
+                                </div>
+                              </div>
+                            </div>
                           ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {/* Footer Modal Actions */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: 14, marginTop: 4 }}>
@@ -889,18 +997,19 @@ export const AdminAffiliatePayoutsView: React.FC<AdminAffiliatePayoutsViewProps>
               </div>
             ) : null}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ACTION CONFIRMATION MODAL */}
-      {selectedPayout && actionType && (
+      {selectedPayout && actionType && mounted && createPortal(
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 9999,
-            background: 'rgba(0,0,0,0.75)',
-            backdropFilter: 'blur(6px)',
+            zIndex: 99999999,
+            background: 'rgba(0,0,0,0.85)',
+            backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1010,7 +1119,8 @@ export const AdminAffiliatePayoutsView: React.FC<AdminAffiliatePayoutsViewProps>
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
