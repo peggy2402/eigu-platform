@@ -1550,6 +1550,47 @@ Nhằm trả lời câu hỏi cốt lõi của Admin: *"Lí do tôi phê duyệt
 - **Typecheck Toàn Bộ Monorepo**: `npx tsc --noEmit -p apps/api/tsconfig.app.json && npx tsc --noEmit -p apps/web/tsconfig.json && npx tsc --noEmit -p apps/desktop/tsconfig.app.json` $\rightarrow$ `✓ 0 error`.
 - **Git Branch Management**: Đã merge toàn bộ thay đổi từ nhánh `developer` vào nhánh `main` và push lên GitHub repository (`https://github.com/peggy2402/eigu-platform.git`).
 
+---
+
+## 41. Phiên làm việc 20/08/2026 — Thiết kế nút Liquid Glass & Nâng cấp Modal Audit Trail 2-Tab Responsive
+
+### 41.1 Tái Thiết Kế Nút Bấm Phong Cách Liquid Glass & Tự Định Nghĩa `.btn-primary`
+1. **Lỗi nút mặc định (Default Unstyled Button Fix)**:
+   - Phát hiện lớp `.btn-primary` sử dụng trong các component nhưng chưa được định nghĩa trong `global.css`, dẫn đến trình duyệt hiển thị nút vuông phẳng mặc định (`#f0f0f0` với chữ đen).
+2. **Nâng cấp chuẩn Liquid Glass (Glassmorphism Thủy Tinh Lỏng)**:
+   - Đã bổ sung bộ quy tắc CSS chuẩn cho `.btn-primary` và `.btn-liquid-glass` tại [global.css](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/app/global.css):
+     - **Hiệu ứng Thủy tinh mờ**: `backdrop-filter: blur(16px) saturate(180%)`.
+     - **Gradient Accent**: Kết hợp gradient chuyển màu linh hoạt theo theme season (`linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%)`).
+     - **Phản quang mép trên**: `border-top: 1px solid rgba(255, 255, 255, 0.6)` cùng đổ bóng nội viền `inset 0 1px 2px rgba(255, 255, 255, 0.5)`.
+     - **Hiệu ứng Vệt sáng lướt qua (Liquid Sheen Sweep)**: Tích hợp `::before` tự động tạo dải sáng lướt qua bề mặt nút khi hover.
+     - **Micro-animations**: Nâng nhẹ nút khi hover (`translateY(-2px)`) và nhấn lún chân thực khi active (`scale(0.98)`).
+     - **Loading State**: Tích hợp icon xoay `RefreshCw` với cờ hiệu `@keyframes spin` cho nút "Gửi Tin Nhắn" khi đang submit form liên hệ.
+
+---
+
+### 41.2 Chuẩn Hóa Hiệu Ứng Viền Sáng Tab Tiếp Thị Liên Kết (Affiliate Tabs)
+1. **Khắc phục lỗi xén mép trên (Top Border Clipping Fix)**:
+   - Thêm `padding: '6px 4px 14px 4px'` cho container tab có cờ `overflow-x: auto` trong [AffiliateView.tsx](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/components/affiliate/AffiliateView.tsx), ngăn chặn tình trạng mép trên viền 1px bị xén đứt.
+2. **Cơ chế Viền Sáng khi Hover (Hover-Only Border Glow)**:
+   - Định nghĩa bộ lớp `.affiliate-tab-btn` và `.affiliate-tab-btn-admin` đồng bộ cho toàn bộ 5 tab: **Thành viên**, **Lịch sử hoa hồng**, **Lịch sử rút tiền**, **Cài đặt ngân hàng**, và **Quản lý đơn rút (Admin)**.
+   - Ở trạng thái tĩnh: Giữ nguyên màu sắc chuẩn thanh lịch, không bị sáng chói.
+   - Khi hover vào nút: Viền bật sáng màu rực rỡ (`var(--accent)` hoặc `#facc15` vàng hoàng gia cho Admin) cùng dải hào quang đổ bóng phát sáng `box-shadow: 0 0 16px rgba(234, 179, 8, 0.6)`.
+
+---
+
+### 41.3 Nâng Cấp Modal Audit Trail (Bằng Chứng & Nguồn Gốc Dòng Tiền) 2-Tab Responsive & React Portal
+1. **Tách Cấu Trúc 2 Tab (2-Tab Modal Layout)**:
+   - **Tab 1: 1. Thông Tin Chung**: Tập trung hiển thị người rút, số tiền rút/phí/thực nhận, tổng tiền F1 nạp thực tế và Thẻ đánh giá an toàn dòng tiền (`✓ XÁC MINH DÒNG TIỀN: HỢP LỆ`).
+   - **Tab 2: 2. Chi Tiết Đơn Hàng F1**: Chuyên biệt hiển thị danh sách các đơn hàng F1 đã nạp/mua tạo ra hoa hồng.
+2. **Mobile Responsive Card List**:
+   - Trên Desktop: Hiển thị bảng dạng cột truyền thống (`hidden md:block`).
+   - Trên Mobile: Tự động chuyển đổi thành danh sách các Thẻ (`block md:hidden`) có đầy đủ Mã HH, Loại nguồn (Nạp tiền/Mua gói), Email F1 và Số tiền hoa hồng tạo ra nổi bật màu xanh lá.
+3. **Phủ Đè 100% Lên Trên Header bằng React `createPortal`**:
+   - Chuyển Modal sang cơ chế `createPortal(modalJSX, document.body)` trong [AdminAffiliatePayoutsView.tsx](file:///e:/EIGU_PLATFORM/eigu-platform/apps/web/src/components/affiliate/AdminAffiliatePayoutsView.tsx), đưa Modal trực tiếp ra gốc `<body>`.
+   - Kết hợp `zIndex: 9999999` cùng lớp nền mờ `backdrop-filter: blur(12px)` giúp Modal đè lên trên toàn bộ thanh Navbar Header và các nút floating AI.
+4. **Nút "← Quay lại" ở Góc Trên Bên Trái**:
+   - Bổ sung nút **`← Quay lại`** (`ArrowLeft` icon) ở phía trên bên trái header của Modal, giúp quản trị viên hoặc người dùng bấm đóng bảng tra cứu cực kỳ nhanh chóng.
+
 
 
 
