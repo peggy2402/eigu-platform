@@ -1924,14 +1924,18 @@ export default function Home({ initialPath }: { initialPath?: string } = {}) {
                     type="submit"
                     disabled={contactLoading}
                     className="btn-primary"
-                    style={{ width: '100%', padding: '14px 20px', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: contactLoading ? 'not-allowed' : 'pointer', opacity: contactLoading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+                    style={{ width: '100%', padding: '14px 20px', borderRadius: 12, fontSize: 15, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
                   >
                     <span>
                       {contactLoading
                         ? (language === 'en' ? 'Sending Request...' : 'Đang Gửi Yêu Cầu...')
                         : (language === 'en' ? 'Send Message' : 'Gửi Tin Nhắn')}
                     </span>
-                    <ArrowRight size={18} />
+                    {contactLoading ? (
+                      <RefreshCw size={18} className="animate-spin" />
+                    ) : (
+                      <ArrowRight size={18} />
+                    )}
                   </button>
                 </form>
               </div>

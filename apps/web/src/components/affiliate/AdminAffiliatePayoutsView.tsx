@@ -358,7 +358,7 @@ export const AdminAffiliatePayoutsView: React.FC<AdminAffiliatePayoutsViewProps>
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 16, padding: '16px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
           {/* Status Filter Buttons */}
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', overflowX: 'auto', padding: '4px 2px', WebkitOverflowScrolling: 'touch' }}>
             {[
               { id: 'PENDING', label: 'Chờ Duyệt' },
               { id: 'APPROVED', label: 'Đã Duyệt' },
@@ -371,17 +371,8 @@ export const AdminAffiliatePayoutsView: React.FC<AdminAffiliatePayoutsViewProps>
                   setStatusFilter(f.id);
                   setPage(1);
                 }}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 8,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  background: statusFilter === f.id ? 'rgba(234, 179, 8, 0.2)' : 'transparent',
-                  color: statusFilter === f.id ? '#eab308' : 'var(--text-secondary)',
-                }}
+                className={`affiliate-tab-btn-admin ${statusFilter === f.id ? 'active' : ''}`}
+                style={{ padding: '5px 12px', fontSize: 11, borderRadius: 8 }}
               >
                 {f.label}
               </button>

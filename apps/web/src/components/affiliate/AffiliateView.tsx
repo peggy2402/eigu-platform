@@ -730,7 +730,7 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
             alignItems: 'center',
             gap: 8,
             borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))',
-            paddingBottom: 12,
+            padding: '6px 4px 14px 4px',
             marginBottom: 20,
             overflowX: 'auto',
             whiteSpace: 'nowrap',
@@ -740,84 +740,28 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
         >
           <button
             onClick={() => setActiveTab('referrals')}
-            style={{
-              flexShrink: 0,
-              padding: '8px 14px',
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 700,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: activeTab === 'referrals' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-              color: activeTab === 'referrals' ? 'var(--accent, #6366f1)' : 'var(--text-secondary)',
-              transition: 'all 0.2s ease',
-            }}
+            className={`affiliate-tab-btn ${activeTab === 'referrals' ? 'active' : ''}`}
           >
             <Users size={15} /> Thành Viên ({stats?.referredCount || 0})
           </button>
 
           <button
             onClick={() => setActiveTab('commissions')}
-            style={{
-              flexShrink: 0,
-              padding: '8px 14px',
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 700,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: activeTab === 'commissions' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-              color: activeTab === 'commissions' ? 'var(--accent, #6366f1)' : 'var(--text-secondary)',
-              transition: 'all 0.2s ease',
-            }}
+            className={`affiliate-tab-btn ${activeTab === 'commissions' ? 'active' : ''}`}
           >
             <TrendingUp size={15} /> Lịch Sử Hoa Hồng
           </button>
 
           <button
             onClick={() => setActiveTab('payouts')}
-            style={{
-              flexShrink: 0,
-              padding: '8px 14px',
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 700,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: activeTab === 'payouts' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-              color: activeTab === 'payouts' ? 'var(--accent, #6366f1)' : 'var(--text-secondary)',
-              transition: 'all 0.2s ease',
-            }}
+            className={`affiliate-tab-btn ${activeTab === 'payouts' ? 'active' : ''}`}
           >
             <Clock size={15} /> Lịch Sử Rút Tiền
           </button>
 
           <button
             onClick={() => setActiveTab('bank')}
-            style={{
-              flexShrink: 0,
-              padding: '8px 14px',
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 700,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: activeTab === 'bank' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-              color: activeTab === 'bank' ? 'var(--accent, #6366f1)' : 'var(--text-secondary)',
-              transition: 'all 0.2s ease',
-            }}
+            className={`affiliate-tab-btn ${activeTab === 'bank' ? 'active' : ''}`}
           >
             <CreditCard size={15} /> Cài Đặt Ngân Hàng
           </button>
@@ -825,21 +769,7 @@ export const AffiliateView: React.FC<AffiliateViewProps> = ({ token, userRole, l
           {isAdmin && (
             <button
               onClick={() => setActiveTab('admin-payouts')}
-              style={{
-                flexShrink: 0,
-                padding: '8px 14px',
-                borderRadius: 10,
-                fontSize: 13,
-                fontWeight: 700,
-                border: '1px solid rgba(234, 179, 8, 0.35)',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                background: activeTab === 'admin-payouts' ? 'rgba(234, 179, 8, 0.22)' : 'rgba(234, 179, 8, 0.08)',
-                color: '#eab308',
-                transition: 'all 0.2s ease',
-              }}
+              className={`affiliate-tab-btn-admin ${activeTab === 'admin-payouts' ? 'active' : ''}`}
             >
               <ShieldCheck size={15} /> Quản Lý Đơn Rút <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 4, background: 'rgba(234, 179, 8, 0.25)', fontWeight: 800 }}>Admin</span>
             </button>

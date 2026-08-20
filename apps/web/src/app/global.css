@@ -2584,6 +2584,196 @@ input[type="submit"]:active {
   box-shadow: none !important;
 }
 
+/* Base & Primary Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+  font-weight: 700;
+  outline: none;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary,
+.btn-liquid-glass {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(255, 255, 255, 0.05) 45%,
+    var(--accent-glow) 100%
+  ), var(--accent) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-top-color: rgba(255, 255, 255, 0.6) !important;
+  border-left-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 6px 0 rgba(0, 0, 0, 0.35),
+    0 6px 20px -2px var(--accent-glow),
+    0 10px 30px 0 rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer;
+  outline: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+/* Liquid Sheen Shine Sweep */
+.btn-primary::before,
+.btn-liquid-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  transition: all 0.75s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.btn-primary:hover:not(:disabled)::before,
+.btn-liquid-glass:hover:not(:disabled)::before {
+  left: 150%;
+}
+
+.btn-primary:hover:not(:disabled),
+.btn-liquid-glass:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.01) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.1) 45%,
+    var(--accent-glow) 100%
+  ), var(--accent-hover) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  border-top-color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 
+    inset 0 1px 3px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 8px 0 rgba(0, 0, 0, 0.4),
+    0 10px 28px -2px var(--accent-glow),
+    0 14px 40px 0 rgba(0, 0, 0, 0.35) !important;
+  filter: brightness(1.08) !important;
+}
+
+.btn-primary:active:not(:disabled),
+.btn-liquid-glass:active:not(:disabled) {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 
+    inset 0 1px 2px 0 rgba(0, 0, 0, 0.4),
+    0 4px 12px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+.btn-primary:disabled,
+.btn-liquid-glass:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Affiliate Tab Buttons - Glowing Border on Hover */
+.affiliate-tab-btn {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.03));
+  color: var(--text-secondary);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+
+.affiliate-tab-btn:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: var(--accent-glow, rgba(245, 158, 11, 0.12)) !important;
+  box-shadow: 0 0 12px var(--accent-glow), inset 0 0 8px var(--accent-glow) !important;
+}
+
+.affiliate-tab-btn.active {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: var(--accent-glow, rgba(245, 158, 11, 0.2)) !important;
+  box-shadow: none;
+}
+
+.affiliate-tab-btn.active:hover {
+  box-shadow: 0 0 14px var(--accent-glow), inset 0 0 8px var(--accent-glow) !important;
+}
+
+/* Admin Affiliate Tab Button (Quản lý đơn rút) */
+.affiliate-tab-btn-admin {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(234, 179, 8, 0.08);
+  color: #eab308;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+
+.affiliate-tab-btn-admin.active {
+  border-color: rgba(234, 179, 8, 0.5) !important;
+  color: #eab308 !important;
+  background: rgba(234, 179, 8, 0.22) !important;
+  box-shadow: none;
+}
+
+.affiliate-tab-btn-admin:hover,
+.affiliate-tab-btn-admin.active:hover {
+  border-color: #facc15 !important;
+  color: #facc15 !important;
+  background: rgba(234, 179, 8, 0.25) !important;
+  box-shadow: 0 0 16px rgba(234, 179, 8, 0.6), inset 0 0 8px rgba(234, 179, 8, 0.25) !important;
+}
+
 /* Nút Tải xuống Chính (Windows - Dynamic Season Accent Gradient) */
 .btn-primary-download {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
